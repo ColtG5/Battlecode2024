@@ -18,12 +18,8 @@ public strictfp class RobotPlayer {
      */
     static int turnCount = 0;
 
-    /**
-     * A random number generator.
-     * We will use this RNG to make some random moves. The Random class is provided by the java.util.Random
-     * import at the top of this file. Here, we *seed* the RNG with a constant number (6147); this makes sure
-     * we get the same sequence of numbers every time this code is run. This is very useful for debugging!
-     */
+    static int localID;
+
     static final Random rng = new Random(6147);
 
     /** Array containing all the possible movement directions. */
@@ -37,6 +33,13 @@ public strictfp class RobotPlayer {
         Direction.WEST,
         Direction.NORTHWEST,
     };
+
+    /**
+     * SHARED ARRAY
+     * [0,  1,  2,  3,  4,  5,  6,  7,  8, ...]
+     * id
+     *
+     */
 
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
@@ -56,12 +59,13 @@ public strictfp class RobotPlayer {
             try {
                 if (!rc.isSpawned()) {
                     MapLocation[] spawnLocs = rc.getAllySpawnLocations();
-//                    // Pick a random spawn location to attempt spawning in.
-//                    MapLocation randomLoc = spawnLocs[rng.nextInt(spawnLocs.length)];
-//                    if (rc.canSpawn(randomLoc)) rc.spawn(randomLoc);
                     for (MapLocation loc : spawnLocs) {
                         if (rc.canSpawn(loc)) {
                             rc.spawn(loc);
+                            int currentID = rc.readSharedArray(0);
+                            localID = ++currentID;
+                            rc.setIndicatorString("I am robot #" + localID);
+                            rc.writeSharedArray(0, currentID);
                             break;
                         }
                     }
