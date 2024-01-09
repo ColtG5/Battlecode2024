@@ -40,6 +40,31 @@ public strictfp class Movement {
         }
         return false;
     }
+    static MapLocation priorLocation;
 
 
+    public boolean hardMove(MapLocation mapLocation) throws GameActionException {
+        Direction originalDir = rc.getLocation().directionTo(mapLocation);
+        MapInfo mapInfo=rc.senseMapInfo(rc.getLocation().add(originalDir));
+        if(mapInfo.isPassable() && originalDir != priorLocation.directionTo(rc.getLocation()).opposite()){
+            if(simpleMove(mapInfo.getMapLocation())){
+                priorLocation=mapInfo.getMapLocation();
+                if(rc.getLocation() == mapLocation){
+                    priorLocation=null;
+                }
+                return true;
+            }
+            else{
+                return false;
+            }
+
+        }
+        else{
+            //make rc follow impassable terrain
+            Direction direction =priorLocation.directionTo(rc.getLocation());
+
+
+        }
+        return false;
+    }
 }
