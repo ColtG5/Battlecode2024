@@ -83,12 +83,22 @@ public strictfp class RobotPlayer {
                     // try moving to the closest enemy and attacking closest enemy
                     MapLocation closestEnemy = findClosestEnemy(rc);
                     if (closestEnemy != null) {
-                        // try moving closer to the enemy duck
-                        movement.simpleMove(closestEnemy);
-                        // try attacking the closest duck to you
-                        while (rc.canAttack(closestEnemy)) {
-                            rc.attack(closestEnemy);
-                            rc.setIndicatorString("smacked a lil bih" + closestEnemy.toString());
+                        // if have enough health to attack, attack, otherwise move away and try to heal
+                        if (rc.getHealth() >= 500) {
+                            // try moving closer to the enemy duck
+                            movement.simpleMove(closestEnemy);
+                            // try attacking the closest duck to you
+                            while (rc.canAttack(closestEnemy)) {
+                                rc.attack(closestEnemy);
+                                rc.setIndicatorString("smacked a lil bih" + closestEnemy.toString());
+                            }
+                        } else {
+                            // try moving away from the enemy duck
+                            movement.simpleMove(rc.getLocation().subtract(rc.getLocation().directionTo(closestEnemy)));
+                            // try healing
+                            if (rc.canHeal(rc.getLocation())) {
+                                rc.heal(rc.getLocation());
+                            }
                         }
                     }
 
@@ -171,10 +181,24 @@ public strictfp class RobotPlayer {
                     Direction dir = directions[rng.nextInt(directions.length)];
                     movement.simpleMove(rc.getLocation().add(dir));
 
+                    // if have action at end of turn, and not full health, why not heal
+                    if (rc.getActionCooldownTurns() < GameConstants.COOLDOWN_LIMIT) {
+                        if (rc.getHealth() < 1000 && rc.canHeal(rc.getLocation())) rc.heal(rc.getLocation());
+                        else {
+                            RobotInfo[] teammies = rc.senseNearbyRobots(-1, rc.getTeam());
+                            for (RobotInfo teammie : teammies) {
+                                if (rc.getHealth() < 1000 && rc.canHeal(teammie.getLocation())) rc.heal(teammie.getLocation());
+                            }
+                        }
+                    }
+
                     // Rarely attempt placing random traps
                     MapLocation prevLoc = rc.getLocation().subtract(dir);
-                    if (rc.canBuild(TrapType.EXPLOSIVE, prevLoc) && rng.nextInt() % 37 == 1)
+                    if (rc.canBuild(TrapType.EXPLOSIVE, prevLoc) && rng.nextInt() % 42 == 1)
                         rc.build(TrapType.EXPLOSIVE, prevLoc);
+
+                    // debugging
+//                    rc.setIndicatorString(rc.getActionCooldownTurns() + " ||| " + rc.canDig(rc.getLocation().add(Direction.NORTH)) + " | " + rc.canFill(rc.getLocation().add(Direction.NORTH)));
                 }
 
             } catch (GameActionException e) {
