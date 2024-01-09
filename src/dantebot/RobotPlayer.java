@@ -77,31 +77,31 @@ public strictfp class RobotPlayer {
                     // TRYING TO MAKE THEM GO BAND FOR BAND
                     MapLocation me = rc.getLocation();
                     MapInfo[] mapInfo = rc.senseNearbyMapInfos(rc.getLocation(), GameConstants.VISION_RADIUS_SQUARED);
-                    // List to hold crums in the current vision of the duck
-                    ArrayList<MapLocation> crumLocs = new ArrayList<>();
+                    // List to hold crumbs in the current vision of the duck
+                    ArrayList<MapLocation> crumbsLocations = new ArrayList<>();
 
                     // Loop over locations in the vision of the duck, and add the
-                    // crums to the crumsLocs
+                    // crumbs to the crumbsLocations
                     for (MapInfo info : mapInfo) {
                         if (info.getCrumbs() != 0 ) {
-                            crumLocs.add(info.getMapLocation());
+                            crumbsLocations.add(info.getMapLocation());
                         }
                     }
                     // Check if not empty cause error
-                    if (!crumLocs.isEmpty()) {
-                        // Find closest crum
-                        MapLocation closestCrum = crumLocs.get(0);
-                        for (MapLocation crumLoc : crumLocs) {
-                            if (me.distanceSquaredTo(crumLoc) < me.distanceSquaredTo(closestCrum)) {
-                                closestCrum = crumLoc;
+                    if (!crumbsLocations.isEmpty()) {
+                        // Find closest crumb
+                        MapLocation closestCrumbs = crumbsLocations.get(0);
+                        for (MapLocation crumb : crumbsLocations) {
+                            if (me.distanceSquaredTo(crumb) < me.distanceSquaredTo(closestCrumbs)) {
+                                closestCrumbs = crumb;
                             }
                         }
-                        rc.setIndicatorString("Closest crum: " + closestCrum);
+                        rc.setIndicatorString("Closest crumbs: " + closestCrumbs);
 
                         // Move towards that crum
-                        Direction dirForCrum = me.directionTo(closestCrum);
-                        me.add(dirForCrum);
-                        if (rc.canMove(dirForCrum)) rc.move(dirForCrum);
+                        Direction dirForCrumbs = me.directionTo(closestCrumbs);
+                        me.add(dirForCrumbs);
+                        if (rc.canMove(dirForCrumbs)) rc.move(dirForCrumbs);
                     }
 
                     if (rc.canPickupFlag(rc.getLocation())){
