@@ -78,8 +78,8 @@ public strictfp class RobotPlayer {
                     if (closestEnemy != null) {
 //                        rc.setIndicatorString("there is a closest enemy");
                         // try moving closer to the enemy duck
-                        Direction dir = rc.getLocation().directionTo(closestEnemy);
-                        movement.simpleMove(dir);
+
+                        movement.simpleMove(closestEnemy);
                         // try attacking the closest duck to you
                         while (rc.canAttack(closestEnemy)) {
                             rc.attack(closestEnemy);
@@ -100,14 +100,13 @@ public strictfp class RobotPlayer {
                             }
                         }
                         if (closestCrumb != null) {
-                            Direction dir = rc.getLocation().directionTo(closestCrumb);
-                            movement.simpleMove(dir);
+                            movement.simpleMove(closestCrumb);
                         }
                     }
 
                     // if can move at end of turn, just move randomly (for now!!!)
                     Direction dir = directions[rng.nextInt(directions.length)];
-                    movement.simpleMove(dir);
+                    movement.simpleMove(rc.getLocation().add(dir));
 
                     // Rarely attempt placing random traps
                     MapLocation prevLoc = rc.getLocation().subtract(dir);

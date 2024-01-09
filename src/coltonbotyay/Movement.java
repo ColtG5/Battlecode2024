@@ -8,7 +8,8 @@ public strictfp class Movement {
         this.rc = rc;
     }
 
-    public boolean simpleMove(Direction dir) throws GameActionException {
+    public boolean simpleMove(MapLocation mapLocation) throws GameActionException {
+        Direction dir = rc.getLocation().directionTo(mapLocation);
         if (rc.canMove(dir)) {
             rc.move(dir);
             return true;
@@ -25,6 +26,20 @@ public strictfp class Movement {
             rc.move(dir.rotateRight().rotateRight());
             return true;
         }
+        else if(rc.canMove(dir.rotateLeft().rotateLeft().rotateLeft())){
+            rc.move(dir.rotateLeft().rotateLeft().rotateLeft());
+            return true;
+        }
+        else if(rc.canMove(dir.rotateRight().rotateRight().rotateRight())){
+            rc.move(dir.rotateRight().rotateRight().rotateRight());
+            return true;
+        }
+        else if(rc.canMove(dir.opposite())){
+            rc.move(dir.opposite());
+            return true;
+        }
         return false;
     }
+
+
 }
