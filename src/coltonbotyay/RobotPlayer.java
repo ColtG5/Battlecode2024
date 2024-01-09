@@ -71,15 +71,13 @@ public strictfp class RobotPlayer {
                     }
                 }
                 else {
+                    // try moving to the closest enemy and attacking closest enemy
                     MapLocation closestEnemy = findClosestEnemy(rc);
                     if (closestEnemy != null) {
 //                        rc.setIndicatorString("there is a closest enemy");
                         // try moving closer to the enemy duck
                         Direction dir = rc.getLocation().directionTo(closestEnemy);
-                        if (rc.canMove(dir)) {
-                            rc.move(dir);
-//                            rc.setIndicatorString("moved towards enemy");
-                        }
+                        simpleMove(rc, dir);
                         // try attacking the closest duck to you
                         while (rc.canAttack(closestEnemy)) {
                             rc.attack(closestEnemy);
@@ -88,6 +86,7 @@ public strictfp class RobotPlayer {
                         }
                     }
 
+                    // try to grab a close crumb
                     MapLocation[] potentialCrumbs = rc.senseNearbyCrumbs(-1);
                     if (potentialCrumbs.length != 0) {
                         MapLocation closestCrumb = null;
@@ -100,18 +99,13 @@ public strictfp class RobotPlayer {
                         }
                         if (closestCrumb != null) {
                             Direction dir = rc.getLocation().directionTo(closestCrumb);
-                            if (rc.canMove(dir)) {
-                                rc.move(dir);
-                            }
+                            simpleMove(rc, dir);
                         }
                     }
 
                     // if can move at end of turn, just move randomly (for now!!!)
                     Direction dir = directions[rng.nextInt(directions.length)];
-                    if (rc.canMove(dir)) {
-                        rc.move(dir);
-//                        rc.setIndicatorString("moved randomly");
-                    }
+                    simpleMove(rc, dir);
 
                     // Rarely attempt placing random traps
                     MapLocation prevLoc = rc.getLocation().subtract(dir);
@@ -140,6 +134,26 @@ public strictfp class RobotPlayer {
             // End of loop: go back to the top. Clock.yield() has ended, so it's time for another turn!
         }
         // Your code should never reach here (unless it's intentional)! Self-destruction imminent...
+    }
+
+    public static boolean simpleMove(RobotController rc, Direction dir) throws GameActionException {
+    	if (rc.canMove(dir)) {
+    		rc.move(dir);
+    		return true;
+    	} else if (rc.canMove(dir.rotateLeft())) {
+            rc.move(dir.rotateLeft());
+            return true;
+        } else if (rc.canMove(dir.rotateRight())) {
+            rc.move(dir.rotateRight());
+            return true;
+        } else if (rc.canMove(dir.rotateLeft().rotateLeft())) {
+            rc.move(dir.rotateLeft().rotateLeft());
+            return true;
+        } else if (rc.canMove(dir.rotateRight().rotateRight())) {
+            rc.move(dir.rotateRight().rotateRight());
+            return true;
+        }
+    	return false;
     }
 
     public static MapLocation[] findEnemies(RobotController rc) throws GameActionException{
