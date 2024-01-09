@@ -67,33 +67,15 @@ public strictfp class RobotPlayer {
                     int currentID = rc.readSharedArray(0);
                     localID = ++currentID;
                     rc.writeSharedArray(0, localID); // change the shared array ID so next duck gets incremented ID
-                    rc.writeSharedArray(localID, rc.getID()); // write your actual ID into array index of your
+//                    rc.writeSharedArray(localID, rc.getID()); // write your actual ID into array index of your
 
                     if (localID == 50) {
-                        int[] arr = new int[50];
-                        for (int i = 0; i < 50; i++) {
-//                            System.out.println(Arrays.toString(arr));
-                            arr[i] = rc.readSharedArray(i+1);
-                        }
-                        System.out.println(Arrays.toString(arr));
-
-                        rc.writeSharedArray(0, 0);
-                    }
-                }
-
-                if (rc.getRoundNum() == 2 || rc.getRoundNum() == 3 || rc.getRoundNum() == 50 || rc.getRoundNum() == 900) {
-                    int indexZeroNum = rc.readSharedArray(0);
-                    indexZeroNum++;
-                    rc.writeSharedArray(0, indexZeroNum);
-                    rc.writeSharedArray(localID, indexZeroNum);
-
-                    if (localID == 50) {
-                        int[] arr = new int[50];
-                        for (int i = 0; i < 50; i++) {
-//                            System.out.println(Arrays.toString(arr));
-                            arr[i] = rc.readSharedArray(i+1);
-                        }
-                        System.out.println(Arrays.toString(arr));
+//                        int[] arr = new int[50];
+//                        for (int i = 0; i < 50; i++) {
+////                            System.out.println(Arrays.toString(arr));
+//                            arr[i] = rc.readSharedArray(i+1);
+//                        }
+//                        System.out.println(Arrays.toString(arr));
 
                         rc.writeSharedArray(0, 0);
                     }
