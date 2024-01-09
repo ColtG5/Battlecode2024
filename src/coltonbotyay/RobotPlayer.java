@@ -88,6 +88,24 @@ public strictfp class RobotPlayer {
                         }
                     }
 
+                    MapLocation[] potentialCrumbs = rc.senseNearbyCrumbs(-1);
+                    if (potentialCrumbs.length != 0) {
+                        MapLocation closestCrumb = null;
+                        for (MapLocation crumb : potentialCrumbs) {
+                            if (closestCrumb == null) {
+                                closestCrumb = crumb;
+                            } else if (rc.getLocation().distanceSquaredTo(crumb) < rc.getLocation().distanceSquaredTo(closestCrumb)) {
+                                closestCrumb = crumb;
+                            }
+                        }
+                        if (closestCrumb != null) {
+                            Direction dir = rc.getLocation().directionTo(closestCrumb);
+                            if (rc.canMove(dir)) {
+                                rc.move(dir);
+                            }
+                        }
+                    }
+
                     // if can move at end of turn, just move randomly (for now!!!)
                     Direction dir = directions[rng.nextInt(directions.length)];
                     if (rc.canMove(dir)) {
