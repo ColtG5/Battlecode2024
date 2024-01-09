@@ -48,61 +48,47 @@ public strictfp class RobotPlayer {
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
 
-        // Hello world! Standard output is very useful for debugging.
-        // Everything you say here will be directly viewable in your terminal when you run a match!
         System.out.println("I'm alive");
-
-        // You can also use indicators to save debug notes in replays.
         rc.setIndicatorString("Hello world!");
 
         while (true) {
-            // This code runs during the entire lifespan of the robot, which is why it is in an infinite
-            // loop. If we ever leave this loop and return from run(), the robot dies! At the end of the
-            // loop, we call Clock.yield(), signifying that we've done everything we want to do.
-
             turnCount += 1;  // We have now been alive for one more turn!
-
-            // Try/catch blocks stop unhandled exceptions, which cause your robot to explode.
             try {
-                // Make sure you spawn your robot in before you attempt to take any actions!
-                // Robots not spawned in do not have vision of any tiles and cannot perform any actions.
-                if (!rc.isSpawned()){
+                if (!rc.isSpawned()) {
                     MapLocation[] spawnLocs = rc.getAllySpawnLocations();
                     // Pick a random spawn location to attempt spawning in.
                     MapLocation randomLoc = spawnLocs[rng.nextInt(spawnLocs.length)];
                     if (rc.canSpawn(randomLoc)) rc.spawn(randomLoc);
                 }
-                else{
-                    if (rc.canPickupFlag(rc.getLocation())){
-                        rc.pickupFlag(rc.getLocation());
-                        rc.setIndicatorString("Holding a flag!");
-                    }
-                    // If we are holding an enemy flag, singularly focus on moving towards
-                    // an ally spawn zone to capture it! We use the check roundNum >= SETUP_ROUNDS
-                    // to make sure setup phase has ended.
-                    if (rc.hasFlag() && rc.getRoundNum() >= GameConstants.SETUP_ROUNDS){
-                        MapLocation[] spawnLocs = rc.getAllySpawnLocations();
-                        MapLocation firstLoc = spawnLocs[0];
-                        Direction dir = rc.getLocation().directionTo(firstLoc);
-                        if (rc.canMove(dir)) rc.move(dir);
-                    }
-                    // Move and attack randomly if no objective.
-                    Direction dir = directions[rng.nextInt(directions.length)];
-                    MapLocation nextLoc = rc.getLocation().add(dir);
-                    if (rc.canMove(dir)){
-                        rc.move(dir);
-                    }
-                    else if (rc.canAttack(nextLoc)){
-                        rc.attack(nextLoc);
-                        System.out.println("Take that! Damaged an enemy that was in our way!");
+                else {
+                    MapLocation closestEnemy = findClosestEnemy(rc);
+                    if (closestEnemy != null) {
+//                        rc.setIndicatorString("there is a closest enemy");
+                        // try moving closer to the enemy duck
+                        Direction dir = rc.getLocation().directionTo(closestEnemy);
+                        if (rc.canMove(dir)) {
+                            rc.move(dir);
+//                            rc.setIndicatorString("moved towards enemy");
+                        }
+                        // try attacking the closest duck to you
+                        while (rc.canAttack(closestEnemy)) {
+                            rc.attack(closestEnemy);
+//                            System.out.println("smacked that lil bih" + closestEnemy.toString());
+                            rc.setIndicatorString("smacked a lil bih" + closestEnemy.toString());
+                        }
                     }
 
-                    // Rarely attempt placing traps behind the robot.
+                    // if can move at end of turn, just move randomly (for now!!!)
+                    Direction dir = directions[rng.nextInt(directions.length)];
+                    if (rc.canMove(dir)) {
+                        rc.move(dir);
+//                        rc.setIndicatorString("moved randomly");
+                    }
+
+                    // Rarely attempt placing random traps
                     MapLocation prevLoc = rc.getLocation().subtract(dir);
                     if (rc.canBuild(TrapType.EXPLOSIVE, prevLoc) && rng.nextInt() % 37 == 1)
                         rc.build(TrapType.EXPLOSIVE, prevLoc);
-                    // We can also move our code into different methods or classes to better organize it!
-                    updateEnemyRobots(rc);
                 }
 
             } catch (GameActionException e) {
@@ -125,25 +111,38 @@ public strictfp class RobotPlayer {
             }
             // End of loop: go back to the top. Clock.yield() has ended, so it's time for another turn!
         }
-
         // Your code should never reach here (unless it's intentional)! Self-destruction imminent...
     }
-    public static void updateEnemyRobots(RobotController rc) throws GameActionException{
-        // Sensing methods can be passed in a radius of -1 to automatically 
-        // use the largest possible value.
-        RobotInfo[] enemyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        if (enemyRobots.length != 0){
+
+    public static MapLocation[] findEnemies(RobotController rc) throws GameActionException{
+    	RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        MapLocation[] enemyLocations;
+        if (enemies.length != 0) {
+    		rc.setIndicatorString("There are nearby enemy robots! Scary!");
+    		enemyLocations = new MapLocation[enemies.length];
+    		for (int i = 0; i < enemies.length; i++) {
+    			enemyLocations[i] = enemies[i].getLocation();
+    		}
+            return enemyLocations;
+    	}
+        return null;
+    }
+
+    public static MapLocation findClosestEnemy(RobotController rc) throws GameActionException {
+    	RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        MapLocation closestEnemy = null;
+        if (enemies.length != 0) {
             rc.setIndicatorString("There are nearby enemy robots! Scary!");
-            // Save an array of locations with enemy robots in them for future use.
-            MapLocation[] enemyLocations = new MapLocation[enemyRobots.length];
-            for (int i = 0; i < enemyRobots.length; i++){
-                enemyLocations[i] = enemyRobots[i].getLocation();
-            }
-            // Let the rest of our team know how many enemy robots we see!
-            if (rc.canWriteSharedArray(0, enemyRobots.length)){
-                rc.writeSharedArray(0, enemyRobots.length);
-                int numEnemies = rc.readSharedArray(0);
+            for (RobotInfo enemy : enemies) {
+                MapLocation enemyLoc = enemy.getLocation();
+                if (closestEnemy == null) {
+                    closestEnemy = enemyLoc;
+                }
+                else if (rc.getLocation().distanceSquaredTo(enemyLoc) < rc.getLocation().distanceSquaredTo(closestEnemy)) {
+                    closestEnemy = enemyLoc;
+                }
             }
         }
+        return closestEnemy;
     }
 }
