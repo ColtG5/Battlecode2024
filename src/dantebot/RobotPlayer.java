@@ -19,12 +19,8 @@ public strictfp class RobotPlayer {
      */
     static int turnCount = 0;
 
-    /**
-     * A random number generator.
-     * We will use this RNG to make some random moves. The Random class is provided by the java.util.Random
-     * import at the top of this file. Here, we *seed* the RNG with a constant number (6147); this makes sure
-     * we get the same sequence of numbers every time this code is run. This is very useful for debugging!
-     */
+    static int localID;
+
     static final Random rng = new Random(6147);
 
     /** Array containing all the possible movement directions. */
@@ -40,6 +36,13 @@ public strictfp class RobotPlayer {
     };
 
     /**
+     * SHARED ARRAY
+     * [0,  1,  2,  3,  4,  5,  6,  7,  8, ...]
+     * id
+     *
+     */
+
+    /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
      * It is like the main function for your robot. If this method returns, the robot dies!
      *
@@ -48,92 +51,113 @@ public strictfp class RobotPlayer {
      **/
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
-
-        // Hello world! Standard output is very useful for debugging.
-        // Everything you say here will be directly viewable in your terminal when you run a match!
-//        System.out.println("I'm alive");
-
-        // You can also use indicators to save debug notes in replays.
-//        rc.setIndicatorString("Hello world!");
-
         while (true) {
-            // This code runs during the entire lifespan of the robot, which is why it is in an infinite
-            // loop. If we ever leave this loop and return from run(), the robot dies! At the end of the
-            // loop, we call Clock.yield(), signifying that we've done everything we want to do.
-
             turnCount += 1;  // We have now been alive for one more turn!
-
-            // Try/catch blocks stop unhandled exceptions, which cause your robot to explode.
+            System.out.println(turnCount);
             try {
-                // Make sure you spawn your robot in before you attempt to take any actions!
-                // Robots not spawned in do not have vision of any tiles and cannot perform any actions.
-                if (!rc.isSpawned()){
+                if (!rc.isSpawned()) {
                     MapLocation[] spawnLocs = rc.getAllySpawnLocations();
-                    // Pick a random spawn location to attempt spawning in.
-                    MapLocation randomLoc = spawnLocs[rng.nextInt(spawnLocs.length)];
-                    if (rc.canSpawn(randomLoc)) rc.spawn(randomLoc);
-                }
-                else{
-                    // TRYING TO MAKE THEM GO BAND FOR BAND
-                    MapLocation me = rc.getLocation();
-                    MapInfo[] mapInfo = rc.senseNearbyMapInfos(rc.getLocation(), GameConstants.VISION_RADIUS_SQUARED);
-                    // List to hold crumbs in the current vision of the duck
-                    ArrayList<MapLocation> crumbsLocations = new ArrayList<>();
-
-                    // Loop over locations in the vision of the duck, and add the
-                    // crumbs to the crumbsLocations
-                    for (MapInfo info : mapInfo) {
-                        if (info.getCrumbs() != 0 ) {
-                            crumbsLocations.add(info.getMapLocation());
+                    for (MapLocation loc : spawnLocs) {
+                        if (rc.canSpawn(loc)) {
+                            rc.spawn(loc);
+                            int currentID = rc.readSharedArray(0);
+                            localID = ++currentID;
+                            rc.setIndicatorString("I am robot #" + localID);
+                            rc.writeSharedArray(0, currentID);
+                            break;
                         }
                     }
-                    // Check if not empty cause error
-                    if (!crumbsLocations.isEmpty()) {
-                        // Find closest crumb
-                        MapLocation closestCrumbs = crumbsLocations.get(0);
-                        for (MapLocation crumb : crumbsLocations) {
-                            if (me.distanceSquaredTo(crumb) < me.distanceSquaredTo(closestCrumbs)) {
-                                closestCrumbs = crumb;
+                }
+                else {
+                    // try moving to the closest enemy and attacking closest enemy
+                    MapLocation closestEnemy = findClosestEnemy(rc);
+                    if (closestEnemy != null) {
+//                        rc.setIndicatorString("there is a closest enemy");
+                        // try moving closer to the enemy duck
+                        Direction dir = rc.getLocation().directionTo(closestEnemy);
+                        simpleMove(rc, dir);
+                        // try attacking the closest duck to you
+                        while (rc.canAttack(closestEnemy)) {
+                            rc.attack(closestEnemy);
+//                            System.out.println("smacked that lil bih" + closestEnemy.toString());
+                            rc.setIndicatorString("smacked a lil bih" + closestEnemy.toString());
+                        }
+                    }
+
+                    // try to grab a close crumb
+                    MapLocation[] potentialCrumbs = rc.senseNearbyCrumbs(-1);
+                    MapInfo[] info = rc.senseNearbyMapInfos(-1);
+
+                    // Fill water if possible to grab crumbs on water
+                    for (MapInfo location : info) {
+                        if (location.isWater()) {
+                            MapLocation waterLocation = location.getMapLocation();
+                            if (rc.getLocation().isAdjacentTo(waterLocation)) {
+                                if (rc.canFill(waterLocation)) rc.fill(waterLocation);
                             }
                         }
-                        rc.setIndicatorString("Closest crumbs: " + closestCrumbs);
-
-                        // Move towards that crum
-                        Direction dirForCrumbs = me.directionTo(closestCrumbs);
-                        me.add(dirForCrumbs);
-                        if (rc.canMove(dirForCrumbs)) rc.move(dirForCrumbs);
                     }
 
-                    if (rc.canPickupFlag(rc.getLocation())){
-                        rc.pickupFlag(rc.getLocation());
-                        rc.setIndicatorString("Holding a flag!");
+                    if (potentialCrumbs.length != 0) {
+                        MapLocation closestCrumb = null;
+                        for (MapLocation crumb : potentialCrumbs) {
+                            if (closestCrumb == null) closestCrumb = crumb;
+                            else if (rc.getLocation().distanceSquaredTo(crumb) < rc.getLocation().distanceSquaredTo(closestCrumb)) {
+                                closestCrumb = crumb;
+                            }
+                        }
+                        if (closestCrumb != null) {
+                            Direction dir = rc.getLocation().directionTo(closestCrumb);
+                            simpleMove(rc, dir);
+                        }
                     }
-                    // If we are holding an enemy flag, singularly focus on moving towards
-                    // an ally spawn zone to capture it! We use the check roundNum >= SETUP_ROUNDS
-                    // to make sure setup phase has ended.
-                    if (rc.hasFlag() && rc.getRoundNum() >= GameConstants.SETUP_ROUNDS){
+
+                    // Move to spawn if duck has flag
+                    if (rc.hasFlag()) {
                         MapLocation[] spawnLocs = rc.getAllySpawnLocations();
-                        MapLocation firstLoc = spawnLocs[0];
-                        Direction dir = rc.getLocation().directionTo(firstLoc);
-                        if (rc.canMove(dir)) rc.move(dir);
+                        rc.setIndicatorString("Going to " + spawnLocs[0] + " with flag.");
+                        Direction dir = rc.getLocation().directionTo(spawnLocs[0]);
+                        simpleMove(rc, dir);
                     }
-                    // Move and attack randomly if no objective.
-                    Direction dir = directions[rng.nextInt(directions.length)];
-                    MapLocation nextLoc = rc.getLocation().add(dir);
-                    if (rc.canMove(dir)){
-                        rc.move(dir);
-                    }
-                    else if (rc.canAttack(nextLoc)){
-                        rc.attack(nextLoc);
-//                        System.out.println("Take that! Damaged an enemy that was in our way!");
+                    // Move to flags after setup rounds
+                    else if (rc.getRoundNum() >= GameConstants.SETUP_ROUNDS) {
+                        // Find approximate location of flags
+                        MapLocation[] potentialFlags = rc.senseBroadcastFlagLocations();
+                        for (MapLocation flag : potentialFlags) {
+                            Direction dir = rc.getLocation().directionTo(flag);
+                            simpleMove(rc, dir);
+                        }
+                        // Check if duck is in range of a flag
+                        FlagInfo[] flags = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
+                        MapLocation closestFlag = null;
+                        if (flags.length != 0) {
+                            for (FlagInfo flag : flags) {
+                                if (closestFlag == null) closestFlag = flag.getLocation();
+                                else if (rc.getLocation().distanceSquaredTo(flag.getLocation()) <
+                                        rc.getLocation().distanceSquaredTo(flag.getLocation())) {
+                                    closestFlag = flag.getLocation();
+                                }
+                            }
+                            if (closestFlag != null) {
+                                Direction dir = rc.getLocation().directionTo(closestFlag);
+                                simpleMove(rc, dir);
+                            }
+
+                            if (rc.getLocation().isAdjacentTo(closestFlag) && rc.canPickupFlag(closestFlag)) {
+                                rc.pickupFlag(closestFlag);
+                            }
+                        }
                     }
 
-                    // Rarely attempt placing traps behind the robot.
+
+                    // if can move at end of turn, just move randomly (for now!!!)
+                    Direction dir = directions[rng.nextInt(directions.length)];
+                    simpleMove(rc, dir);
+
+                    // Rarely attempt placing random traps
                     MapLocation prevLoc = rc.getLocation().subtract(dir);
                     if (rc.canBuild(TrapType.EXPLOSIVE, prevLoc) && rng.nextInt() % 37 == 1)
                         rc.build(TrapType.EXPLOSIVE, prevLoc);
-                    // We can also move our code into different methods or classes to better organize it!
-                    updateEnemyRobots(rc);
                 }
 
             } catch (GameActionException e) {
@@ -156,25 +180,58 @@ public strictfp class RobotPlayer {
             }
             // End of loop: go back to the top. Clock.yield() has ended, so it's time for another turn!
         }
-
         // Your code should never reach here (unless it's intentional)! Self-destruction imminent...
     }
-    public static void updateEnemyRobots(RobotController rc) throws GameActionException{
-        // Sensing methods can be passed in a radius of -1 to automatically 
-        // use the largest possible value.
-        RobotInfo[] enemyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        if (enemyRobots.length != 0){
+
+    public static boolean simpleMove(RobotController rc, Direction dir) throws GameActionException {
+    	if (rc.canMove(dir)) {
+    		rc.move(dir);
+    		return true;
+    	} else if (rc.canMove(dir.rotateLeft())) {
+            rc.move(dir.rotateLeft());
+            return true;
+        } else if (rc.canMove(dir.rotateRight())) {
+            rc.move(dir.rotateRight());
+            return true;
+        } else if (rc.canMove(dir.rotateLeft().rotateLeft())) {
+            rc.move(dir.rotateLeft().rotateLeft());
+            return true;
+        } else if (rc.canMove(dir.rotateRight().rotateRight())) {
+            rc.move(dir.rotateRight().rotateRight());
+            return true;
+        }
+    	return false;
+    }
+
+    public static MapLocation[] findEnemies(RobotController rc) throws GameActionException{
+    	RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        MapLocation[] enemyLocations;
+        if (enemies.length != 0) {
+    		rc.setIndicatorString("There are nearby enemy robots! Scary!");
+    		enemyLocations = new MapLocation[enemies.length];
+    		for (int i = 0; i < enemies.length; i++) {
+    			enemyLocations[i] = enemies[i].getLocation();
+    		}
+            return enemyLocations;
+    	}
+        return null;
+    }
+
+    public static MapLocation findClosestEnemy(RobotController rc) throws GameActionException {
+    	RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        MapLocation closestEnemy = null;
+        if (enemies.length != 0) {
             rc.setIndicatorString("There are nearby enemy robots! Scary!");
-            // Save an array of locations with enemy robots in them for future use.
-            MapLocation[] enemyLocations = new MapLocation[enemyRobots.length];
-            for (int i = 0; i < enemyRobots.length; i++){
-                enemyLocations[i] = enemyRobots[i].getLocation();
-            }
-            // Let the rest of our team know how many enemy robots we see!
-            if (rc.canWriteSharedArray(0, enemyRobots.length)){
-                rc.writeSharedArray(0, enemyRobots.length);
-                int numEnemies = rc.readSharedArray(0);
+            for (RobotInfo enemy : enemies) {
+                MapLocation enemyLoc = enemy.getLocation();
+                if (closestEnemy == null) {
+                    closestEnemy = enemyLoc;
+                }
+                else if (rc.getLocation().distanceSquaredTo(enemyLoc) < rc.getLocation().distanceSquaredTo(closestEnemy)) {
+                    closestEnemy = enemyLoc;
+                }
             }
         }
+        return closestEnemy;
     }
 }
