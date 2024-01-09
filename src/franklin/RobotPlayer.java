@@ -55,15 +55,26 @@ public strictfp class RobotPlayer {
         while (true) {
             turnCount += 1;  // We have now been alive for one more turn!
             try {
+                if (rc.getRoundNum() == 1) {
+                    // for each duck on round one, give it a random local ID
+                    // (random localID is just for indexing into shared array pretty much)
+                    int currentID = rc.readSharedArray(0);
+                    localID = ++currentID;
+                    rc.writeSharedArray(0, localID); // change the shared array ID so next duck gets incremented ID
+                    if (localID == 50) {
+                        rc.writeSharedArray(0, 0);
+                    }
+                }
+
+                if (turnCount == 1) {
+                    rc.setIndicatorString("I am robot #" + localID);
+                }
+
                 if (!rc.isSpawned()) {
                     MapLocation[] spawnLocs = rc.getAllySpawnLocations();
                     for (MapLocation loc : spawnLocs) {
                         if (rc.canSpawn(loc)) {
                             rc.spawn(loc);
-                            int currentID = rc.readSharedArray(0);
-                            localID = ++currentID;
-                            rc.setIndicatorString("I am robot #" + localID);
-                            rc.writeSharedArray(0, currentID);
                             break;
                         }
                     }
@@ -81,8 +92,6 @@ public strictfp class RobotPlayer {
                         }
                     }
 
-                    // try to grab a close crumb
-                    MapLocation[] potentialCrumbs = rc.senseNearbyCrumbs(-1);
                     MapInfo[] info = rc.senseNearbyMapInfos(1);
 
                     // Fill water if possible to grab crumbs on water
@@ -101,6 +110,9 @@ public strictfp class RobotPlayer {
                             }
                         }
                     }
+
+                    // try to grab a close crumb
+                    MapLocation[] potentialCrumbs = rc.senseNearbyCrumbs(-1);
 
                     if (potentialCrumbs.length != 0) {
                         MapLocation closestCrumb = null;
