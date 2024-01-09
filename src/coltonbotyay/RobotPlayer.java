@@ -56,9 +56,15 @@ public strictfp class RobotPlayer {
             try {
                 if (!rc.isSpawned()) {
                     MapLocation[] spawnLocs = rc.getAllySpawnLocations();
-                    // Pick a random spawn location to attempt spawning in.
-                    MapLocation randomLoc = spawnLocs[rng.nextInt(spawnLocs.length)];
-                    if (rc.canSpawn(randomLoc)) rc.spawn(randomLoc);
+//                    // Pick a random spawn location to attempt spawning in.
+//                    MapLocation randomLoc = spawnLocs[rng.nextInt(spawnLocs.length)];
+//                    if (rc.canSpawn(randomLoc)) rc.spawn(randomLoc);
+                    for (MapLocation loc : spawnLocs) {
+                        if (rc.canSpawn(loc)) {
+                            rc.spawn(loc);
+                            break;
+                        }
+                    }
                 }
                 else {
                     MapLocation closestEnemy = findClosestEnemy(rc);
