@@ -2,6 +2,8 @@ package coltonbotyay;
 
 import battlecode.common.*;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -59,32 +61,56 @@ public strictfp class RobotPlayer {
         while (true) {
             turnCount += 1;  // We have now been alive for one more turn!
             try {
+                if (rc.getRoundNum() == 1) {
+                    // for each duck on round one, give it a random local ID
+                    // (random localID is just for indexing into shared array pretty much)
+                    int currentID = rc.readSharedArray(0);
+                    localID = ++currentID;
+                    rc.writeSharedArray(0, localID); // change the shared array ID so next duck gets incremented ID
+//                    rc.writeSharedArray(localID, rc.getID()); // write your actual ID into array index of your
+
+                    if (localID == 50) {
+//                        int[] arr = new int[50];
+//                        for (int i = 0; i < 50; i++) {
+////                            System.out.println(Arrays.toString(arr));
+//                            arr[i] = rc.readSharedArray(i+1);
+//                        }
+//                        System.out.println(Arrays.toString(arr));
+
+                        rc.writeSharedArray(0, 0);
+                    }
+                }
+
+                if (turnCount == 1) {
+                    rc.setIndicatorString("I am robot #" + localID);
+                }
+
                 if (!rc.isSpawned()) {
                     MapLocation[] spawnLocs = rc.getAllySpawnLocations();
                     for (MapLocation loc : spawnLocs) {
                         if (rc.canSpawn(loc)) {
                             rc.spawn(loc);
-                            int currentID = rc.readSharedArray(0);
-                            localID = ++currentID;
-                            rc.setIndicatorString("I am robot #" + localID);
-                            rc.writeSharedArray(0, currentID);
+//                            int currentID = rc.readSharedArray(0);
+//                            localID = ++currentID;
+//                            rc.setIndicatorString("I am robot #" + localID);
+//                            rc.writeSharedArray(0, currentID);
                             break;
                         }
                     }
                 }
                 else {
                     // try moving to the closest enemy and attacking closest enemy
-                    MapLocation closestEnemy = findClosestEnemy(rc);
-                    if (closestEnemy != null) {
+                    MapLocation closestEnemyLoc = findClosestEnemy(rc);
+                    if (closestEnemyLoc != null) {
 //                        rc.setIndicatorString("there is a closest enemy");
                         // try moving closer to the enemy duck
 
-                        movement.simpleMove(closestEnemy);
+                        movement.simpleMove(closestEnemyLoc);
                         // try attacking the closest duck to you
-                        while (rc.canAttack(closestEnemy)) {
-                            rc.attack(closestEnemy);
-//                            System.out.println("smacked that lil bih" + closestEnemy.toString());
-                            rc.setIndicatorString("smacked a lil bih" + closestEnemy.toString());
+                        while (rc.canAttack(closestEnemyLoc)) {
+                            rc.attack(closestEnemyLoc);
+//                            System.out.println("smacked that lil bih" + closestEnemyLoc.toString());
+                            rc.setIndicatorString("smacked a lil bih" + closestEnemyLoc.toString());
                         }
                     }
 
@@ -108,10 +134,10 @@ public strictfp class RobotPlayer {
                     Direction dir = directions[rng.nextInt(directions.length)];
                     movement.simpleMove(rc.getLocation().add(dir));
 
-                    // Rarely attempt placing random traps
-                    MapLocation prevLoc = rc.getLocation().subtract(dir);
-                    if (rc.canBuild(TrapType.EXPLOSIVE, prevLoc) && rng.nextInt() % 37 == 1)
-                        rc.build(TrapType.EXPLOSIVE, prevLoc);
+//                    // Rarely attempt placing random traps
+//                    MapLocation prevLoc = rc.getLocation().subtract(dir);
+//                    if (rc.canBuild(TrapType.EXPLOSIVE, prevLoc) && rng.nextInt() % 37 == 1)
+//                        rc.build(TrapType.EXPLOSIVE, prevLoc);
                 }
 
             } catch (GameActionException e) {
