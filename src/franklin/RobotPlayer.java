@@ -1,9 +1,8 @@
-package dantebot;
+package franklin;
 
 import battlecode.common.*;
 import coltonbotyay.Movement;
 
-import java.util.ArrayList;
 import java.util.Random;
 
 /**
