@@ -54,6 +54,8 @@ public strictfp class RobotPlayer {
         System.out.println("I'm alive");
         rc.setIndicatorString("Hello world!");
 
+        Movement movement = new Movement(rc);
+
         while (true) {
             turnCount += 1;  // We have now been alive for one more turn!
             try {
@@ -77,7 +79,7 @@ public strictfp class RobotPlayer {
 //                        rc.setIndicatorString("there is a closest enemy");
                         // try moving closer to the enemy duck
                         Direction dir = rc.getLocation().directionTo(closestEnemy);
-                        simpleMove(rc, dir);
+                        movement.simpleMove(dir);
                         // try attacking the closest duck to you
                         while (rc.canAttack(closestEnemy)) {
                             rc.attack(closestEnemy);
@@ -99,13 +101,13 @@ public strictfp class RobotPlayer {
                         }
                         if (closestCrumb != null) {
                             Direction dir = rc.getLocation().directionTo(closestCrumb);
-                            simpleMove(rc, dir);
+                            movement.simpleMove(dir);
                         }
                     }
 
                     // if can move at end of turn, just move randomly (for now!!!)
                     Direction dir = directions[rng.nextInt(directions.length)];
-                    simpleMove(rc, dir);
+                    movement.simpleMove(dir);
 
                     // Rarely attempt placing random traps
                     MapLocation prevLoc = rc.getLocation().subtract(dir);
@@ -134,26 +136,6 @@ public strictfp class RobotPlayer {
             // End of loop: go back to the top. Clock.yield() has ended, so it's time for another turn!
         }
         // Your code should never reach here (unless it's intentional)! Self-destruction imminent...
-    }
-
-    public static boolean simpleMove(RobotController rc, Direction dir) throws GameActionException {
-    	if (rc.canMove(dir)) {
-    		rc.move(dir);
-    		return true;
-    	} else if (rc.canMove(dir.rotateLeft())) {
-            rc.move(dir.rotateLeft());
-            return true;
-        } else if (rc.canMove(dir.rotateRight())) {
-            rc.move(dir.rotateRight());
-            return true;
-        } else if (rc.canMove(dir.rotateLeft().rotateLeft())) {
-            rc.move(dir.rotateLeft().rotateLeft());
-            return true;
-        } else if (rc.canMove(dir.rotateRight().rotateRight())) {
-            rc.move(dir.rotateRight().rotateRight());
-            return true;
-        }
-    	return false;
     }
 
     public static MapLocation[] findEnemies(RobotController rc) throws GameActionException{
