@@ -98,6 +98,9 @@ public strictfp class RobotPlayer {
     static final int spawnLocCenterOneIndex = 51;
     static final int spawnLocCenterTwoIndex = 52;
     static final int spawnLocCenterThreeIndex = 53;
+
+    static final int maxNumberOfScout = 30;
+    static final int maxNumberOfBuilder = 20;
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
      * It is like the main function for your robot. If this method returns, the robot dies!
@@ -131,17 +134,16 @@ public strictfp class RobotPlayer {
 
 
 
-
-
-
-
-
-
-
-
-
                     util.writeWhereYouAre(localID);
                 }
+                //Scouting and builders
+                if(turnCount <200){
+
+
+                }else{
+
+                }
+
             } catch (GameActionException e) {
                 System.out.println("GameActionException");
                 e.printStackTrace();
