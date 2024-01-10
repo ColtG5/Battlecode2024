@@ -56,8 +56,12 @@ public strictfp class RobotPlayer {
      **/
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
+        // Create objects for the other files
         Movement movement = new Movement(rc);
+        Bomber bomber = new Bomber(rc);
         Utility util = new Utility(rc);
+
+
         while (true) {
             turnCount += 1;  // We have now been alive for one more turn!
             try {
@@ -113,6 +117,9 @@ public strictfp class RobotPlayer {
                         }
                     }
 
+                    // Stop going for kamikaze when duck has the flag
+                    if (!rc.hasFlag()) bomber.kamikaze();
+
                     MapInfo[] info = rc.senseNearbyMapInfos(1);
                     for (MapInfo location : info) {
                         if (location.isWater()) {
@@ -125,7 +132,6 @@ public strictfp class RobotPlayer {
 
                     // try to grab a close crumb
                     MapLocation[] potentialCrumbs = rc.senseNearbyCrumbs(-1);
-
                     if (potentialCrumbs.length != 0) {
                         MapLocation closestCrumb = null;
                         for (MapLocation crumb : potentialCrumbs) {
@@ -205,7 +211,7 @@ public strictfp class RobotPlayer {
         }
         // Your code should never reach here (unless it's intentional)! Self-destruction imminent...
     }
-    
+
     public static MapLocation findClosestEnemy(RobotController rc) throws GameActionException {
     	RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         MapLocation closestEnemy = null;
