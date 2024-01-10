@@ -38,9 +38,14 @@ public strictfp class RobotPlayer {
     /**
      * SHARED ARRAY
      * [0,  1,  2,  3,  4,  5,  6,  7,  8, ...]
-     * id
+     * id  hq1 hq2 hq3
      *
      */
+
+    static final int assigningLocalIDIndex = 0;
+    static final int spawnLocCenterOneIndex = 1;
+    static final int spawnLocCenterTwoIndex = 2;
+    static final int spawnLocCenterThreeIndex = 3;
 
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
@@ -52,18 +57,12 @@ public strictfp class RobotPlayer {
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
         Movement movement = new Movement(rc);
+        Utility util = new Utility(rc);
         while (true) {
             turnCount += 1;  // We have now been alive for one more turn!
             try {
                 if (rc.getRoundNum() == 1) {
-                    // for each duck on round one, give it a random local ID
-                    // (random localID is just for indexing into shared array pretty much)
-                    int currentID = rc.readSharedArray(0);
-                    localID = ++currentID;
-                    rc.writeSharedArray(0, localID); // change the shared array ID so next duck gets incremented ID
-                    if (localID == 50) {
-                        rc.writeSharedArray(0, 0);
-                    }
+                    localID = util.makeLocalID(assigningLocalIDIndex);
                 }
 
                 if (turnCount == 1) {
@@ -71,13 +70,7 @@ public strictfp class RobotPlayer {
                 }
 
                 if (!rc.isSpawned()) {
-                    MapLocation[] spawnLocs = rc.getAllySpawnLocations();
-                    for (MapLocation loc : spawnLocs) {
-                        if (rc.canSpawn(loc)) {
-                            rc.spawn(loc);
-                            break;
-                        }
-                    }
+                    util.trySpawning();
                 }
                 else {
                     // try moving to the closest enemy and attacking closest enemy
