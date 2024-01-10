@@ -130,6 +130,7 @@ public strictfp class Movement {
                 while(rc.canMove(topOfStack)){
                     MovementStack.pop();
                     last = topOfStack;
+                    if(MovementStack.empty()) break;
                     topOfStack = MovementStack.peek();
                 }
                 rc.move(last);
