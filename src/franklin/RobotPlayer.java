@@ -210,7 +210,7 @@ public strictfp class RobotPlayer {
     }
 
     public static MapLocation findClosestEnemy(RobotController rc) throws GameActionException {
-    	RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         MapLocation closestEnemy = null;
         if (enemies.length != 0) {
             rc.setIndicatorString("There are nearby enemy robots! Scary!");
