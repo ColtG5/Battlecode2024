@@ -18,7 +18,7 @@ public strictfp class RobotPlayer {
      */
     static int turnCount = 0;
     static int localID;
-    static boolean lefty; // do u pathfind favouring left first or right first
+    static boolean lefty = true; // do u pathfind favouring left first or right first
 
     /**
      * A random number generator.
@@ -49,7 +49,7 @@ public strictfp class RobotPlayer {
      **/
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
-        Movement movement = new Movement(rc);
+        Movement movement = new Movement(rc, lefty);
         Utility utility = new Utility(rc);
         while (true) {
             // This code runs during the entire lifespan of the robot, which is why it is in an infinite
@@ -61,19 +61,15 @@ public strictfp class RobotPlayer {
             // Try/catch blocks stop unhandled exceptions, which cause your robot to explode.
             try {
 
-                if (rc.getRoundNum() == 1) {
-                    localID = utility.makeLocalID(0);
-                    lefty = (localID % 2) == 0;
-                }
-
                 // only let first bot spawn for testing purposes
                 if (rc.getRoundNum() == 1 && rc.readSharedArray(0) == 0) {
                     rc.writeSharedArray(0, 1);
                     localID = 5;
+                    lefty = (localID % 2) == 1;
                     rc.spawn(new MapLocation(4, 22));
                 }
 
-                if (localID == 5) movement.hardMove(lefty,new MapLocation(19, 22));
+                if (localID == 5) movement.hardMove(new MapLocation(19, 22));
 
             } catch (GameActionException e) {
                 // Oh no! It looks like we did something illegal in the Battlecode world. You should

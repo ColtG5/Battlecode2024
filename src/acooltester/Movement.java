@@ -7,8 +7,10 @@ import java.util.Stack;
 
 public strictfp class Movement {
     RobotController rc;
-    public Movement(RobotController rc) {
+    boolean lefty;
+    public Movement(RobotController rc, boolean lefty) {
         this.rc = rc;
+        this.lefty = lefty;
     }
 
     public boolean simpleMove(MapLocation mapLocation) throws GameActionException {
@@ -52,13 +54,12 @@ public strictfp class Movement {
 
     /**
      *
-     * @param lefty
      * @param hype Direction of failed move
      * @return failed to move or not
      * @throws GameActionException I dont fucking know
      */
-    public boolean tryNewDirection(boolean lefty,Direction hype) throws GameActionException {
-
+    public boolean tryNewDirection(Direction hype) throws GameActionException {
+        Direction ogDir = hype;
         while(true){
             hype = rotateOnce(lefty, hype);
             if(rc.canMove(hype)) {
@@ -69,15 +70,17 @@ public strictfp class Movement {
             else{
                 MovementStack.push(hype);
             }
-            if(MovementStack.size() == 8){
+            if(ogDir == hype){
                 MovementStack.clear();
+//                lefty = !lefty;
                 return false;
             }
         }
     }
 
 
-    public boolean hardMove(boolean lefty,MapLocation mapLocation) throws GameActionException {
+    public boolean hardMove(MapLocation mapLocation) throws GameActionException {
+        rc.setIndicatorString("am i lefty?? " + lefty);
         if(MovementStack.empty()){
             //HYPE is the direction
             Direction hype =rc.getLocation().directionTo(mapLocation);
@@ -88,7 +91,7 @@ public strictfp class Movement {
 
             else{
                 MovementStack.push(hype);
-                if(!tryNewDirection(lefty,hype)){
+                if(!tryNewDirection(hype)){
                     return false;
                 }
                 else{
@@ -110,7 +113,7 @@ public strictfp class Movement {
                 return true;
             }
             else{
-                if(tryNewDirection(lefty,topOfStack)){
+                if(tryNewDirection(topOfStack)){
                     return true;
                 }
                 else{
