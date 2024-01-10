@@ -79,6 +79,12 @@ public strictfp class RobotPlayer {
                     boolean didSpawn = util.trySpawning();
                 }
 
+                // flag bearer logic (wait till round 2 so commander duck can calculate where u gotta go
+                if (firstRoundFlagBearer && rc.getRoundNum() > 1) {
+                    // logic for if the robot is a flag bearer (run to the edge of the map!
+
+                }
+
                 // try moving to the closest enemy and attacking closest enemy
                 MapLocation closestEnemy = findClosestEnemy(rc);
                 if (closestEnemy != null) {
