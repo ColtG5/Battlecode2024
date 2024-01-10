@@ -63,7 +63,7 @@ public strictfp class RobotPlayer {
 
                 if (rc.getRoundNum() == 1) {
                     localID = utility.makeLocalID(0);
-                    lefty = (localID % 2) == 1;
+                    lefty = (localID % 2) == 0;
                 }
 
                 // only let first bot spawn for testing purposes
@@ -73,7 +73,7 @@ public strictfp class RobotPlayer {
                     rc.spawn(new MapLocation(4, 22));
                 }
 
-                if (localID == 5) movement.simpleMove(new MapLocation(19, 22));
+                if (localID == 5) movement.hardMove(lefty,new MapLocation(19, 22));
 
             } catch (GameActionException e) {
                 // Oh no! It looks like we did something illegal in the Battlecode world. You should
