@@ -45,6 +45,21 @@ public strictfp class Movement {
         }
         return false;
     }
+
+    public boolean smallMove(Direction dir) throws GameActionException {
+        if (rc.canMove(dir)) {
+            rc.move(dir);
+            return true;
+        } else if (rc.canMove(dir.rotateLeft())) {
+            rc.move(dir.rotateLeft());
+            return true;
+        } else if (rc.canMove(dir.rotateRight())) {
+            rc.move(dir.rotateRight());
+            return true;
+        }
+        return false;
+
+    }
     static Stack<Direction> MovementStack = new Stack<Direction>();
 
     public Direction rotateOnce(boolean lefty, Direction hype) {
@@ -62,13 +77,16 @@ public strictfp class Movement {
         Direction ogDir = hype;
         while(true){
             hype = rotateOnce(lefty, hype);
-            if(rc.canMove(hype)) {
-                rc.move(hype);
+            if(smallMove(hype)) {
                 return true;
             }
-
             else{
-                MovementStack.push(hype);
+                MapLocation potentialLocation = rc.getLocation().add(hype);
+                if (rc.onTheMap(potentialLocation)) MovementStack.push(hype);
+                else {
+                    MovementStack.clear();
+                    return false;
+                }
             }
             if(ogDir == hype){
                 MovementStack.clear();
@@ -84,8 +102,7 @@ public strictfp class Movement {
         if(MovementStack.empty()){
             //HYPE is the direction
             Direction hype =rc.getLocation().directionTo(mapLocation);
-            if(rc.canMove(hype)){
-                rc.move(hype);
+            if(smallMove(hype)) {
                 return true;
             }
 
