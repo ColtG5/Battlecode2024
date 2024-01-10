@@ -44,9 +44,13 @@ public strictfp class Movement {
 
 
     public boolean hardMove(MapLocation mapLocation) throws GameActionException {
+        // direction we want to move to, to get to end goal
         Direction originalDir = rc.getLocation().directionTo(mapLocation);
+        // get map info of the location in the direction to end goal
         MapInfo mapInfo=rc.senseMapInfo(rc.getLocation().add(originalDir));
+        // if the loc we tryna move to is passable, and we arent moving backwards, then move there
         if(mapInfo.isPassable() && originalDir != priorLocation.directionTo(rc.getLocation()).opposite()){
+            // if fuzzy move is able to move to the location, set priorLocation to current location
             if(simpleMove(mapInfo.getMapLocation())){
                 priorLocation=mapInfo.getMapLocation();
                 if(rc.getLocation() == mapLocation){
