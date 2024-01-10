@@ -113,12 +113,6 @@ public strictfp class RobotPlayer {
                         }
                     }
 
-//                    RobotInfo[] bombEnemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-//                    if (bombEnemies.length >= 4) {
-//                        if (rc.canBuild(TrapType.EXPLOSIVE, rc.getLocation()))
-//                            rc.build(TrapType.EXPLOSIVE, rc.getLocation());
-//                    }
-
                     MapInfo[] info = rc.senseNearbyMapInfos(1);
                     for (MapInfo location : info) {
                         if (location.isWater()) {
@@ -128,23 +122,6 @@ public strictfp class RobotPlayer {
                             }
                         }
                     }
-
-                    // Fill water if possible to grab crumbs on water
-//                    if (rc.getExperience(SkillType.BUILD) <= 30) {
-//                        for (MapInfo location : info) {
-//                            if (location.isWater()) {
-//                                MapLocation waterLocation = location.getMapLocation();
-//                                if (rc.getLocation().isAdjacentTo(waterLocation)) {
-//                                    if (rc.canFill(waterLocation)) rc.fill(waterLocation);
-//                                }
-//                            } else {
-//                                MapLocation digLocation = info[rng.nextInt(info.length)].getMapLocation();
-//                                if (rc.getLocation().isAdjacentTo(digLocation)) {
-//                                    if (rc.canDig(digLocation)) rc.dig(digLocation);
-//                                }
-//                            }
-//                        }
-//                    }
 
                     // try to grab a close crumb
                     MapLocation[] potentialCrumbs = rc.senseNearbyCrumbs(-1);
@@ -161,12 +138,6 @@ public strictfp class RobotPlayer {
                             movement.simpleMove(closestCrumb);
                         }
                     }
-
-//                    if (rc.getRoundNum() >= GameConstants.SETUP_ROUNDS) {
-//                        MapLocation[] spawnLocs = rc.getAllySpawnLocations();
-//                        MapLocation spawn = spawnLocs[rng.nextInt(27)];
-//                        movement.simpleMove(spawn);
-//                    }
 
                     // Move to spawn if duck has flag
                     if (rc.hasFlag()) {
@@ -209,11 +180,6 @@ public strictfp class RobotPlayer {
                     // if have action at end of turn, and not full health, why not heal
                     tryToHeal(rc);
 
-                    // Rarely attempt placing random traps
-//                    MapLocation prevLoc = rc.getLocation().subtract(dir);
-//                    if (rc.canBuild(TrapType.EXPLOSIVE, prevLoc) && rng.nextInt() % 42 == 1)
-//                        rc.build(TrapType.EXPLOSIVE, prevLoc);
-
                     // debugging
 //                    rc.setIndicatorString(rc.getActionCooldownTurns() + " ||| " + rc.canDig(rc.getLocation().add(Direction.NORTH)) + " | " + rc.canFill(rc.getLocation().add(Direction.NORTH)));
                 }
@@ -239,21 +205,7 @@ public strictfp class RobotPlayer {
         }
         // Your code should never reach here (unless it's intentional)! Self-destruction imminent...
     }
-
-    public static MapLocation[] findEnemies(RobotController rc) throws GameActionException{
-    	RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        MapLocation[] enemyLocations;
-        if (enemies.length != 0) {
-    		rc.setIndicatorString("There are nearby enemy robots! Scary!");
-    		enemyLocations = new MapLocation[enemies.length];
-    		for (int i = 0; i < enemies.length; i++) {
-    			enemyLocations[i] = enemies[i].getLocation();
-    		}
-            return enemyLocations;
-    	}
-        return null;
-    }
-
+    
     public static MapLocation findClosestEnemy(RobotController rc) throws GameActionException {
     	RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         MapLocation closestEnemy = null;
