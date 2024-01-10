@@ -18,6 +18,7 @@ public strictfp class RobotPlayer {
      */
     static int turnCount = 0;
     static int localID;
+    static boolean lefty; // do u pathfind favouring left first or right first
 
     /**
      * A random number generator.
@@ -49,6 +50,7 @@ public strictfp class RobotPlayer {
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
         Movement movement = new Movement(rc);
+        Utility utility = new Utility(rc);
         while (true) {
             // This code runs during the entire lifespan of the robot, which is why it is in an infinite
             // loop. If we ever leave this loop and return from run(), the robot dies! At the end of the
@@ -58,6 +60,11 @@ public strictfp class RobotPlayer {
 
             // Try/catch blocks stop unhandled exceptions, which cause your robot to explode.
             try {
+
+                if (rc.getRoundNum() == 1) {
+                    localID = utility.makeLocalID(0);
+                    lefty = (localID % 2) == 1;
+                }
 
                 // only let first bot spawn for testing purposes
                 if (rc.getRoundNum() == 1 && rc.readSharedArray(0) == 0) {
