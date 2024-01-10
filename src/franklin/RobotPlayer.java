@@ -153,11 +153,6 @@ public strictfp class RobotPlayer {
                     }
                     // Move to flags after setup rounds
                     else if (rc.getRoundNum() >= GameConstants.SETUP_ROUNDS) {
-                        // Find approximate location of flags
-                        MapLocation[] potentialFlags = rc.senseBroadcastFlagLocations();
-                        for (MapLocation flag : potentialFlags) {
-                            movement.simpleMove(flag);
-                        }
                         // Check if duck is in range of a flag
                         FlagInfo[] flags = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
                         MapLocation closestFlag = null;
