@@ -117,8 +117,8 @@ public strictfp class RobotPlayer {
                         }
                     }
 
-                    // Stop going for kamikaze when duck has the flag
-                    if (!rc.hasFlag()) bomber.kamikaze();
+                    // Stop going for kamikaze when duck has the flag and only go after setup rounds
+                    if (!rc.hasFlag() && rc.getRoundNum() >= GameConstants.SETUP_ROUNDS) bomber.kamikaze();
 
                     MapInfo[] info = rc.senseNearbyMapInfos(1);
                     for (MapInfo location : info) {
