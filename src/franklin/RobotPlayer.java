@@ -1,7 +1,6 @@
 package franklin;
 
 import battlecode.common.*;
-import coltonbotyay.Movement;
 
 import java.util.Random;
 
@@ -20,6 +19,7 @@ public strictfp class RobotPlayer {
     static int turnCount = 0;
 
     static int localID;
+    static boolean firstRoundFlagBearer = false;
 
     static final Random rng = new Random(6147);
 
@@ -63,6 +63,12 @@ public strictfp class RobotPlayer {
             try {
                 if (rc.getRoundNum() == 1) {
                     localID = util.makeLocalID(assigningLocalIDIndex);
+
+                    // if spawned on top of flag, set flag bearer to true, and grab that thang
+                    if (rc.canPickupFlag(rc.getLocation())) {
+                        firstRoundFlagBearer = true;
+                        rc.pickupFlag(rc.getLocation());
+                    }
                 }
 
                 if (turnCount == 1) {
@@ -70,73 +76,73 @@ public strictfp class RobotPlayer {
                 }
 
                 if (!rc.isSpawned()) {
-                    util.trySpawning();
+                    boolean didSpawn = util.trySpawning();
                 }
-                else {
-                    // try moving to the closest enemy and attacking closest enemy
-                    MapLocation closestEnemy = findClosestEnemy(rc);
-                    if (closestEnemy != null) {
-                        // if have enough health to attack, attack, otherwise move away and try to heal
-                        if (rc.getHealth() >= 500) {
-                            // try moving closer to the enemy duck
-                            movement.simpleMove(closestEnemy);
-                            // try attacking the closest duck to you
-                            while (rc.canAttack(closestEnemy)) {
-                                rc.attack(closestEnemy);
-                                rc.setIndicatorString("smacked a lil bih" + closestEnemy.toString());
+
+                // try moving to the closest enemy and attacking closest enemy
+                MapLocation closestEnemy = findClosestEnemy(rc);
+                if (closestEnemy != null) {
+                    // if have enough health to attack, attack, otherwise move away and try to heal
+                    if (rc.getHealth() >= 500) {
+                        // try moving closer to the enemy duck
+                        movement.simpleMove(closestEnemy);
+                        // try attacking the closest duck to you
+                        while (rc.canAttack(closestEnemy)) {
+                            rc.attack(closestEnemy);
+                            rc.setIndicatorString("smacked a lil bih" + closestEnemy.toString());
+                        }
+                    } else {
+                        // try moving away from the enemy duck
+                        movement.simpleMove(rc.getLocation().subtract(rc.getLocation().directionTo(closestEnemy)));
+                        // try healing
+                        if (rc.canHeal(rc.getLocation())) {
+                            rc.heal(rc.getLocation());
+                        }
+                    }
+                }
+
+                MapInfo[] info = rc.senseNearbyMapInfos(1);
+
+                // Fill water if possible to grab crumbs on water
+                if (rc.getExperience(SkillType.BUILD) <= 30) {
+                    for (MapInfo location : info) {
+                        if (location.isWater()) {
+                            MapLocation waterLocation = location.getMapLocation();
+                            if (rc.getLocation().isAdjacentTo(waterLocation)) {
+                                if (rc.canFill(waterLocation)) rc.fill(waterLocation);
                             }
                         } else {
-                            // try moving away from the enemy duck
-                            movement.simpleMove(rc.getLocation().subtract(rc.getLocation().directionTo(closestEnemy)));
-                            // try healing
-                            if (rc.canHeal(rc.getLocation())) {
-                                rc.heal(rc.getLocation());
+                            MapLocation digLocation = info[rng.nextInt(info.length)].getMapLocation();
+                            if (rc.getLocation().isAdjacentTo(digLocation)) {
+                                if (rc.canDig(digLocation)) rc.dig(digLocation);
                             }
                         }
                     }
+                }
 
-                    MapInfo[] info = rc.senseNearbyMapInfos(1);
+                // try to grab a close crumb
+                MapLocation[] potentialCrumbs = rc.senseNearbyCrumbs(-1);
 
-                    // Fill water if possible to grab crumbs on water
-                    if (rc.getExperience(SkillType.BUILD) <= 30) {
-                        for (MapInfo location : info) {
-                            if (location.isWater()) {
-                                MapLocation waterLocation = location.getMapLocation();
-                                if (rc.getLocation().isAdjacentTo(waterLocation)) {
-                                    if (rc.canFill(waterLocation)) rc.fill(waterLocation);
-                                }
-                            } else {
-                                MapLocation digLocation = info[rng.nextInt(info.length)].getMapLocation();
-                                if (rc.getLocation().isAdjacentTo(digLocation)) {
-                                    if (rc.canDig(digLocation)) rc.dig(digLocation);
-                                }
-                            }
+                if (potentialCrumbs.length != 0) {
+                    MapLocation closestCrumb = null;
+                    for (MapLocation crumb : potentialCrumbs) {
+                        if (closestCrumb == null) closestCrumb = crumb;
+                        else if (rc.getLocation().distanceSquaredTo(crumb) < rc.getLocation().distanceSquaredTo(closestCrumb)) {
+                            closestCrumb = crumb;
                         }
                     }
-
-                    // try to grab a close crumb
-                    MapLocation[] potentialCrumbs = rc.senseNearbyCrumbs(-1);
-
-                    if (potentialCrumbs.length != 0) {
-                        MapLocation closestCrumb = null;
-                        for (MapLocation crumb : potentialCrumbs) {
-                            if (closestCrumb == null) closestCrumb = crumb;
-                            else if (rc.getLocation().distanceSquaredTo(crumb) < rc.getLocation().distanceSquaredTo(closestCrumb)) {
-                                closestCrumb = crumb;
-                            }
-                        }
-                        if (closestCrumb != null) {
-                            movement.simpleMove(closestCrumb);
-                        }
+                    if (closestCrumb != null) {
+                        movement.simpleMove(closestCrumb);
                     }
+                }
 
-                    if (rc.getRoundNum() >= GameConstants.SETUP_ROUNDS) {
-                        MapLocation[] spawnLocs = rc.getAllySpawnLocations();
-                        MapLocation spawn = spawnLocs[rng.nextInt(27)];
-                        movement.simpleMove(spawn);
-                    }
+                if (rc.getRoundNum() >= GameConstants.SETUP_ROUNDS) {
+                    MapLocation[] spawnLocs = rc.getAllySpawnLocations();
+                    MapLocation spawn = spawnLocs[rng.nextInt(27)];
+                    movement.simpleMove(spawn);
+                }
 
-                    // Move to spawn if duck has flag
+                // Move to spawn if duck has flag
 //                    if (rc.hasFlag()) {
 //                        MapLocation[] spawnLocs = rc.getAllySpawnLocations();
 //                        rc.setIndicatorString("Going to " + spawnLocs[0] + " with flag.");
@@ -170,21 +176,20 @@ public strictfp class RobotPlayer {
 //                        }
 //                    }
 
-                    // if can move at end of turn, just move randomly (for now!!!)
-                    Direction dir = directions[rng.nextInt(directions.length)];
-                    movement.simpleMove(rc.getLocation().add(dir));
+                // if can move at end of turn, just move randomly (for now!!!)
+                Direction dir = directions[rng.nextInt(directions.length)];
+                movement.simpleMove(rc.getLocation().add(dir));
 
-                    // if have action at end of turn, and not full health, why not heal
-                    tryToHeal(rc);
+                // if have action at end of turn, and not full health, why not heal
+                tryToHeal(rc);
 
-                    // Rarely attempt placing random traps
-                    MapLocation prevLoc = rc.getLocation().subtract(dir);
-                    if (rc.canBuild(TrapType.EXPLOSIVE, prevLoc) && rng.nextInt() % 42 == 1)
-                        rc.build(TrapType.EXPLOSIVE, prevLoc);
+                // Rarely attempt placing random traps
+                MapLocation prevLoc = rc.getLocation().subtract(dir);
+                if (rc.canBuild(TrapType.EXPLOSIVE, prevLoc) && rng.nextInt() % 42 == 1)
+                    rc.build(TrapType.EXPLOSIVE, prevLoc);
 
-                    // debugging
+                // debugging
 //                    rc.setIndicatorString(rc.getActionCooldownTurns() + " ||| " + rc.canDig(rc.getLocation().add(Direction.NORTH)) + " | " + rc.canFill(rc.getLocation().add(Direction.NORTH)));
-                }
 
             } catch (GameActionException e) {
                 // Oh no! It looks like we did something illegal in the Battlecode world. You should

@@ -21,13 +21,37 @@ public strictfp class Utility {
         return localID;
     }
 
-    public void trySpawning() throws GameActionException {
+    public boolean trySpawning() throws GameActionException {
         MapLocation[] spawnLocs = rc.getAllySpawnLocations();
         for (MapLocation loc : spawnLocs) {
             if (rc.canSpawn(loc)) {
                 rc.spawn(loc);
-                break;
+                return true;
             }
         }
+        return false;
+    }
+
+    /**
+     * puts a map location to an integer
+     * @param rc RobotController
+     * @param location MapLocation to convert
+     * @return location in integer form
+     */
+    public int locationToInt(RobotController rc, MapLocation location) {
+        if (location == null) return 0;
+        return 1 + location.x + location.y * rc.getMapWidth();
+    }
+
+    /**
+     * puts an integer to a map location
+     * @param rc RobotController
+     * @param integerLocation integer to convert
+     * @return integer in location form
+     */
+    public MapLocation intToLocation(RobotController rc, int integerLocation) {
+        if (integerLocation == 0) return null;
+        integerLocation--;
+        return new MapLocation(integerLocation % rc.getMapWidth(), integerLocation / rc.getMapWidth());
     }
 }
