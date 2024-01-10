@@ -37,24 +37,29 @@ public strictfp class Utility {
 
     /**
      * puts a map location to an integer
-     * @param rc RobotController
      * @param location MapLocation to convert
      * @return location in integer form
      */
-    public int locationToInt(RobotController rc, MapLocation location) {
+    public int locationToInt(MapLocation location) {
         if (location == null) return 0;
         return 1 + location.x + location.y * rc.getMapWidth();
     }
 
     /**
      * puts an integer to a map location
-     * @param rc RobotController
      * @param integerLocation integer to convert
      * @return integer in location form
      */
-    public MapLocation intToLocation(RobotController rc, int integerLocation) {
+    public MapLocation intToLocation(int integerLocation) {
         if (integerLocation == 0) return null;
         integerLocation--;
         return new MapLocation(integerLocation % rc.getMapWidth(), integerLocation / rc.getMapWidth());
+    }
+
+    public void writeWhereYouAre(int localID) throws GameActionException {
+        int locToStore = locationToInt(rc.getLocation());
+        if (rc.canWriteSharedArray(localID, locToStore)) {
+            rc.writeSharedArray(localID, locToStore);
+        }
     }
 }

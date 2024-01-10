@@ -36,18 +36,68 @@ public strictfp class RobotPlayer {
             Direction.NORTHWEST,
     };
 
+
     /**
      * SHARED ARRAY
-     * [0,  1,  2,  3,  4,  5,  6,  7,  8, ...]
-     * id  hq1 hq2 hq3
+     * [0,          1-50,          51]
+     * id     id's of all ducks
      *
      */
 
     static final int assigningLocalIDIndex = 0;
-    static final int spawnLocCenterOneIndex = 1;
-    static final int spawnLocCenterTwoIndex = 2;
-    static final int spawnLocCenterThreeIndex = 3;
-
+    static final int duckOneIndex = 1;
+    static final int duckTwoIndex = 2;
+    static final int duckThreeIndex = 3;
+    static final int duckFourIndex = 4;
+    static final int duckFiveIndex = 5;
+    static final int duckSixIndex = 6;
+    static final int duckSevenIndex = 7;
+    static final int duckEightIndex = 8;
+    static final int duckNineIndex = 9;
+    static final int duckTenIndex = 10;
+    static final int duckElevenIndex = 11;
+    static final int duckTwelveIndex = 12;
+    static final int duckThirteenIndex = 13;
+    static final int duckFourteenIndex = 14;
+    static final int duckFifteenIndex = 15;
+    static final int duckSixteenIndex = 16;
+    static final int duckSeventeenIndex = 17;
+    static final int duckEighteenIndex = 18;
+    static final int duckNineteenIndex = 19;
+    static final int duckTwentyIndex = 20;
+    static final int duckTwentyOneIndex = 21;
+    static final int duckTwentyTwoIndex = 22;
+    static final int duckTwentyThreeIndex = 23;
+    static final int duckTwentyFourIndex = 24;
+    static final int duckTwentyFiveIndex = 25;
+    static final int duckTwentySixIndex = 26;
+    static final int duckTwentySevenIndex = 27;
+    static final int duckTwentyEightIndex = 28;
+    static final int duckTwentyNineIndex = 29;
+    static final int duckThirtyIndex = 30;
+    static final int duckThirtyOneIndex = 31;
+    static final int duckThirtyTwoIndex = 32;
+    static final int duckThirtyThreeIndex = 33;
+    static final int duckThirtyFourIndex = 34;
+    static final int duckThirtyFiveIndex = 35;
+    static final int duckThirtySixIndex = 36;
+    static final int duckThirtySevenIndex = 37;
+    static final int duckThirtyEightIndex = 38;
+    static final int duckThirtyNineIndex = 39;
+    static final int duckFortyIndex = 40;
+    static final int duckFortyOneIndex = 41;
+    static final int duckFortyTwoIndex = 42;
+    static final int duckFortyThreeIndex = 43;
+    static final int duckFortyFourIndex = 44;
+    static final int duckFortyFiveIndex = 45;
+    static final int duckFortySixIndex = 46;
+    static final int duckFortySevenIndex = 47;
+    static final int duckFortyEightIndex = 48;
+    static final int duckFortyNineIndex = 49;
+    static final int duckFiftyIndex = 50;
+    static final int spawnLocCenterOneIndex = 51;
+    static final int spawnLocCenterTwoIndex = 52;
+    static final int spawnLocCenterThreeIndex = 53;
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
      * It is like the main function for your robot. If this method returns, the robot dies!
@@ -90,6 +140,7 @@ public strictfp class RobotPlayer {
 
 
 
+                    util.writeWhereYouAre(localID);
                 }
             } catch (GameActionException e) {
                 System.out.println("GameActionException");
