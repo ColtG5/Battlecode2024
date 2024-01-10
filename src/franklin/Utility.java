@@ -22,6 +22,7 @@ public strictfp class Utility {
     }
 
     public boolean trySpawning() throws GameActionException {
+        if (rc.isSpawned()) return false;
         MapLocation[] spawnLocs = rc.getAllySpawnLocations();
         for (MapLocation loc : spawnLocs) {
             if (rc.canSpawn(loc)) {
