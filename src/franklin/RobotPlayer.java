@@ -175,15 +175,7 @@ public strictfp class RobotPlayer {
                     movement.simpleMove(rc.getLocation().add(dir));
 
                     // if have action at end of turn, and not full health, why not heal
-                    if (rc.getActionCooldownTurns() < GameConstants.COOLDOWN_LIMIT) {
-                        if (rc.getHealth() < 1000 && rc.canHeal(rc.getLocation())) rc.heal(rc.getLocation());
-                        else {
-                            RobotInfo[] teammies = rc.senseNearbyRobots(-1, rc.getTeam());
-                            for (RobotInfo teammie : teammies) {
-                                if (rc.getHealth() < 1000 && rc.canHeal(teammie.getLocation())) rc.heal(teammie.getLocation());
-                            }
-                        }
-                    }
+                    tryToHeal(rc);
 
                     // Rarely attempt placing random traps
                     MapLocation prevLoc = rc.getLocation().subtract(dir);
@@ -247,5 +239,17 @@ public strictfp class RobotPlayer {
             }
         }
         return closestEnemy;
+    }
+
+    public static void tryToHeal(RobotController rc) throws GameActionException {
+        if (rc.getActionCooldownTurns() < GameConstants.COOLDOWN_LIMIT) {
+            if (rc.getHealth() < 1000 && rc.canHeal(rc.getLocation())) rc.heal(rc.getLocation());
+            else {
+                RobotInfo[] teammies = rc.senseNearbyRobots(-1, rc.getTeam());
+                for (RobotInfo teammie : teammies) {
+                    if (rc.getHealth() < 1000 && rc.canHeal(teammie.getLocation())) rc.heal(teammie.getLocation());
+                }
+            }
+        }
     }
 }
