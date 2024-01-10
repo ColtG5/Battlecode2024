@@ -2,6 +2,9 @@ package coltonbotyay;
 
 import battlecode.common.*;
 
+import java.util.Map;
+import java.util.Stack;
+
 public strictfp class Movement {
     RobotController rc;
     public Movement(RobotController rc) {
@@ -40,35 +43,81 @@ public strictfp class Movement {
         }
         return false;
     }
-    static MapLocation priorLocation;
+    static Stack<Direction> MovementStack;
 
+    public Direction rotateOnce(boolean lefty, Direction hype) {
+        if (lefty) return hype.rotateLeft();
+        else return hype.rotateRight();
+    }
 
-    public boolean hardMove(MapLocation mapLocation) throws GameActionException {
-        // direction we want to move to, to get to end goal
-        Direction originalDir = rc.getLocation().directionTo(mapLocation);
-        // get map info of the location in the direction to end goal
-        MapInfo mapInfo=rc.senseMapInfo(rc.getLocation().add(originalDir));
-        // if the loc we tryna move to is passable, and we arent moving backwards, then move there
-        if(mapInfo.isPassable() && originalDir != priorLocation.directionTo(rc.getLocation()).opposite()){
-            // if fuzzy move is able to move to the location, set priorLocation to current location
-            if(simpleMove(mapInfo.getMapLocation())){
-                priorLocation=mapInfo.getMapLocation();
-                if(rc.getLocation() == mapLocation){
-                    priorLocation=null;
-                }
+    /**
+     *
+     * @param lefty
+     * @param hype Direction of failed move
+     * @return failed to move or not
+     * @throws GameActionException I dont fucking know
+     */
+    public boolean tryNewDirection(boolean lefty,Direction hype) throws GameActionException {
+
+        while(true){
+            hype = rotateOnce(lefty, hype);
+            if(rc.canMove(hype)) {
+                rc.move(hype);
                 return true;
             }
+
             else{
+                MovementStack.push(hype);
+            }
+            if(MovementStack.size() == 8){
+                MovementStack.clear();
                 return false;
             }
+        }
+    }
 
+
+    public boolean hardMove(boolean lefty,MapLocation mapLocation) throws GameActionException {
+        if(MovementStack.empty()){
+            //HYPE is the direction
+            Direction hype =rc.getLocation().directionTo(mapLocation);
+            if(rc.canMove(hype)){
+                rc.move(hype);
+                return true;
+            }
+
+            else{
+                MovementStack.push(hype);
+                if(!tryNewDirection(lefty,hype)){
+                    return false;
+                }
+                else{
+                    return true;
+                }
+
+            }
         }
         else{
-            //make rc follow impassable terrain
-            Direction direction =priorLocation.directionTo(rc.getLocation());
-
+            Direction topOfStack = MovementStack.peek();
+           if(rc.canMove(topOfStack)){
+               Direction last = topOfStack;
+               while(rc.canMove(topOfStack)){
+                   MovementStack.pop();
+                   last = topOfStack;
+                   topOfStack = MovementStack.peek();
+               }
+               rc.move(last);
+               return true;
+           }
+           else{
+               if(tryNewDirection(lefty,topOfStack)){
+                   return true;
+               }
+               else{
+                   return false;
+               }
+           }
 
         }
-        return false;
     }
 }
