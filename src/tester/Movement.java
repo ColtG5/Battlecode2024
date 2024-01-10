@@ -23,6 +23,8 @@ public strictfp class Movement {
 
     public boolean simpleMove(MapLocation mapLocation) throws GameActionException {
         boolean moved = false;
+        System.out.println(rc.getLocation());
+        System.out.println(mapLocation);
         Direction dir = rc.getLocation().directionTo(mapLocation);
         if (rc.canMove(dir)) {
             // get the map loc that moving this way would yield us

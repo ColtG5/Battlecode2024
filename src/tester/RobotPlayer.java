@@ -33,6 +33,7 @@ public strictfp class RobotPlayer {
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
         Movement mv = new Movement(rc);
+        Utility util = new Utility(rc);
         while (true) {
             turnCount += 1;  // We have now been alive for one more turn!
             try {
@@ -43,6 +44,12 @@ public strictfp class RobotPlayer {
                     rc.spawn(new MapLocation(4, 22));
                 }
                 if (localID != 5) Clock.yield();
+
+//                util.trySpawning();
+
+                if (!rc.isSpawned()) Clock.yield();
+
+                rc.setIndicatorString("" + rc.getLocation());
 
                 mv.simpleMove(new MapLocation(17, 22));
 

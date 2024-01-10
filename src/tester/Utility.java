@@ -1,6 +1,8 @@
-package franklin;
+package tester;
 
-import battlecode.common.*;
+import battlecode.common.GameActionException;
+import battlecode.common.MapLocation;
+import battlecode.common.RobotController;
 
 public strictfp class Utility {
     RobotController rc;
