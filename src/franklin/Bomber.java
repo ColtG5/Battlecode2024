@@ -6,9 +6,9 @@ public strictfp class Bomber {
     RobotController rc;
     Movement movement;
 
-    public Bomber(RobotController rc) {
+    public Bomber(RobotController rc, boolean lefty) {
         this.rc = rc;
-        this.movement = new Movement(rc);
+        this.movement = new Movement(rc, lefty);
     }
 
     /**

@@ -19,6 +19,7 @@ public strictfp class RobotPlayer {
     static int turnCount = 0;
 
     static int localID;
+    static boolean lefty = true; // do u pathfind favouring left first or right first
     static boolean firstRoundFlagBearer = false;
 
     static final Random rng = new Random(6147);
@@ -57,8 +58,8 @@ public strictfp class RobotPlayer {
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
         // Create objects for the other files
-        Movement movement = new Movement(rc);
-        Bomber bomber = new Bomber(rc);
+        Movement movement = new Movement(rc, lefty);
+        Bomber bomber = new Bomber(rc, lefty);
         Utility util = new Utility(rc);
 
 
@@ -67,6 +68,7 @@ public strictfp class RobotPlayer {
             try {
                 if (rc.getRoundNum() == 1) {
                     localID = util.makeLocalID(assigningLocalIDIndex);
+                    movement.setLefty((localID % 2) == 1);
 
                     // error here too? somehow?
                     // if spawned on top of flag, set flag bearer to true, and grab that thang
@@ -101,7 +103,7 @@ public strictfp class RobotPlayer {
                         // if have enough health to attack, attack, otherwise move away and try to heal
                         if (rc.getHealth() >= 500) {
                             // try moving closer to the enemy duck
-                            movement.simpleMove(closestEnemy);
+                            movement.hardMove(closestEnemy);
                             // try attacking the closest duck to you
                             while (rc.canAttack(closestEnemy)) {
                                 rc.attack(closestEnemy);
@@ -109,7 +111,7 @@ public strictfp class RobotPlayer {
                             }
                         } else {
                             // try moving away from the enemy duck
-                            movement.simpleMove(rc.getLocation().subtract(rc.getLocation().directionTo(closestEnemy)));
+                            movement.hardMove(rc.getLocation().subtract(rc.getLocation().directionTo(closestEnemy)));
                             // try healing
                             if (rc.canHeal(rc.getLocation())) {
                                 rc.heal(rc.getLocation());
@@ -141,7 +143,7 @@ public strictfp class RobotPlayer {
                             }
                         }
                         if (closestCrumb != null) {
-                            movement.simpleMove(closestCrumb);
+                            movement.hardMove(closestCrumb);
                         }
                     }
 
@@ -149,7 +151,7 @@ public strictfp class RobotPlayer {
                     if (rc.hasFlag()) {
                         MapLocation[] spawnLocs = rc.getAllySpawnLocations();
                         rc.setIndicatorString("Going to " + spawnLocs[0] + " with flag.");
-                        movement.simpleMove(spawnLocs[0]);
+                        movement.hardMove(spawnLocs[0]);
                     }
                     // Move to flags after setup rounds
                     else if (rc.getRoundNum() >= GameConstants.SETUP_ROUNDS) {
@@ -165,7 +167,7 @@ public strictfp class RobotPlayer {
                                 }
                             }
                             if (closestFlag != null) {
-                                movement.simpleMove(closestFlag);
+                                movement.hardMove(closestFlag);
                             }
 
                             if (closestFlag != null && rc.getLocation().isAdjacentTo(closestFlag) && rc.canPickupFlag(closestFlag)) {
@@ -176,7 +178,7 @@ public strictfp class RobotPlayer {
 
                     // if can move at end of turn, just move randomly (for now!!!)
                     Direction dir = directions[rng.nextInt(directions.length)];
-                    movement.simpleMove(rc.getLocation().add(dir));
+                    movement.hardMove(rc.getLocation().add(dir));
 
                     // if have action at end of turn, and not full health, why not heal
                     tryToHeal(rc);
