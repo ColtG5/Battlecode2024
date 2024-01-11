@@ -33,6 +33,7 @@ public class Flagrunner {
             else{
                 rc.setIndicatorString("ITS KILLMODE TIME");
                 wipeThemOut(robotEnemyInfo);
+                return;
             }
         }
         RobotInfo[] roboInfo = rc.senseNearbyRobots(-1, rc.getTeam());
@@ -55,11 +56,12 @@ public class Flagrunner {
     }
 
     private void wipeThemOut(RobotInfo[] robotEnemyInfo) throws GameActionException {
-        int closestDistenceToEnemy = robotEnemyInfo[0].getLocation().distanceSquaredTo(rc.getLocation());
+
+        int maxHP = 2001;
         MapLocation target = robotEnemyInfo[0].getLocation();
         for(RobotInfo info:  robotEnemyInfo){
-            if(closestDistenceToEnemy > info.getLocation().distanceSquaredTo(rc.getLocation())){
-                closestDistenceToEnemy = info.getLocation().distanceSquaredTo(rc.getLocation());
+            if(maxHP > info.getHealth()){
+                maxHP = info.getHealth();
                 target = info.getLocation();
             }
         }
@@ -80,7 +82,7 @@ public class Flagrunner {
 
         }
         if(numberOfStuns <2){
-            if(mapLocation.isWithinDistanceSquared(rc.getLocation(), 2)){
+            if(mapLocation.isWithinDistanceSquared(rc.getLocation(), 6)){
                 if(rc.canBuild(TrapType.STUN, rc.getLocation().add(rc.getLocation().directionTo(mapLocation)))){
                     rc.setIndicatorString("I am a flagrunner and I am building a stun trap");
                     rc.build(TrapType.STUN,  rc.getLocation().add(rc.getLocation().directionTo(mapLocation)));
@@ -110,7 +112,7 @@ public class Flagrunner {
 
     }
     private void attackTheLocals() throws GameActionException{
-        RobotInfo[] roboInfo = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        RobotInfo[] roboInfo = rc.senseNearbyRobots(GameConstants.ATTACK_RADIUS_SQUARED, rc.getTeam().opponent());
         MapLocation target = null;
         int maxHealth = 2001;
         for( RobotInfo info: roboInfo){
@@ -127,6 +129,7 @@ public class Flagrunner {
             if(rc.canAttack(target)){
                 rc.attack(target);
             }
+
         }
     }
 
@@ -174,6 +177,12 @@ public class Flagrunner {
             for (MapLocation flag : flagLocations) {
                 if (rc.getLocation().distanceSquaredTo(flag) < rc.getLocation().distanceSquaredTo(closestFlag))
                     closestFlag = flag;
+            }
+            if( rc.senseMapInfo(rc.getLocation().add(rc.getLocation().directionTo(closestFlag))).isWater()){
+                rc.setIndicatorString("I am a flagrunner and I am filling water");
+                if(rc.canFill(rc.getLocation().add(rc.getLocation().directionTo(closestFlag)))){
+                    rc.fill(rc.getLocation().add(rc.getLocation().directionTo(closestFlag)));
+                }
             }
             movement.hardMove(closestFlag);
         }
