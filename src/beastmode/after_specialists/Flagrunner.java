@@ -19,8 +19,26 @@ public class Flagrunner {
     }
 
     public void run() throws GameActionException {
+        RobotInfo[] roboInfo = rc.senseNearbyRobots(-1, rc.getTeam());
+        for(RobotInfo info: roboInfo){
+            if(info.hasFlag){
+            followFlag(info.getLocation());
+            }
+        }
+
         if (rc.hasFlag()) backToSpawn();
         else fetchFlag();
+    }
+    private void followFlag(MapLocation mapLocOfFlagRunner) throws GameActionException{
+        MapLocation[] spawnLocations = rc.getAllySpawnLocations();
+        MapLocation closestSpawn = spawnLocations[0];
+        for (MapLocation spawn : spawnLocations) {
+            if (rc.getLocation().distanceSquaredTo(spawn) < rc.getLocation().distanceSquaredTo(closestSpawn))
+                closestSpawn = spawn;
+        }
+        Direction opDir = rc.getLocation().directionTo(closestSpawn).opposite();
+        movement.hardMove(mapLocOfFlagRunner.add(opDir));
+
     }
 
     private void backToSpawn() throws GameActionException {
