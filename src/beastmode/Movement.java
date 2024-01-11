@@ -5,9 +5,11 @@ import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 
+import java.util.Random;
 import java.util.Stack;
 
 public class Movement {
+    static final Random rng = new Random(6147);
     RobotController rc;
     boolean lefty;
     public Movement(RobotController rc, boolean lefty) {
@@ -66,7 +68,7 @@ public class Movement {
         return false;
 
     }
-    static Stack<Direction> MovementStack = new Stack<Direction>();
+    static Stack<Direction> MovementStack = new Stack<>();
 
     public Direction rotateOnce(boolean lefty, Direction hype) {
         if (lefty) return hype.rotateLeft();
@@ -105,46 +107,47 @@ public class Movement {
 
     public boolean hardMove(MapLocation mapLocation) throws GameActionException {
         rc.setIndicatorString("am i lefty?? " + lefty);
-        if(MovementStack.empty()){
+        if (MovementStack.empty()) {
             //HYPE is the direction
-            Direction hype =rc.getLocation().directionTo(mapLocation);
-            if(smallMove(hype)) {
+            Direction hype = rc.getLocation().directionTo(mapLocation);
+            if (smallMove(hype)) {
                 return true;
             }
-
-            else{
+            else {
                 MovementStack.push(hype);
-                if(!tryNewDirection(hype)){
+                if (!tryNewDirection(hype)) {
                     return false;
                 }
-                else{
-                    return true;
-                }
-
+                return true;
             }
         }
-        else{
+        else {
             Direction topOfStack = MovementStack.peek();
-            if(rc.canMove(topOfStack)){
+            if (rc.canMove(topOfStack)){
                 Direction last = topOfStack;
-                while(rc.canMove(topOfStack)){
+                while (rc.canMove(topOfStack)){
                     MovementStack.pop();
                     last = topOfStack;
-                    if(MovementStack.empty()) break;
+                    if (MovementStack.empty()) break;
                     topOfStack = MovementStack.peek();
                 }
                 rc.move(last);
                 return true;
             }
-            else{
-                if(tryNewDirection(topOfStack)){
+            else {
+                if (tryNewDirection(topOfStack)) {
                     return true;
                 }
-                else{
-                    return false;
-                }
+                return false;
             }
+        }
+    }
 
+    public void moveTowardsEnemyFlags() throws GameActionException {
+        MapLocation[] potentialFlags = rc.senseBroadcastFlagLocations();
+        if (potentialFlags.length != 0) {
+            MapLocation flag = potentialFlags[rng.nextInt(potentialFlags.length)];
+            if (flag != null) hardMove(flag);
         }
     }
 }

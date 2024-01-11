@@ -4,10 +4,7 @@ import battlecode.common.*;
 import beastmode.Movement;
 import beastmode.Utility;
 
-import java.util.Random;
-
 public class Bomber {
-    static final Random rng = new Random(6147);
     RobotController rc;
     Movement movement;
     Utility utility;
@@ -35,14 +32,7 @@ public class Bomber {
      * Go dive into the enemies to place a bomb.
      */
     private void kamikaze() throws GameActionException {
-        MapLocation[] potentialFlags = rc.senseBroadcastFlagLocations();
-        // Pick a random flag to bomb
-        if (potentialFlags.length != 0) {
-            MapLocation flag = potentialFlags[rng.nextInt(potentialFlags.length)];
-            if (flag != null) {
-                movement.hardMove(flag);
-            }
-        }
+        movement.moveTowardsEnemyFlags();
 
         // Place bomb when near flag and have enemies around
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());

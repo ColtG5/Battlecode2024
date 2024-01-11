@@ -130,6 +130,7 @@ public strictfp class RobotPlayer {
 
         // after strategies
         Bomber bomber = new Bomber(rc, movement, util);
+        Flagrunner flagrunner = new Flagrunner(rc, movement, util);
 
         // either strategies
         Unspecialized unspecialized = new Unspecialized(rc, movement, util);
@@ -195,7 +196,9 @@ public strictfp class RobotPlayer {
                         } else if (isBuilder) { // carry over of 20 builders assigned before divider drop
                             builder.run();
                         } else { // so 30 bots switch from scout to unspecialized
-                            unspecialized.run();
+//                            unspecialized.run();
+                            // Just for testing
+                            flagrunner.run();
                         }
                     }
                     util.writeWhereYouAreToArray(localID);
