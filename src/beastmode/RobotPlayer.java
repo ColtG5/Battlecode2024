@@ -1,6 +1,9 @@
 package beastmode;
 
 import battlecode.common.*;
+import beastmode.before_specialists.*;
+import beastmode.after_specialists.*;
+import beastmode.either_specialists.*;
 
 import java.util.Random;
 
@@ -112,9 +115,10 @@ public strictfp class RobotPlayer {
     public static void run(RobotController rc) throws GameActionException {
         // Create objects for the other files
         Movement movement = new Movement(rc, lefty);
-        Bomber bomber = new Bomber(rc, lefty);
         Utility util = new Utility(rc);
 
+        Builder builder = new Builder(rc, movement, util);
+        Commander commander = new Commander(rc, movement, util);
 
         while (true) {
             turnCount += 1;  // We have now been alive for one more turn!
@@ -134,7 +138,7 @@ public strictfp class RobotPlayer {
 
 
 
-                    util.writeWhereYouAre(localID);
+                    util.writeWhereYouAreToArray(localID);
                 }
                 //Scouting and builders
                 if(turnCount <200){

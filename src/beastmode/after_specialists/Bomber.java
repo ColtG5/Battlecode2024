@@ -1,21 +1,29 @@
-package beastmode;
+package beastmode.after_specialists;
 
 import battlecode.common.*;
+import beastmode.Movement;
+import beastmode.Utility;
 
 public strictfp class Bomber {
     RobotController rc;
     Movement movement;
+    Utility utility;
 
-    public Bomber(RobotController rc, boolean lefty) {
+    public Bomber(RobotController rc, Movement movement, Utility utility) {
         this.rc = rc;
-        this.movement = new Movement(rc, lefty);
+        this.movement = movement;
+        this.utility = utility;
+    }
+
+    public void run() {
+
     }
 
     /**
      * Attempt to place a bomb at the given location.
      * @param location MapLocation to build the bomb
      */
-    public void tryToPlaceBomb(MapLocation location) throws GameActionException {
+    private void tryToPlaceBomb(MapLocation location) throws GameActionException {
         if (rc.canBuild(TrapType.EXPLOSIVE, location))
             rc.build(TrapType.EXPLOSIVE, location);
     }
@@ -23,7 +31,7 @@ public strictfp class Bomber {
     /**
      * Go dive into the enemies to place a bomb.
      */
-    public void kamikaze() throws GameActionException {
+    private void kamikaze() throws GameActionException {
         // Move to opponents with approximate flag locations
         MapLocation[] potentialFlags = rc.senseBroadcastFlagLocations();
         for (MapLocation flag : potentialFlags) {
