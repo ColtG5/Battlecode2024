@@ -48,8 +48,10 @@ public class Scout {
             if(rc.senseMapInfo(rc.getLocation().add(rc.getLocation().directionTo(locationGoal))).isWater()){
                 if(rc.canFill(rc.getLocation().add(rc.getLocation().directionTo(locationGoal)))) {
                     rc.fill(rc.getLocation().add(rc.getLocation().directionTo(locationGoal)));
+                    if(rc.canMove(rc.getLocation().directionTo(locationGoal))){
                     rc.move(rc.getLocation().directionTo(locationGoal));
                     return;
+                    }
                 }
             }
 
