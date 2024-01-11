@@ -10,6 +10,17 @@ public class Utility {
         this.rc = rc;
     }
 
+    private class ThingsAboutRobotFromArray() {
+        MapLocation curLocation;
+        boolean hasFlag;
+
+        public ThingsAboutRobotFromArray(MapLocation curLocation) throws GameActionException rc {
+            this.curLocation = curLocation;
+            this.hasFlag = rc.readBroadcast(0);
+
+        }
+    }
+
     public int makeLocalID(int assigningLocalIDIndex) throws GameActionException {
         int localID;
         // for each duck on round one, give it a random local ID
@@ -34,27 +45,6 @@ public class Utility {
         }
         return false;
     }
-
-//    /**
-//     * puts a map location to an integer
-//     * @param location MapLocation to convert
-//     * @return location in integer form
-//     */
-//    public int locationToInt(MapLocation location) {
-//        if (location == null) return 0;
-//        return 1 + location.x + location.y * rc.getMapWidth();
-//    }
-//
-//    /**
-//     * puts an integer to a map location
-//     * @param integerLocation integer to convert
-//     * @return integer in location form
-//     */
-//    public MapLocation intToLocation(int integerLocation) {
-//        if (integerLocation == 0) return null;
-//        integerLocation--;
-//        return new MapLocation(integerLocation % rc.getMapWidth(), integerLocation / rc.getMapWidth());
-//    }
 
     /**
      * puts a map location to an integer (last 12 bits are x and y, with y the last six bits

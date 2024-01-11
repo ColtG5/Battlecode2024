@@ -13,22 +13,27 @@ import java.util.Random;
  * is created!
  */
 public strictfp class RobotPlayer {
-
-    /**
-     * We will use this variable to count the number of turns this robot has been alive.
-     * You can use static variables like this to save any information you want. Keep in mind that even though
-     * these variables are static, in Battlecode they aren't actually shared between your robots.
-     */
     static int turnCount = 0;
 
     static int localID;
     static boolean lefty = true; // do u pathfind favouring left first or right first
     static boolean firstRoundFlagBearer = false;
+    static final int maxNumberOfScout = 30;
+    static final int maxNumberOfBuilder = 20;
 
+    // before divider drop
+    static boolean isScout = false;
+
+    // after divider drop
+    static boolean isBomber = false;
+    static boolean isFlagrunner = false;
+
+    // either
+    static boolean isBuilder = false;
+    static boolean isCommander = false;
 
     static final Random rng = new Random(6147);
 
-    /** Array containing all the possible movement directions. */
     static final Direction[] directions = {
             Direction.NORTH,
             Direction.NORTHEAST,
@@ -43,82 +48,18 @@ public strictfp class RobotPlayer {
 
     /**
      * SHARED ARRAY
-     * [0,          1-50,          51]
-     * id     id's of all ducks
+     * [0,          1-50,          51,  52,  53,         54,           55]
+     * id     id's of all ducks    3 spawn loc's    # of scouts   # of builders
      *
      */
 
     static final int assigningLocalIDIndex = 0;
-    static final int duckOneIndex = 1;
-    static final int duckTwoIndex = 2;
-    static final int duckThreeIndex = 3;
-    static final int duckFourIndex = 4;
-    static final int duckFiveIndex = 5;
-    static final int duckSixIndex = 6;
-    static final int duckSevenIndex = 7;
-    static final int duckEightIndex = 8;
-    static final int duckNineIndex = 9;
-    static final int duckTenIndex = 10;
-    static final int duckElevenIndex = 11;
-    static final int duckTwelveIndex = 12;
-    static final int duckThirteenIndex = 13;
-    static final int duckFourteenIndex = 14;
-    static final int duckFifteenIndex = 15;
-    static final int duckSixteenIndex = 16;
-    static final int duckSeventeenIndex = 17;
-    static final int duckEighteenIndex = 18;
-    static final int duckNineteenIndex = 19;
-    static final int duckTwentyIndex = 20;
-    static final int duckTwentyOneIndex = 21;
-    static final int duckTwentyTwoIndex = 22;
-    static final int duckTwentyThreeIndex = 23;
-    static final int duckTwentyFourIndex = 24;
-    static final int duckTwentyFiveIndex = 25;
-    static final int duckTwentySixIndex = 26;
-    static final int duckTwentySevenIndex = 27;
-    static final int duckTwentyEightIndex = 28;
-    static final int duckTwentyNineIndex = 29;
-    static final int duckThirtyIndex = 30;
-    static final int duckThirtyOneIndex = 31;
-    static final int duckThirtyTwoIndex = 32;
-    static final int duckThirtyThreeIndex = 33;
-    static final int duckThirtyFourIndex = 34;
-    static final int duckThirtyFiveIndex = 35;
-    static final int duckThirtySixIndex = 36;
-    static final int duckThirtySevenIndex = 37;
-    static final int duckThirtyEightIndex = 38;
-    static final int duckThirtyNineIndex = 39;
-    static final int duckFortyIndex = 40;
-    static final int duckFortyOneIndex = 41;
-    static final int duckFortyTwoIndex = 42;
-    static final int duckFortyThreeIndex = 43;
-    static final int duckFortyFourIndex = 44;
-    static final int duckFortyFiveIndex = 45;
-    static final int duckFortySixIndex = 46;
-    static final int duckFortySevenIndex = 47;
-    static final int duckFortyEightIndex = 48;
-    static final int duckFortyNineIndex = 49;
-    static final int duckFiftyIndex = 50;
     static final int spawnLocCenterOneIndex = 51;
     static final int spawnLocCenterTwoIndex = 52;
     static final int spawnLocCenterThreeIndex = 53;
     static final int numberOfScoutsIndex = 54;
     static final int numberOfBuildersIndex = 55;
 
-    static final int maxNumberOfScout = 30;
-    static final int maxNumberOfBuilder = 20;
-
-    static boolean isScout = false;
-    static boolean isBomber = false;
-    static boolean isBuilder = false;
-    static boolean isCommander = false;
-    /**
-     * run() is the method that is called when a robot is instantiated in the Battlecode world.
-     * It is like the main function for your robot. If this method returns, the robot dies!
-     *
-     * @param rc  The RobotController object. You use it to perform actions from this robot, and to get
-     *            information on its current status. Essentially your portal to interacting with the world.
-     **/
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
         // Create objects for the other files
@@ -152,11 +93,11 @@ public strictfp class RobotPlayer {
                 if (!rc.isSpawned()) {
                     boolean didSpawn = util.trySpawning();
                 } else {
+
                     // ----------------------------------------
-                    // logic for who will specialize to what (subject to change idrk what im doing)
+                    // logic for who will specialize to what (subject to change idrk what im doing ong no cap on 4nem)
                     // ----------------------------------------
 
-                    //Scouters
                     if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) {
                         int amountOfScouts = rc.readSharedArray(numberOfScoutsIndex);
                         int amountOfBuilders = rc.readSharedArray(numberOfBuildersIndex);
@@ -195,12 +136,16 @@ public strictfp class RobotPlayer {
                             bomber.run();
                         } else if (isBuilder) { // carry over of 20 builders assigned before divider drop
                             builder.run();
-                        } else { // so 30 bots switch from scout to unspecialized
-//                            unspecialized.run();
-                            // Just for testing
+                        } else if (isFlagrunner){ // so 30 bots switch from scout to unspecialized
                             flagrunner.run();
+                        } else {
+                            unspecialized.run();
                         }
                     }
+
+                    // ----------------------------------------
+                    // end of turn stuff
+                    // ----------------------------------------
                     util.writeWhereYouAreToArray(localID);
                 }
             } catch (GameActionException e) {
