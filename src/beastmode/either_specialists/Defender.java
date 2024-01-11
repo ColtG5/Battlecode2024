@@ -1,4 +1,4 @@
-package beastmode.after_specialists;
+package beastmode.either_specialists;
 
 import battlecode.common.*;
 import beastmode.Movement;

@@ -4,8 +4,9 @@ import battlecode.common.*;
 import beastmode.before_specialists.*;
 import beastmode.after_specialists.*;
 import beastmode.either_specialists.*;
+import javafx.util.Pair;
+import scala.Tuple1;
 
-import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -19,11 +20,10 @@ public strictfp class RobotPlayer {
 
     static int localID;
     static boolean lefty = true; // do u pathfind favouring left first or right first
-    static boolean firstRoundFlagBearer = false;
-    static final int maxNumberOfScout = 30;
 
     // before divider drop
     static boolean isScout = false;
+    static boolean isDefender = false;
 
     // after divider drop
     static boolean isBomber = false;
@@ -49,16 +49,15 @@ public strictfp class RobotPlayer {
 
     /**
      * SHARED ARRAY
-     * [0,          1-50,          51,  52,  53,         54]
-     * id     id's of all ducks    3 spawn loc's    # of scouts
+     * [0,          1-50,          51,  52,  53]
+     * id     id's of all ducks    3 spawn loc's
      *
      */
 
     static final int assigningLocalIDIndex = 0;
-    static final int spawnLocCenterOneIndex = 51;
-    static final int spawnLocCenterTwoIndex = 52;
-    static final int spawnLocCenterThreeIndex = 53;
-    static final int numberOfScoutsIndex = 54;
+    static final int breadLocOneIndex = 51;
+    static final int breadLocTwoIndex = 52;
+    static final int breadLocThreeIndex = 53;
 
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
@@ -86,10 +85,6 @@ public strictfp class RobotPlayer {
                     movement.setLefty((localID % 2) == 1);
                 }
 
-                if (turnCount == 1) {
-                    rc.setIndicatorString("I am robot #" + localID);
-                }
-
                 if (!rc.isSpawned()) {
                     util.trySpawning();
                 }
@@ -107,28 +102,29 @@ public strictfp class RobotPlayer {
                         }
                     }
 
-                    // testing
-                    if (rc.getRoundNum() == 2) {
-                        rc.setIndicatorString("heheheha, localID= " + localID);
-                        if (localID == 10) {
-                            System.out.println("coolRobot: " + Arrays.toString(coolRobotInfoArray));
-                            rc.setIndicatorString("I am robot #" + localID + " Duck 50 is at the coords " + coolRobotInfoArray[50-1].curLocation.toString() + ".");
+                    if (rc.getRoundNum() == 1) {
+                        MapLocation me = rc.getLocation();
+                        FlagInfo[] flags = rc.senseNearbyFlags(1, rc.getTeam());
+                        if (flags.length > 0) {
+                            MapLocation flagLoc = flags[0].getLocation();
+                            if (me.x == flagLoc.x && me.y == flagLoc.y) {
+                                if (rc.readSharedArray(breadLocOneIndex) == 0) {
+                                    rc.writeSharedArray(breadLocOneIndex, util.locationToInt(me));
+                                } else if (rc.readSharedArray(breadLocTwoIndex) == 0) {
+                                    rc.writeSharedArray(breadLocTwoIndex, util.locationToInt(me));
+                                } else if (rc.readSharedArray(breadLocThreeIndex) == 0) {
+                                    rc.writeSharedArray(breadLocThreeIndex, util.locationToInt(me));
+                                }
+                            }
                         }
                     }
-
 
                     // ----------------------------------------
                     // logic for who will specialize to what (subject to change idrk what im doing ong no cap on 4nem)
                     // ----------------------------------------
 
                     if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) {
-                        int amountOfScouts = rc.readSharedArray(numberOfScoutsIndex);
-                        if (amountOfScouts < maxNumberOfScout) {
-                            isScout = true;
-                            rc.writeSharedArray(numberOfScoutsIndex, amountOfScouts + 1);
-                        } else {
-                            unspecialized.run();
-                        }
+                        if (!isDefender) isScout = true;
                     }
 
                     if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS) {
@@ -148,7 +144,9 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
 
                     if (rc.getRoundNum() <= GameConstants.SETUP_ROUNDS) { // before divider drop strategies
-                        if (isCommander) { // no commanders rn
+                        if (rc.getRoundNum() == 1) { // dont let bots move on the first turn
+
+                        } else if (isCommander) { // no commanders rn
                             commander.run();
                         } else if (isScout) { // rn we make 30 scouts
                             scout.run();
