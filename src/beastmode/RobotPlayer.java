@@ -131,18 +131,21 @@ public strictfp class RobotPlayer {
                             isScout = true;
                             rc.writeSharedArray(numberOfScoutsIndex, amountOfScouts + 1);
                         } else if (amountOfBuilders < maxNumberOfBuilder) {
-                            isBuilder = false;
+                            isBuilder = true;
                             rc.writeSharedArray(numberOfBuildersIndex, amountOfBuilders + 1);
                         }
                     }
 
-                    if (rc.getRoundNum() >= GameConstants.SETUP_ROUNDS) {
-                        // set all the before divider specializations to false
-                        isScout = false;
-                        isBuilder = false;
-                        isBomber = false;
-                        isCommander = false;
+                    if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS) {
+                        if (isScout) isFlagrunner = true; // change all scouts to flagrunners
 
+                        // set all the before divider specializations to false just to make sure no one is running them
+                        isScout = false;
+//                        isBuilder = false;
+                    }
+
+                    if (rc.getRoundNum() > GameConstants.SETUP_ROUNDS) {
+                        // setting specializations after the setup rounds
                     }
 
                     // ----------------------------------------
