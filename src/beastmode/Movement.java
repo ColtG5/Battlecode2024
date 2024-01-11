@@ -111,6 +111,7 @@ public class Movement {
         if(!rc.isMovementReady()){
             return false;
         }
+
         if (MovementStack.empty()) {
             //HYPE is the direction
             Direction hype = rc.getLocation().directionTo(mapLocation);
