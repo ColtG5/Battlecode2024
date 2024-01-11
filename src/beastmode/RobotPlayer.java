@@ -21,7 +21,6 @@ public strictfp class RobotPlayer {
     static boolean lefty = true; // do u pathfind favouring left first or right first
     static boolean firstRoundFlagBearer = false;
     static final int maxNumberOfScout = 30;
-    static final int maxNumberOfBuilder = 20;
 
     // before divider drop
     static boolean isScout = false;
@@ -31,7 +30,6 @@ public strictfp class RobotPlayer {
     static boolean isFlagrunner = false;
 
     // either
-    static boolean isBuilder = false;
     static boolean isCommander = false;
     static Utility.CoolRobotInfo[] coolRobotInfoArray = new Utility.CoolRobotInfo[50];
 
@@ -51,8 +49,8 @@ public strictfp class RobotPlayer {
 
     /**
      * SHARED ARRAY
-     * [0,          1-50,          51,  52,  53,         54,           55]
-     * id     id's of all ducks    3 spawn loc's    # of scouts   # of builders
+     * [0,          1-50,          51,  52,  53,         54]
+     * id     id's of all ducks    3 spawn loc's    # of scouts
      *
      */
 
@@ -61,7 +59,6 @@ public strictfp class RobotPlayer {
     static final int spawnLocCenterTwoIndex = 52;
     static final int spawnLocCenterThreeIndex = 53;
     static final int numberOfScoutsIndex = 54;
-    static final int numberOfBuildersIndex = 55;
 
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
@@ -75,10 +72,10 @@ public strictfp class RobotPlayer {
         // after strategies
         Bomber bomber = new Bomber(rc, movement, util);
         Flagrunner flagrunner = new Flagrunner(rc, movement, util);
+        Defender defender = new Defender(rc, movement, util);
 
         // either strategies
         Unspecialized unspecialized = new Unspecialized(rc, movement, util);
-        Builder builder = new Builder(rc, movement, util);
         Commander commander = new Commander(rc, movement, util);
 
         while (true) {
@@ -126,13 +123,11 @@ public strictfp class RobotPlayer {
 
                     if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) {
                         int amountOfScouts = rc.readSharedArray(numberOfScoutsIndex);
-                        int amountOfBuilders = rc.readSharedArray(numberOfBuildersIndex);
                         if (amountOfScouts < maxNumberOfScout) {
                             isScout = true;
                             rc.writeSharedArray(numberOfScoutsIndex, amountOfScouts + 1);
-                        } else if (amountOfBuilders < maxNumberOfBuilder) {
-                            isBuilder = true;
-                            rc.writeSharedArray(numberOfBuildersIndex, amountOfBuilders + 1);
+                        } else {
+                            unspecialized.run();
                         }
                     }
 
@@ -157,9 +152,7 @@ public strictfp class RobotPlayer {
                             commander.run();
                         } else if (isScout) { // rn we make 30 scouts
                             scout.run();
-                        } else if (isBuilder) { // and 20 builders, so all 50 ducks get specialized, so none hit the default case
-                            builder.run();
-                        } else { // none unspecialized rn (all taken up to be scouts or builders)
+                        } else { // none unspecialized rn (all taken up to be scouts)
                             unspecialized.run();
                         }
                     } else { // after divider drop strategies
@@ -167,8 +160,6 @@ public strictfp class RobotPlayer {
                             commander.run();
                         } else if (isBomber) { // none rn
                             bomber.run();
-                        } else if (isBuilder) { // carry over of 20 builders assigned before divider drop
-                            builder.run();
                         } else if (isFlagrunner){ // so 30 bots switch from scout to unspecialized
                             flagrunner.run();
                         } else {
