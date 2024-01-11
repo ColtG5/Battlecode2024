@@ -44,6 +44,7 @@ public class Flagrunner {
             return;
             }
         }
+        lastFlagFollowerLocation = null;
 
         if(robotEnemyInfo.length > 5){
             wipeThemOut(robotEnemyInfo);
@@ -98,17 +99,25 @@ public class Flagrunner {
         }
 
     }
+    static MapLocation lastFlagFollowerLocation = null;
     private void followFlag(MapLocation mapLocOfFlagRunner) throws GameActionException{
-        flag = null;
-        closestFlagDistence = MAXINT;
-        MapLocation[] spawnLocations = rc.getAllySpawnLocations();
-        MapLocation closestSpawn = spawnLocations[0];
-        for (MapLocation spawn : spawnLocations) {
-            if (rc.getLocation().distanceSquaredTo(spawn) < rc.getLocation().distanceSquaredTo(closestSpawn))
-                closestSpawn = spawn;
+        if(lastFlagFollowerLocation ==null) {
+            flag = null;
+            closestFlagDistence = MAXINT;
+            MapLocation[] spawnLocations = rc.getAllySpawnLocations();
+            MapLocation closestSpawn = spawnLocations[0];
+            for (MapLocation spawn : spawnLocations) {
+                if (rc.getLocation().distanceSquaredTo(spawn) < rc.getLocation().distanceSquaredTo(closestSpawn))
+                    closestSpawn = spawn;
+            }
+            Direction opDir = rc.getLocation().directionTo(closestSpawn).opposite();
+            movement.hardMove(mapLocOfFlagRunner.add(opDir));
+            lastFlagFollowerLocation = mapLocOfFlagRunner;
+        }else{
+            movement.hardMove(lastFlagFollowerLocation);
+            lastFlagFollowerLocation = mapLocOfFlagRunner;
         }
-        Direction opDir = rc.getLocation().directionTo(closestSpawn).opposite();
-        movement.hardMove(mapLocOfFlagRunner.add(opDir));
+
 
     }
     private void attackTheLocals() throws GameActionException{
