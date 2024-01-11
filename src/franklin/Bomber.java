@@ -2,7 +2,10 @@ package franklin;
 
 import battlecode.common.*;
 
+import java.util.Random;
+
 public strictfp class Bomber {
+    static final Random rng = new Random(6147);
     RobotController rc;
     Movement movement;
 
@@ -26,12 +29,15 @@ public strictfp class Bomber {
     public void kamikaze() throws GameActionException {
         // Move to opponents with approximate flag locations
         MapLocation[] potentialFlags = rc.senseBroadcastFlagLocations();
-        for (MapLocation flag : potentialFlags) {
-            movement.hardMove(flag);
+        if (potentialFlags.length != 0) {
+            MapLocation flag = potentialFlags[rng.nextInt(potentialFlags.length)];
+            if (flag != null) {
+                movement.hardMove(flag);
+            }
         }
 
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        if (enemies.length >= 5 && !(rc.getRoundNum() <= GameConstants.SETUP_ROUNDS))
-            tryToPlaceBomb(rc.getLocation());
+        FlagInfo[] enemyFlags = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
+        if (enemies.length >= 5 && enemyFlags.length != 0) tryToPlaceBomb(rc.getLocation());
     }
 }

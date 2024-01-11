@@ -150,8 +150,20 @@ public strictfp class RobotPlayer {
                     // Move to spawn if duck has flag
                     if (rc.hasFlag()) {
                         MapLocation[] spawnLocs = rc.getAllySpawnLocations();
-                        rc.setIndicatorString("Going to " + spawnLocs[0] + " with flag.");
-                        movement.hardMove(spawnLocs[0]);
+                        MapLocation closestSpawn = null;
+                        if (spawnLocs.length != 0) {
+                            for (MapLocation spawn : spawnLocs) {
+                                if (closestSpawn == null) closestSpawn = spawn;
+                                else if (rc.getLocation().distanceSquaredTo(spawn) < rc.getLocation().distanceSquaredTo(closestSpawn)) {
+                                    closestSpawn = spawn;
+                                }
+                            }
+                            if (closestSpawn != null) {
+                                movement.hardMove(closestSpawn);
+                            }
+                        }
+                        rc.setIndicatorString("Going to " + closestSpawn + " with flag.");
+                        movement.hardMove(closestSpawn);
                     }
                     // Move to flags after setup rounds
                     else if (rc.getRoundNum() >= GameConstants.SETUP_ROUNDS) {
