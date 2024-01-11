@@ -107,7 +107,7 @@ public class Movement {
 
 
     public boolean hardMove(MapLocation mapLocation) throws GameActionException {
-        rc.setIndicatorString("MOVEMENT STACK "+ Arrays.toString(MovementStack.toArray()) + "VIA HARD MOVE");
+        //rc.setIndicatorString("MOVEMENT STACK "+ Arrays.toString(MovementStack.toArray()) + "VIA HARD MOVE");
         if(!rc.isMovementReady()){
             return false;
         }
