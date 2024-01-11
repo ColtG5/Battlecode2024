@@ -24,8 +24,8 @@ public class Scout {
     boolean crumbLocated = false;
     private void scoutRandomDirection() throws GameActionException {
         // Choose a random direction, and move that way if possible
-        String ind ="I am a scout and I at location: "+rc.getLocation()+" and my goal is: "+locationGoal;
-        rc.setIndicatorString(ind);
+//        String ind ="I am a scout and I at location: "+rc.getLocation()+" and my goal is: "+locationGoal;
+//        rc.setIndicatorString(ind);
         MapInfo[] mapInfos =rc.senseNearbyMapInfos();
         if(locationGoal!=null) {
             if(rc.senseMapInfo(rc.getLocation().add(rc.getLocation().directionTo(locationGoal))).isWater()){

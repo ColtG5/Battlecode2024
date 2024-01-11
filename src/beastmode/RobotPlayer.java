@@ -5,6 +5,7 @@ import beastmode.before_specialists.*;
 import beastmode.after_specialists.*;
 import beastmode.either_specialists.*;
 
+import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -14,6 +15,7 @@ import java.util.Random;
  */
 public strictfp class RobotPlayer {
     static int turnCount = 0;
+    static final MapLocation NONELOCATION = new MapLocation(-1, -1);
 
     static int localID;
     static boolean lefty = true; // do u pathfind favouring left first or right first
@@ -31,6 +33,7 @@ public strictfp class RobotPlayer {
     // either
     static boolean isBuilder = false;
     static boolean isCommander = false;
+    static Utility.CoolRobotInfo[] coolRobotInfoArray = new Utility.CoolRobotInfo[50];
 
     static final Random rng = new Random(6147);
 
@@ -91,8 +94,31 @@ public strictfp class RobotPlayer {
                 }
 
                 if (!rc.isSpawned()) {
-                    boolean didSpawn = util.trySpawning();
-                } else {
+                    util.trySpawning();
+                }
+                if (rc.isSpawned()) {
+
+                    // ----------------------------------------
+                    // start of turn logic
+                    // ----------------------------------------
+
+                    // read every other robots info from the shared array, store it in coolRobotInfoArray
+                    if (rc.getRoundNum() > 1) { // not all bots have written their stuff into their index until round 2 starts
+                        for (int i = 1; i <= 50; i++) {
+                            int coolRobotInfoInt = rc.readSharedArray(i);
+                            coolRobotInfoArray[i-1] = util.new CoolRobotInfo(i, coolRobotInfoInt);
+                        }
+                    }
+
+                    // testing
+                    if (rc.getRoundNum() == 2) {
+                        rc.setIndicatorString("heheheha, localID= " + localID);
+                        if (localID == 10) {
+                            System.out.println("coolRobot: " + Arrays.toString(coolRobotInfoArray));
+                            rc.setIndicatorString("I am robot #" + localID + " Duck 50 is at the coords " + coolRobotInfoArray[50-1].curLocation.toString() + ".");
+                        }
+                    }
+
 
                     // ----------------------------------------
                     // logic for who will specialize to what (subject to change idrk what im doing ong no cap on 4nem)
@@ -146,8 +172,17 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
                     // end of turn stuff
                     // ----------------------------------------
-                    util.writeWhereYouAreToArray(localID);
+
                 }
+
+                // after every round whether spawned or not, convert your info to an int and write it to the shared array
+                MapLocation locationToStore;
+                if (rc.isSpawned()) locationToStore = rc.getLocation();
+                else locationToStore = NONELOCATION; // NONELOCATION (-1, -1) represents not spawned rn (no location)
+                int coolRobotInfoInt = util.convertRobotInfoToInt(locationToStore, false);
+//                if (rc.getRoundNum() == 1) System.out.println("id: " + localID + "coolRobotInfoInt: " + Integer.toBinaryString(coolRobotInfoInt));
+                rc.writeSharedArray(localID, coolRobotInfoInt);
+
             } catch (GameActionException e) {
                 System.out.println("GameActionException");
                 e.printStackTrace();

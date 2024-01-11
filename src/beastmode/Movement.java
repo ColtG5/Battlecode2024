@@ -106,7 +106,7 @@ public class Movement {
 
 
     public boolean hardMove(MapLocation mapLocation) throws GameActionException {
-        rc.setIndicatorString("am i lefty?? " + lefty);
+//        rc.setIndicatorString("am i lefty?? " + lefty);
         if (MovementStack.empty()) {
             //HYPE is the direction
             Direction hype = rc.getLocation().directionTo(mapLocation);
