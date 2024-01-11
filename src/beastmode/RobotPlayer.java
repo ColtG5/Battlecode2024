@@ -25,6 +25,7 @@ public strictfp class RobotPlayer {
     static boolean lefty = true; // do u pathfind favouring left first or right first
     static boolean firstRoundFlagBearer = false;
 
+
     static final Random rng = new Random(6147);
 
     /** Array containing all the possible movement directions. */
@@ -104,6 +105,8 @@ public strictfp class RobotPlayer {
 
     static final int maxNumberOfScout = 30;
     static final int maxNumberOfBuilder = 20;
+    static int numberOfScout = 0;
+    static boolean isScout = false;
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
      * It is like the main function for your robot. If this method returns, the robot dies!
@@ -116,6 +119,7 @@ public strictfp class RobotPlayer {
         // Create objects for the other files
         Movement movement = new Movement(rc, lefty);
         Utility util = new Utility(rc);
+        Scout scout = new Scout(rc, lefty);
 
         Builder builder = new Builder(rc, movement, util);
         Commander commander = new Commander(rc, movement, util);
@@ -140,9 +144,24 @@ public strictfp class RobotPlayer {
 
                     util.writeWhereYouAreToArray(localID);
                 }
+
+
                 //Scouting and builders
                 if(turnCount <200){
+                    if(numberOfScout < maxNumberOfScout){
 
+                        numberOfScout++;
+                        isScout = true;
+                    }else{
+                        isScout = false;
+
+                    }
+                    if(isScout) {
+
+                        scout.scoutRandomDirection();
+                    }else{
+                        rc.setIndicatorString("FUACKK");
+                    }
 
                 }else{
 
