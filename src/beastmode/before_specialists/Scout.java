@@ -22,9 +22,26 @@ public class Scout {
 
     static MapLocation locationGoal = null;
     boolean crumbLocated = false;
+    MapLocation getRandomDirection() throws GameActionException {
+        MapInfo[] mapInfos =rc.senseNearbyMapInfos();
+        MapInfo mapPlace =mapInfos[(int)(Math.random()*mapInfos.length)];
+        while(!mapPlace.isPassable()) {
+            mapPlace =mapInfos[(int)(Math.random()*mapInfos.length)];
+        }
+        if(mapPlace.isPassable()) {
+            return mapPlace.getMapLocation()
+            ;}
+        return rc.getLocation();
+    }
     private void scoutRandomDirection() throws GameActionException {
         // Choose a random direction, and move that way if possible
         String ind ="I am a scout and I at location: "+rc.getLocation()+" and my goal is: "+locationGoal;
+        if(rc.getLocation().equals( locationGoal)) {
+            if(crumbLocated){
+                crumbLocated = false;
+            }
+            locationGoal = null;
+        }
         rc.setIndicatorString(ind);
         MapInfo[] mapInfos =rc.senseNearbyMapInfos();
         if(locationGoal!=null) {
@@ -35,35 +52,35 @@ public class Scout {
                     return;
                 }
             }
-            if(rc.getLocation() == locationGoal) {
-                locationGoal = null;
 
-            }
-
-            MapLocation[] crumbs= rc.senseNearbyCrumbs(-1);
-            if(crumbs.length>0) {
-                locationGoal = crumbs[0];
-                movement.hardMove(locationGoal);
-                return;
-            }
-            movement.hardMove(locationGoal);
-        }else{
-            MapLocation[] crumbs= rc.senseNearbyCrumbs(-1);
-            if(crumbs.length>0) {
-                locationGoal = crumbs[0];
-                movement.hardMove(locationGoal);
-                return;
-            }
-            if (mapInfos.length > 0) {
-                MapInfo mapPlace =mapInfos[(int)(Math.random()*mapInfos.length)];
-                while(!mapPlace.isPassable()) {
-                    mapPlace =mapInfos[(int)(Math.random()*mapInfos.length)];
-                }
-                if(mapPlace.isPassable()) {
-                    locationGoal = mapPlace.getMapLocation();
+            if(!crumbLocated) {
+                MapLocation[] crumbs = rc.senseNearbyCrumbs(-1);
+                if (crumbs.length > 0) {
+                    crumbLocated = true;
+                    locationGoal = crumbs[0];
                     movement.hardMove(locationGoal);
                     return;
                 }
+            }
+            movement.hardMove(locationGoal);
+            if(rc.getLocation().equals(locationGoal)) {
+                rc.setIndicatorString("HEELLLLP");
+                if(crumbLocated){
+                    crumbLocated = false;
+                }
+                locationGoal = getRandomDirection();
+
+            }
+        }else{
+            MapLocation[] crumbs= rc.senseNearbyCrumbs(-1);
+            if(crumbs.length>0) {
+                crumbLocated = true;
+                locationGoal = crumbs[0];
+                movement.hardMove(locationGoal);
+                return;
+            }
+            else if (mapInfos.length > 0) {
+                locationGoal = getRandomDirection();
 
             }
 
