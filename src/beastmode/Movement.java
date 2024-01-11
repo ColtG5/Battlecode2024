@@ -5,6 +5,7 @@ import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 
+import java.util.Arrays;
 import java.util.Random;
 import java.util.Stack;
 
@@ -106,7 +107,11 @@ public class Movement {
 
 
     public boolean hardMove(MapLocation mapLocation) throws GameActionException {
-//        rc.setIndicatorString("am i lefty?? " + lefty);
+        //rc.setIndicatorString("MOVEMENT STACK "+ Arrays.toString(MovementStack.toArray()) + "VIA HARD MOVE");
+        if(!rc.isMovementReady()){
+            return false;
+        }
+
         if (MovementStack.empty()) {
             //HYPE is the direction
             Direction hype = rc.getLocation().directionTo(mapLocation);

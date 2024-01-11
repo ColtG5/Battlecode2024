@@ -139,6 +139,10 @@ public strictfp class RobotPlayer {
                     if (rc.getRoundNum() >= GameConstants.SETUP_ROUNDS) {
                         // set all the before divider specializations to false
                         isScout = false;
+                        isBuilder = false;
+                        isBomber = false;
+                        isCommander = false;
+
                     }
 
                     // ----------------------------------------
@@ -199,7 +203,7 @@ public strictfp class RobotPlayer {
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         MapLocation closestEnemy = null;
         if (enemies.length != 0) {
-            rc.setIndicatorString("There are nearby enemy robots! Scary!");
+            //rc.setIndicatorString("There are nearby enemy robots! Scary!");
             for (RobotInfo enemy : enemies) {
                 MapLocation enemyLoc = enemy.getLocation();
                 if (closestEnemy == null) {
