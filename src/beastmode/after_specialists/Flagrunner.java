@@ -82,7 +82,7 @@ public class Flagrunner {
             }
 
         }
-        if(numberOfStuns <2){
+        if(numberOfStuns <4){
             if(mapLocation.isWithinDistanceSquared(rc.getLocation(), 6)){
                 if(rc.canBuild(TrapType.STUN, rc.getLocation().add(rc.getLocation().directionTo(mapLocation)))){
                     rc.setIndicatorString("I am a flagrunner and I am building a stun trap");
