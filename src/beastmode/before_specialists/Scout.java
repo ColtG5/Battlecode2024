@@ -1,19 +1,28 @@
-package beastmode;
+package beastmode.before_specialists;
 
 
 import battlecode.common.*;
+import beastmode.Movement;
+import beastmode.Utility;
 
 
 public class Scout {
     RobotController rc;
     Movement movement;
-    public Scout(RobotController rc, boolean lefty) {
+    Utility utility;
+    public Scout(RobotController rc, Movement movement, Utility utility) {
         this.rc = rc;
-        this.movement = new Movement(rc, lefty);
+        this.movement = movement;
+        this.utility = utility;
     }
+
+    public void run() throws GameActionException {
+        scoutRandomDirection();
+    }
+
     static MapLocation locationGoal = null;
     boolean crumbLocated = false;
-    public void scoutRandomDirection() throws GameActionException {
+    private void scoutRandomDirection() throws GameActionException {
         // Choose a random direction, and move that way if possible
         String ind ="I am a scout and I at location: "+rc.getLocation()+" and my goal is: "+locationGoal;
         rc.setIndicatorString(ind);

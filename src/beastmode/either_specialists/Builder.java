@@ -4,7 +4,7 @@ import battlecode.common.RobotController;
 import beastmode.Movement;
 import beastmode.Utility;
 
-public strictfp class Builder {
+public class Builder {
     RobotController rc;
     Movement movement;
     Utility utility;

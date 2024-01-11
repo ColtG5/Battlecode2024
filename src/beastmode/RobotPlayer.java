@@ -102,11 +102,16 @@ public strictfp class RobotPlayer {
     static final int spawnLocCenterOneIndex = 51;
     static final int spawnLocCenterTwoIndex = 52;
     static final int spawnLocCenterThreeIndex = 53;
+    static final int numberOfScoutsIndex = 54;
+    static final int numberOfBuildersIndex = 55;
 
     static final int maxNumberOfScout = 30;
     static final int maxNumberOfBuilder = 20;
-    static int numberOfScout = 0;
+
     static boolean isScout = false;
+    static boolean isBomber = false;
+    static boolean isBuilder = false;
+    static boolean isCommander = false;
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
      * It is like the main function for your robot. If this method returns, the robot dies!
@@ -119,8 +124,15 @@ public strictfp class RobotPlayer {
         // Create objects for the other files
         Movement movement = new Movement(rc, lefty);
         Utility util = new Utility(rc);
-        Scout scout = new Scout(rc, lefty);
 
+        // before strategies
+        Scout scout = new Scout(rc, movement, util);
+
+        // after strategies
+        Bomber bomber = new Bomber(rc, movement, util);
+
+        // either strategies
+        Unspecialized unspecialized = new Unspecialized(rc, movement, util);
         Builder builder = new Builder(rc, movement, util);
         Commander commander = new Commander(rc, movement, util);
 
@@ -139,32 +151,55 @@ public strictfp class RobotPlayer {
                 if (!rc.isSpawned()) {
                     boolean didSpawn = util.trySpawning();
                 } else {
+                    // ----------------------------------------
+                    // logic for who will specialize to what (subject to change idrk what im doing)
+                    // ----------------------------------------
 
+                    //Scouters
+                    if (rc.getRoundNum() < 200) {
+                        int amountOfScouts = rc.readSharedArray(numberOfScoutsIndex);
+                        int amountOfBuilders = rc.readSharedArray(numberOfBuildersIndex);
+                        if (amountOfScouts < maxNumberOfScout) {
+                            isScout = true;
+                            rc.writeSharedArray(numberOfScoutsIndex, amountOfScouts + 1);
+                        } else if (amountOfBuilders < maxNumberOfBuilder) {
+                            isBuilder = false;
+                            rc.writeSharedArray(numberOfBuildersIndex, amountOfBuilders + 1);
+                        }
+                    }
 
+                    if (rc.getRoundNum() >= 200) {
+                        // set all the before divider specializations to false
+                        isScout = false;
+                    }
+
+                    // ----------------------------------------
+                    // big switch statement thing for what strategy the robot will run for this turn
+                    // ----------------------------------------
+
+                    if (rc.getRoundNum() <= 200) { // before divider drop strategies
+                        if (isCommander) { // no commanders rn
+                            commander.run();
+                        } else if (isScout) { // rn we make 30 scouts
+                            scout.run();
+                        } else if (isBuilder) { // and 20 builders, so all 50 ducks get specialized, so none hit the default case
+                            builder.run();
+                        } else { // none unspecialized rn (all taken up to be scouts or builders)
+                            unspecialized.run();
+                        }
+                    } else { // after divider drop strategies
+                        if (isCommander) {
+                            commander.run();
+                        } else if (isBomber) { // none rn
+                            bomber.run();
+                        } else if (isBuilder) { // carry over of 20 builders assigned before divider drop
+                            builder.run();
+                        } else { // so 30 bots switch from scout to unspecialized
+                            unspecialized.run();
+                        }
+                    }
 
                     util.writeWhereYouAreToArray(localID);
-                }
-
-
-                //Scouting and builders
-                if(turnCount <200){
-                    if(numberOfScout < maxNumberOfScout){
-
-                        numberOfScout++;
-                        isScout = true;
-                    }else{
-                        isScout = false;
-
-                    }
-                    if(isScout) {
-
-                        scout.scoutRandomDirection();
-                    }else{
-                        rc.setIndicatorString("FUACKK");
-                    }
-
-                }else{
-
                 }
 
             } catch (GameActionException e) {

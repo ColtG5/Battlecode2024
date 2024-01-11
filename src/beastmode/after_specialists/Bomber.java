@@ -4,7 +4,7 @@ import battlecode.common.*;
 import beastmode.Movement;
 import beastmode.Utility;
 
-public strictfp class Bomber {
+public class Bomber {
     RobotController rc;
     Movement movement;
     Utility utility;

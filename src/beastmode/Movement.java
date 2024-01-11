@@ -7,7 +7,7 @@ import battlecode.common.RobotController;
 
 import java.util.Stack;
 
-public strictfp class Movement {
+public class Movement {
     RobotController rc;
     boolean lefty;
     public Movement(RobotController rc, boolean lefty) {

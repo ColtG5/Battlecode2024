@@ -4,7 +4,7 @@ import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 
-public strictfp class Utility {
+public class Utility {
     RobotController rc;
     public Utility(RobotController rc) {
         this.rc = rc;
