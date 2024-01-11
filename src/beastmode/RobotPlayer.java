@@ -156,7 +156,7 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
 
                     //Scouters
-                    if (rc.getRoundNum() < 200) {
+                    if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) {
                         int amountOfScouts = rc.readSharedArray(numberOfScoutsIndex);
                         int amountOfBuilders = rc.readSharedArray(numberOfBuildersIndex);
                         if (amountOfScouts < maxNumberOfScout) {
@@ -168,7 +168,7 @@ public strictfp class RobotPlayer {
                         }
                     }
 
-                    if (rc.getRoundNum() >= 200) {
+                    if (rc.getRoundNum() >= GameConstants.SETUP_ROUNDS) {
                         // set all the before divider specializations to false
                         isScout = false;
                     }
@@ -177,7 +177,7 @@ public strictfp class RobotPlayer {
                     // big switch statement thing for what strategy the robot will run for this turn
                     // ----------------------------------------
 
-                    if (rc.getRoundNum() <= 200) { // before divider drop strategies
+                    if (rc.getRoundNum() <= GameConstants.SETUP_ROUNDS) { // before divider drop strategies
                         if (isCommander) { // no commanders rn
                             commander.run();
                         } else if (isScout) { // rn we make 30 scouts
@@ -198,18 +198,14 @@ public strictfp class RobotPlayer {
                             unspecialized.run();
                         }
                     }
-
                     util.writeWhereYouAreToArray(localID);
                 }
-
             } catch (GameActionException e) {
                 System.out.println("GameActionException");
                 e.printStackTrace();
-
             } catch (Exception e) {
                 System.out.println("Exception");
                 e.printStackTrace();
-
             } finally {
                 Clock.yield();
             }

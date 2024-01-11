@@ -35,7 +35,7 @@ public class Bomber {
         // Move to opponents with approximate flag locations
         MapLocation[] potentialFlags = rc.senseBroadcastFlagLocations();
         for (MapLocation flag : potentialFlags) {
-            movement.simpleMove(flag);
+            movement.hardMove(flag);
         }
 
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
