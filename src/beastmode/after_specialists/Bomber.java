@@ -32,8 +32,7 @@ public class Bomber {
     }
 
     /**
-     * Attempt to place a bomb at the given location.
-     * @param location MapLocation to build the bomb
+     * Attempt to place a bomb at current location
      */
     private void tryToPlaceBomb() throws GameActionException {
         if (rc.canBuild(TrapType.EXPLOSIVE, rc.getLocation()))

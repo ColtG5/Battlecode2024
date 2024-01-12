@@ -114,6 +114,7 @@ public strictfp class RobotPlayer {
                 coolRobotInfoArray = util.readAllBotsInfoFromSharedArray(coolRobotInfoArray);
 
                 if (!rc.isSpawned()) {
+                    if (rc.getRoundNum() != 1 && isDefender) defender.tryToSpawnOnFlag();
                     util.trySpawningEvenly(spawnAreaCenters);
                 }
                 if (rc.isSpawned()) {
@@ -155,10 +156,15 @@ public strictfp class RobotPlayer {
                         else if (isDefender) defender.run();
                         else unspecialized.run(); // none unspecialized rn (all taken up to be scouts)
                     } else { // after divider drop strategies
-                        if (isCommander)commander.run();
+                        if (isCommander) commander.run();
                         else if (isBomber) bomber.run(); // none rn
                         else if (isFlagrunner) flagrunner.run(); // so 30 bots switch from scout to unspecialized
-                        else if (isDefender) defender.run();
+                        else if (isDefender) {
+                            FlagInfo[] nearbyFlags = rc.senseNearbyFlags(-1, rc.getTeam());
+                            // Turn defender into bomber
+                            if (nearbyFlags.length == 0) bomber.run();
+                            else defender.run();
+                        }
                         else unspecialized.run();
                     }
 
@@ -186,16 +192,14 @@ public strictfp class RobotPlayer {
     public static MapLocation findClosestEnemy(RobotController rc) throws GameActionException {
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         MapLocation closestEnemy = null;
-        if (enemies.length != 0) {
-            //rc.setIndicatorString("There are nearby enemy robots! Scary!");
-            for (RobotInfo enemy : enemies) {
-                MapLocation enemyLoc = enemy.getLocation();
-                if (closestEnemy == null) {
-                    closestEnemy = enemyLoc;
-                }
-                else if (rc.getLocation().distanceSquaredTo(enemyLoc) < rc.getLocation().distanceSquaredTo(closestEnemy)) {
-                    closestEnemy = enemyLoc;
-                }
+        //rc.setIndicatorString("There are nearby enemy robots! Scary!");
+        for (RobotInfo enemy : enemies) {
+            MapLocation enemyLoc = enemy.getLocation();
+            if (closestEnemy == null) {
+                closestEnemy = enemyLoc;
+            }
+            else if (rc.getLocation().distanceSquaredTo(enemyLoc) < rc.getLocation().distanceSquaredTo(closestEnemy)) {
+                closestEnemy = enemyLoc;
             }
         }
         return closestEnemy;

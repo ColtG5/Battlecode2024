@@ -5,8 +5,6 @@ import beastmode.Movement;
 import beastmode.Utility;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 
 public class Defender {
     RobotController rc;
@@ -30,9 +28,17 @@ public class Defender {
     public void run() throws GameActionException {
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         moveAroundBread();
-        if (enemies.length != 0) tryToPlaceBomb();
+        if (enemies.length != 0) {
+            MapLocation enemy = utility.enemyWithLowestHP(enemies);
+            if (rc.canAttack(enemy)) rc.attack(enemy);
+            tryToPlaceBomb();
+        }
     }
 
+    /**
+     * Make the defender move in circles around the flag
+     * @throws GameActionException
+     */
     private void moveAroundBread() throws GameActionException {
         MapLocation me = rc.getLocation();
         // Create a array that holds the flags
@@ -43,12 +49,28 @@ public class Defender {
         };
 
         // Set flag for the defender to the flag they spawned on
-        if (myFlag == null)
-            for (MapLocation flag : flags)
+        if (myFlag == null) {
+            for (MapLocation flag : flags) {
                 if (me.equals(flag)) {
                     myFlag = flag;
                     break;
                 }
+            }
+        }
+
+        FlagInfo[] nearbyFlags = rc.senseNearbyFlags(2, rc.getTeam());
+        for (FlagInfo flag : nearbyFlags) {
+            MapLocation stolenFlag = flag.getLocation();
+            if (!stolenFlag.equals(myFlag)) {
+                rc.setIndicatorString("TRYING TO GET FLAG BACK");
+                movement.hardMove(stolenFlag);
+                if (rc.canAttack(stolenFlag)) rc.attack(stolenFlag);
+                // If killed the duck, then try and pick up the flag
+                if (rc.canPickupFlag(stolenFlag)) rc.pickupFlag(stolenFlag);
+            }
+        }
+
+        // If we found a flag, add the 8 locations around it
         if (myFlag != null) {
             aroundBread.add(myFlag.add(Direction.NORTH));
             aroundBread.add(myFlag.add(Direction.NORTHEAST));
@@ -69,8 +91,27 @@ public class Defender {
         moveToIndex = (moveToIndex + 1) % aroundBread.size();
     }
 
+    /**
+     * Attempt to place a bomb at current location
+     */
     private void tryToPlaceBomb() throws GameActionException {
         if (rc.canBuild(TrapType.EXPLOSIVE, rc.getLocation()))
             rc.build(TrapType.EXPLOSIVE, rc.getLocation());
+    }
+
+
+    /**
+     * Try to spawn the defender on or around the flag when he tries to respawn
+     * @throws GameActionException
+     */
+    public void tryToSpawnOnFlag() throws GameActionException {
+        // If we can spawn on flag, spawn there
+        if (rc.canSpawn(myFlag)) rc.spawn(myFlag);
+        // Otherwise we try to spawn around the flag
+        else {
+            for (MapLocation location : aroundBread) {
+                if (rc.canSpawn(location)) rc.spawn(location);
+            }
+        }
     }
 }

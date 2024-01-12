@@ -148,7 +148,7 @@ public class Utility {
 //            }
 //        }
 
-        if (rc.getRoundNum() == 1) System.out.println("id:" + localID + " bytecode used before: " + Clock.getBytecodeNum());
+//        if (rc.getRoundNum() == 1) System.out.println("id:" + localID + " bytecode used before: " + Clock.getBytecodeNum());
 
         for (MapLocation loc : spawnLocs) {
             if (spawnCentersTracker == 3) break;
@@ -208,8 +208,8 @@ public class Utility {
             }
         }
 
-        if (rc.getRoundNum() == 1) System.out.println("id:" + localID + " bytecode used after: " + Clock.getBytecodeNum());
-
+//        if (rc.getRoundNum() == 1) System.out.println("id:" + localID + " bytecode used after: " + Clock.getBytecodeNum());
+//
         rc.setIndicatorDot(spawnAreaCenters[0], 255, 0, 255);
         rc.setIndicatorDot(spawnAreaCenters[1], 255, 0, 255);
         rc.setIndicatorDot(spawnAreaCenters[2], 255, 0, 255);
@@ -393,5 +393,21 @@ public class Utility {
         int localIDOfGroupLeader = rc.readSharedArray(arrayIndexToReadFrom);
         CoolRobotInfo groupLeaderInfo = coolRobotInfoArray[localIDOfGroupLeader - 1];
         return groupLeaderInfo.curLocation;
+    }
+
+    /**
+     *
+     * @param nearbyEnemies Array of robots
+     * @return Enemy with lowest HP or null if no enemies around
+     */
+    public MapLocation enemyWithLowestHP(RobotInfo[] nearbyEnemies) {
+        RobotInfo enemyWithLowestHP = null;
+
+        for (RobotInfo enemy : nearbyEnemies) {
+            if (enemyWithLowestHP == null) enemyWithLowestHP = enemy;
+            else if (enemy.getHealth() < enemyWithLowestHP.getHealth()) enemyWithLowestHP = enemy;
+        }
+        if (enemyWithLowestHP != null) return enemyWithLowestHP.getLocation();
+        return null;
     }
 }
