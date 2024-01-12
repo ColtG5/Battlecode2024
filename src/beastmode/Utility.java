@@ -2,9 +2,7 @@ package beastmode;
 
 import battlecode.common.*;
 
-import java.util.Arrays;
-
-import static beastmode.RobotPlayer.NONELOCATION;
+import static beastmode.RobotPlayer.*;
 
 public class Utility {
     RobotController rc;
@@ -28,6 +26,26 @@ public class Utility {
             rc.writeSharedArray(assigningLocalIDIndex, 0);
         }
         return localID;
+    }
+
+    public CoolRobotInfo[] readAllBotsInfoFromSharedArray(CoolRobotInfo[] coolRobotInfoArray) throws GameActionException {
+        if (rc.getRoundNum() > 1) { // not all bots have written their stuff into their index until round 2 starts
+            for (int i = 1; i <= 50; i++) {
+                int coolRobotInfoInt = rc.readSharedArray(i);
+                coolRobotInfoArray[i-1] = new CoolRobotInfo(i, coolRobotInfoInt);
+            }
+        }
+        return coolRobotInfoArray;
+    }
+
+
+    public void writeMyInfoToSharedArray() throws GameActionException {
+        MapLocation locationToStore;
+        if (rc.isSpawned()) locationToStore = rc.getLocation();
+        else locationToStore = NONELOCATION; // NONELOCATION (-1, -1) represents not spawned rn (no location)
+        int coolRobotInfoInt = convertRobotInfoToInt(locationToStore, rc.hasFlag());
+//      if (rc.getRoundNum() == 1) System.out.println("id: " + localID + "coolRobotInfoInt: " + Integer.toBinaryString(coolRobotInfoInt));
+        rc.writeSharedArray(localID, coolRobotInfoInt);
     }
 
     /**
@@ -137,11 +155,6 @@ public class Utility {
             // build each tile that would be surrounding this loc if it was a valid spawn area center. after each maploc you build,
             // check if it exists in the spawnLocs array. if all tiles that we build are in the spawnLocs array, then this is a valid spawn area center
             MapLocation[] potentialSpawnAreaSquare = new MapLocation[2];
-//            for (Direction dir : Direction.allDirections()) {
-//                if (dir == Direction.CENTER) continue;
-//                potentialSpawnAreaSquare[tracker] = loc.add(dir);
-//                tracker++;
-//            }
             potentialSpawnAreaSquare[0] = loc.add(Direction.NORTHWEST);
             potentialSpawnAreaSquare[1] = loc.add(Direction.SOUTHEAST);
 
@@ -325,6 +338,27 @@ public class Utility {
 //        int locToRead = rc.readSharedArray(localID);
 //        return intToLocation(locToRead);
 //    }
+
+    public boolean didISpawnOnFlag(Utility util) throws GameActionException {
+        if (rc.getRoundNum() == 1) {
+            MapLocation me = rc.getLocation();
+            FlagInfo[] flags = rc.senseNearbyFlags(1, rc.getTeam());
+            if (flags.length > 0) {
+                MapLocation flagLoc = flags[0].getLocation();
+                if (me.x == flagLoc.x && me.y == flagLoc.y) {
+                    if (rc.readSharedArray(breadLocOneIndex) == 0) {
+                        rc.writeSharedArray(breadLocOneIndex, util.locationToInt(me));
+                    } else if (rc.readSharedArray(breadLocTwoIndex) == 0) {
+                        rc.writeSharedArray(breadLocTwoIndex, util.locationToInt(me));
+                    } else if (rc.readSharedArray(breadLocThreeIndex) == 0) {
+                        rc.writeSharedArray(breadLocThreeIndex, util.locationToInt(me));
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
 
 }
