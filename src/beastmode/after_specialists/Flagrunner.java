@@ -63,6 +63,7 @@ public class Flagrunner {
                 if (info.getHealth() < GameConstants.DEFAULT_HEALTH) {
                     if (rc.canHeal(info.getLocation())) {
                         rc.heal(info.getLocation());
+                        return;
                     }
                 }
             }

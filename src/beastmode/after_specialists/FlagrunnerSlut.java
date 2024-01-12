@@ -15,13 +15,69 @@ RobotController rc;
         this.utility = utility;
         this.flagrunner = flagrunner;
     }
+    static boolean KILLMODE = false;
 
-    public void run(){
+    public void run() throws GameActionException {
         //Assumptions: - they have been assigned a local ID and are not picked as a Flagrunner leader
+        MapLocation leaderLoc = utility.getLocationOfMyGroupLeader();
 
         //read global array for the local ID of the Flagrunner leader
-
         //if no leader nearby, become leader and write to array
+        boolean inRangeOfLeader = false;
+        RobotInfo[] mapInfos =rc.senseNearbyRobots(-1,rc.getTeam());
+        for(RobotInfo mapInfo:mapInfos){
+            if(mapInfo.getLocation().equals(leaderLoc)){
+                inRangeOfLeader = true;
+                break;
+            }
+
+        }
+        if(inRangeOfLeader){
+            RobotInfo[] robotEnemyInfo = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+            RobotInfo[] robotInfo = rc.senseNearbyRobots(-1, rc.getTeam());
+            if(KILLMODE){
+                if (robotEnemyInfo.length == 0) KILLMODE = false;
+                else {
+                    rc.setIndicatorString("ITS KILLMODE TIME");
+                    flagrunner.wipeThemOut(robotEnemyInfo);
+                    return;
+                }
+            }
+            if (robotEnemyInfo.length == 0 && !rc.hasFlag()) {
+                if (rc.getHealth() <= TrapType.EXPLOSIVE.enterDamage) {
+                    if (rc.canHeal(rc.getLocation())) {
+                        rc.heal(rc.getLocation());
+                        return;
+                    }
+                }
+                for (RobotInfo info : robotInfo) {
+                    if (info.getHealth() < GameConstants.DEFAULT_HEALTH) {
+                        if (rc.canHeal(info.getLocation())) {
+                            rc.heal(info.getLocation());
+                            return;
+                        }
+                    }
+                }
+            }
+            for (RobotInfo info : robotInfo) {
+                if (info.hasFlag) {
+                    rc.setIndicatorString("I am a flagrunner and I am following the flag");
+                    flagrunner.followFlag(info.getLocation());
+                    flagrunner.attackTheLocals();
+                    return;
+                }
+            }
+            if (robotEnemyInfo.length >= 6) {
+                KILLMODE = true;
+                flagrunner.wipeThemOut(robotEnemyInfo);
+                return;
+            }
+
+        }else{
+            KILLMODE = false;
+            movement.hardMove(leaderLoc);
+            flagrunner.attackTheLocals();
+        }
 
         //check where leader is and if not in sensor range, move towards them while attacking and avoiding enemies
 
