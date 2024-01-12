@@ -4,6 +4,7 @@ import battlecode.common.*;
 import beastmode.Movement;
 import beastmode.Utility;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -16,7 +17,7 @@ public class Defender {
     static final int breadLocTwoIndex = 52;
     static final int breadLocThreeIndex = 53;
 
-    static MapInfo[] aroundBread = null;
+    ArrayList<MapLocation> aroundBread = new ArrayList<>();
     static MapLocation myFlag = null;
     static boolean arraySorted = false;
     static int moveToIndex = 0;
@@ -41,7 +42,6 @@ public class Defender {
                 utility.intToLocation(rc.readSharedArray(breadLocTwoIndex)),
                 utility.intToLocation(rc.readSharedArray(breadLocThreeIndex))
         };
-        if (aroundBread == null) aroundBread = rc.senseNearbyMapInfos(2);
 
         // Set flag for the defender to the flag they spawned on
         if (myFlag == null)
@@ -50,24 +50,24 @@ public class Defender {
                     myFlag = flag;
                     break;
                 }
-
-        // Sort array in a circular motion if it isn't already sorted
-        if (!arraySorted) {
-            Arrays.sort(aroundBread, Comparator.comparingDouble(location -> {
-                double coordX = location.getMapLocation().x - myFlag.x;
-                double coordY = location.getMapLocation().y - myFlag.y;
-                return Math.atan2(coordY, coordX);
-            }));
-            arraySorted = true;
+        if (myFlag != null) {
+            aroundBread.add(myFlag.add(Direction.NORTH));
+            aroundBread.add(myFlag.add(Direction.NORTHEAST));
+            aroundBread.add(myFlag.add(Direction.EAST));
+            aroundBread.add(myFlag.add(Direction.SOUTHEAST));
+            aroundBread.add(myFlag.add(Direction.SOUTH));
+            aroundBread.add(myFlag.add(Direction.SOUTHWEST));
+            aroundBread.add(myFlag.add(Direction.WEST));
+            aroundBread.add(myFlag.add(Direction.NORTHWEST));
         }
 
         // Try to move to next location around bread
-        MapLocation moveTo = aroundBread[moveToIndex].getMapLocation();
+        MapLocation moveTo = aroundBread.get(moveToIndex);
         if (rc.canMove(me.directionTo(moveTo)))
             rc.move(me.directionTo(moveTo));
 
         // Calculate next location to move to next turn
-        moveToIndex = (moveToIndex + 1) % aroundBread.length;
+        moveToIndex = (moveToIndex + 1) % aroundBread.size();
     }
 
     private void tryToPlaceBomb() throws GameActionException {
