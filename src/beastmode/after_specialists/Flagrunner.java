@@ -1,6 +1,7 @@
 package beastmode.after_specialists;
 
 import battlecode.common.*;
+import battlecode.schema.GameplayConstants;
 import beastmode.Movement;
 import beastmode.Utility;
 
@@ -52,14 +53,14 @@ public class Flagrunner {
         //IF NO ENEMIES AROUND, HEAL SELF IF IN RANGE OF DYING FROM LAND MINE
         //ELSE, HEAL OTHERS IF IN RANGE OF DYING FROM LAND MINE BUT DON'S STOP MOVING
         if (robotEnemyInfo.length == 0 && !rc.hasFlag()) {
-            if (rc.getHealth() < 750) {
+            if (rc.getHealth() <= TrapType.EXPLOSIVE.enterDamage) {
                 if (rc.canHeal(rc.getLocation())) {
                     rc.heal(rc.getLocation());
                     return;
                 }
             }
             for (RobotInfo info : robotInfo) {
-                if (info.getHealth() < 1000) {
+                if (info.getHealth() < GameConstants.DEFAULT_HEALTH) {
                     if (rc.canHeal(info.getLocation())) {
                         rc.heal(info.getLocation());
                     }

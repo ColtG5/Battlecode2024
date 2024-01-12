@@ -32,6 +32,7 @@ public strictfp class RobotPlayer {
     // after divider drop
     static boolean isBomber = false;
     static boolean isFlagrunner = false;
+//    static boolean is
 
     // either
     static boolean isCommander = false;
@@ -53,8 +54,8 @@ public strictfp class RobotPlayer {
 
     /**
      * SHARED ARRAY
-     * [0,          1-50,          51,  52,  53]
-     * id     id's of all ducks    3 bread loc's
+     * [0,          1-50,          51,  52,  53,             54,    55,    56]
+     * id     id's of all ducks    3 bread loc's      each flagRunner group move loc
      *
      */
 
@@ -62,6 +63,9 @@ public strictfp class RobotPlayer {
     static final int breadLocOneIndex = 51;
     static final int breadLocTwoIndex = 52;
     static final int breadLocThreeIndex = 53;
+    static final int flagRunnerGroupOneLocIndex = 54;
+    static final int flagRunnerGroupTwoLocIndex = 55;
+    static final int flagRunnerGroupThreeLocIndex = 56;
 
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
