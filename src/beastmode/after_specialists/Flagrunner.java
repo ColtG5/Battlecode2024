@@ -15,10 +15,13 @@ public class Flagrunner {
     Movement movement;
     Utility utility;
 
-    public Flagrunner(RobotController rc, Movement movement, Utility utility) {
+    boolean lefty;
+
+    public Flagrunner(RobotController rc, Movement movement, Utility utility, boolean lefty) {
         this.rc = rc;
         this.movement = movement;
         this.utility = utility;
+        this.lefty = lefty;
     }
     static boolean KILLMODE = false;
 
@@ -38,7 +41,21 @@ public class Flagrunner {
             }
 
         }
-        
+        if(robotEnemyInfo.length == 0){
+            if(rc.getHealth() < 1000){
+                if(rc.canHeal(rc.getLocation())){
+                    rc.heal(rc.getLocation());
+                    return;
+                }
+            }
+            for(RobotInfo info: roboInfo){
+                if(info.getHealth() < 2000){
+                    if(rc.canHeal(info.getLocation())){
+                        rc.heal(info.getLocation());
+                    }
+                }
+            }
+        }
 
         for(RobotInfo info: roboInfo){
             if(info.hasFlag){
@@ -115,7 +132,7 @@ public class Flagrunner {
                 }
             }
         }
-        if(numberOfStuns <2){
+        if(numberOfStuns <1){
             if(mapLocation.isWithinDistanceSquared(rc.getLocation(), 6)){
                 if(rc.canBuild(TrapType.STUN, rc.getLocation().add(rc.getLocation().directionTo(mapLocation)))){
                     rc.setIndicatorString("I am a flagrunner and I am building a stun trap");
@@ -148,7 +165,12 @@ public class Flagrunner {
             movement.hardMove(mapLocOfFlagRunner.add(opDir));
             lastFlagFollowerLocation = mapLocOfFlagRunner;
         }else{
-            movement.hardMove(lastFlagFollowerLocation);
+            if(mapLocOfFlagRunner.add(mapLocOfFlagRunner.directionTo(lastFlagFollowerLocation)).isWithinDistanceSquared(rc.getLocation(), 2)){
+                MapLocation theSpotOfOpposite=mapLocOfFlagRunner.add(mapLocOfFlagRunner.directionTo(lastFlagFollowerLocation));
+                movement.hardMove(rc.getLocation().add(rc.getLocation().directionTo(theSpotOfOpposite).opposite()));
+            }else{
+                movement.hardMove(lastFlagFollowerLocation);
+            }
             lastFlagFollowerLocation = mapLocOfFlagRunner;
         }
 
