@@ -22,39 +22,6 @@ public class Movement {
         this.lefty = lefty;
     }
 
-    public boolean simpleMove(MapLocation mapLocation) throws GameActionException {
-        Direction dir = rc.getLocation().directionTo(mapLocation);
-        if (rc.canMove(dir)) {
-            rc.move(dir);
-            return true;
-        } else if (rc.canMove(dir.rotateLeft())) {
-            rc.move(dir.rotateLeft());
-            return true;
-        } else if (rc.canMove(dir.rotateRight())) {
-            rc.move(dir.rotateRight());
-            return true;
-        } else if (rc.canMove(dir.rotateLeft().rotateLeft())) {
-            rc.move(dir.rotateLeft().rotateLeft());
-            return true;
-        } else if (rc.canMove(dir.rotateRight().rotateRight())) {
-            rc.move(dir.rotateRight().rotateRight());
-            return true;
-        }
-        else if(rc.canMove(dir.rotateLeft().rotateLeft().rotateLeft())){
-            rc.move(dir.rotateLeft().rotateLeft().rotateLeft());
-            return true;
-        }
-        else if(rc.canMove(dir.rotateRight().rotateRight().rotateRight())){
-            rc.move(dir.rotateRight().rotateRight().rotateRight());
-            return true;
-        }
-        else if(rc.canMove(dir.opposite())){
-            rc.move(dir.opposite());
-            return true;
-        }
-        return false;
-    }
-
     public boolean smallMove(Direction dir) throws GameActionException {
         if (rc.canMove(dir)) {
             rc.move(dir);
@@ -77,19 +44,17 @@ public class Movement {
     }
 
     /**
-     *
      * @param hype Direction of failed move
      * @return failed to move or not
      * @throws GameActionException I dont fucking know
      */
     public boolean tryNewDirection(Direction hype) throws GameActionException {
         Direction ogDir = hype;
-        while(true){
+        while (true) {
             hype = rotateOnce(lefty, hype);
             if(smallMove(hype)) {
                 return true;
-            }
-            else{
+            } else {
                 MapLocation potentialLocation = rc.getLocation().add(hype);
                 if (rc.onTheMap(potentialLocation)) MovementStack.push(hype);
                 else {
@@ -97,40 +62,34 @@ public class Movement {
                     return false;
                 }
             }
-            if(ogDir == hype){
+            if(ogDir == hype) {
                 MovementStack.clear();
-//                lefty = !lefty;
                 return false;
             }
         }
     }
 
-
+    /**
+     * @param mapLocation Location to move to
+     * @return failed to move or not
+     * @throws GameActionException I dont fucking know
+     */
     public boolean hardMove(MapLocation mapLocation) throws GameActionException {
-        //rc.setIndicatorString("MOVEMENT STACK "+ Arrays.toString(MovementStack.toArray()) + "VIA HARD MOVE");
-        if(!rc.isMovementReady()){
-            return false;
-        }
+        if (!rc.isMovementReady()) return false;
 
         if (MovementStack.empty()) {
             //HYPE is the direction
             Direction hype = rc.getLocation().directionTo(mapLocation);
-            if (smallMove(hype)) {
-                return true;
-            }
+            if (smallMove(hype)) return true;
             else {
                 MovementStack.push(hype);
-                if (!tryNewDirection(hype)) {
-                    return false;
-                }
-                return true;
+                return tryNewDirection(hype);
             }
-        }
-        else {
+        } else {
             Direction topOfStack = MovementStack.peek();
             if (rc.canMove(topOfStack)){
                 Direction last = topOfStack;
-                while (rc.canMove(topOfStack)){
+                while (rc.canMove(topOfStack)) {
                     MovementStack.pop();
                     last = topOfStack;
                     if (MovementStack.empty()) break;
@@ -139,12 +98,7 @@ public class Movement {
                 rc.move(last);
                 return true;
             }
-            else {
-                if (tryNewDirection(topOfStack)) {
-                    return true;
-                }
-                return false;
-            }
+            else return tryNewDirection(topOfStack);
         }
     }
 

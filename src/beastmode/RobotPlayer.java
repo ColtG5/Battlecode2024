@@ -85,9 +85,7 @@ public strictfp class RobotPlayer {
                     movement.setLefty((localID % 2) == 1);
                 }
 
-                if (!rc.isSpawned()) {
-                    util.trySpawning();
-                }
+                if (!rc.isSpawned()) util.trySpawning();
                 if (rc.isSpawned()) {
 
                     // ----------------------------------------
@@ -144,29 +142,17 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
 
                     if (rc.getRoundNum() <= GameConstants.SETUP_ROUNDS) { // before divider drop strategies
-                        if (rc.getRoundNum() == 1) { // dont let bots move on the first turn
-                            continue;
-                        } else if (isCommander) { // no commanders rn
-                            commander.run();
-                        } else if (isScout) { // rn we make 30 scouts
-                            scout.run();
-                        } else if (isDefender) {
-                            defender.run();
-                        } else { // none unspecialized rn (all taken up to be scouts)
-                            unspecialized.run();
-                        }
+                        if (rc.getRoundNum() == 1) continue; // dont let bots move on the first turn
+                        else if (isCommander) commander.run();  // no commanders rn
+                        else if (isScout) scout.run(); // rn we make 30 scouts
+                        else if (isDefender) defender.run();
+                        else unspecialized.run(); // none unspecialized rn (all taken up to be scouts)
                     } else { // after divider drop strategies
-                        if (isCommander) {
-                            commander.run();
-                        } else if (isBomber) { // none rn
-                            bomber.run();
-                        } else if (isFlagrunner){ // so 30 bots switch from scout to unspecialized
-                            flagrunner.run();
-                        } else if (isDefender) {
-                            defender.run();
-                        } else {
-                            unspecialized.run();
-                        }
+                        if (isCommander)commander.run();
+                        else if (isBomber) bomber.run(); // none rn
+                        else if (isFlagrunner) flagrunner.run(); // so 30 bots switch from scout to unspecialized
+                        else if (isDefender) defender.run();
+                        else unspecialized.run();
                     }
 
                     // ----------------------------------------
