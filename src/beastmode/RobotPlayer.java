@@ -7,6 +7,7 @@ import beastmode.either_specialists.*;
 import javafx.util.Pair;
 import scala.Tuple1;
 
+import java.io.File;
 import java.util.Random;
 
 /**
@@ -32,7 +33,7 @@ public strictfp class RobotPlayer {
     // after divider drop
     static boolean isBomber = false;
     static boolean isFlagrunner = false;
-//    static boolean is
+    static int whichFlagrunnerGroup;
 
     // either
     static boolean isCommander = false;
@@ -68,7 +69,7 @@ public strictfp class RobotPlayer {
     static final int flagRunnerGroupThreeLocIndex = 56;
 
     @SuppressWarnings("unused")
-    public static void run(RobotController rc) throws GameActionException {
+    public static void run(RobotController rc) throws Exception {
         // Create objects for the other files
         Movement movement = new Movement(rc, lefty);
         Utility util = new Utility(rc);
@@ -98,6 +99,10 @@ public strictfp class RobotPlayer {
                     spawnAreaCenter1 = spawnAreaCentersLocal[0];
                     spawnAreaCenter2 = spawnAreaCentersLocal[1];
                     spawnAreaCenter3 = spawnAreaCentersLocal[2];
+
+                    util.setInitialGroupLeaders();
+
+                    whichFlagrunnerGroup = util.getMyFlagrunnerGroup(); // change this later to only be called by flagRunners
                 }
 
                 // read every other robots info from the shared array, store it in coolRobotInfoArray

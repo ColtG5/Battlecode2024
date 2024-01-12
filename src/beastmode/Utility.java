@@ -357,4 +357,34 @@ public class Utility {
         }
         return false;
     }
+
+    /**
+     * set leader of each group as the lowest ID duck in each group
+     * @throws GameActionException if cannot write to shared array
+     */
+    public void setInitialGroupLeaders() throws GameActionException {
+        rc.writeSharedArray(flagRunnerGroupOneLocIndex, 1);
+        rc.writeSharedArray(flagRunnerGroupTwoLocIndex, 11);
+        rc.writeSharedArray(flagRunnerGroupThreeLocIndex, 21);
+    }
+
+    public int getMyFlagrunnerGroup() {
+        if (localID <= 10) {
+            return 1;
+        } else if (localID <= 20) {
+            return 2;
+        } else if (localID <= 30) {
+            return 3;
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * gives a bot their current group leader
+     * @return the localID of the group leader
+     */
+    public int whoIsMyGroupLeader() {
+        return 42;
+    }
 }
