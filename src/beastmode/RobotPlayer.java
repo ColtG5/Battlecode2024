@@ -158,12 +158,7 @@ public strictfp class RobotPlayer {
                         if (isCommander) commander.run();
                         else if (isBomber) bomber.run(); // none rn
                         else if (isFlagrunner) flagrunner.run(); // so 30 bots switch from scout to unspecialized
-                        else if (isDefender) {
-                            FlagInfo[] nearbyFlags = rc.senseNearbyFlags(-1, rc.getTeam());
-                            // Turn defender into bomber
-                            if (nearbyFlags.length == 0) bomber.run();
-                            else defender.run();
-                        }
+                        else if (isDefender) defender.run();
                         else unspecialized.run();
                     }
 
