@@ -113,7 +113,7 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
 
                     // writes the first 3 bread locations into the shared array, and also checks if this bot is a defender
-                    isDefender = util.didISpawnOnFlag(util);
+                    if (rc.getRoundNum() == 1) isDefender = util.didISpawnOnFlag(util);
 
                     // ----------------------------------------
                     // logic for who will specialize to what (subject to change idrk what im doing ong no cap on 4nem)

@@ -340,25 +340,21 @@ public class Utility {
 //    }
 
     public boolean didISpawnOnFlag(Utility util) throws GameActionException {
-        if (rc.getRoundNum() == 1) {
-            MapLocation me = rc.getLocation();
-            FlagInfo[] flags = rc.senseNearbyFlags(1, rc.getTeam());
-            if (flags.length > 0) {
-                MapLocation flagLoc = flags[0].getLocation();
-                if (me.x == flagLoc.x && me.y == flagLoc.y) {
-                    if (rc.readSharedArray(breadLocOneIndex) == 0) {
-                        rc.writeSharedArray(breadLocOneIndex, util.locationToInt(me));
-                    } else if (rc.readSharedArray(breadLocTwoIndex) == 0) {
-                        rc.writeSharedArray(breadLocTwoIndex, util.locationToInt(me));
-                    } else if (rc.readSharedArray(breadLocThreeIndex) == 0) {
-                        rc.writeSharedArray(breadLocThreeIndex, util.locationToInt(me));
-                    }
-                    return true;
+        MapLocation me = rc.getLocation();
+        FlagInfo[] flags = rc.senseNearbyFlags(1, rc.getTeam());
+        if (flags.length > 0) {
+            MapLocation flagLoc = flags[0].getLocation();
+            if (me.x == flagLoc.x && me.y == flagLoc.y) {
+                if (rc.readSharedArray(breadLocOneIndex) == 0) {
+                    rc.writeSharedArray(breadLocOneIndex, util.locationToInt(me));
+                } else if (rc.readSharedArray(breadLocTwoIndex) == 0) {
+                    rc.writeSharedArray(breadLocTwoIndex, util.locationToInt(me));
+                } else if (rc.readSharedArray(breadLocThreeIndex) == 0) {
+                    rc.writeSharedArray(breadLocThreeIndex, util.locationToInt(me));
                 }
+                return true;
             }
         }
         return false;
     }
-
-
 }

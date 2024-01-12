@@ -43,8 +43,8 @@ public class Flagrunner {
                 wipeThemOut(robotEnemyInfo);
                 return;
             }
-
         }
+
         //--------------------------------------
         //FROM HERE ON, THEY WILL NOT HUNT DOWN ENEMIES
         //--------------------------------------
