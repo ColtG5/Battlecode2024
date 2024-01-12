@@ -19,7 +19,6 @@ public class Defender {
 
     ArrayList<MapLocation> aroundBread = new ArrayList<>();
     static MapLocation myFlag = null;
-    static boolean arraySorted = false;
     static int moveToIndex = 0;
 
     public Defender(RobotController rc, Movement movement, Utility utility) {
