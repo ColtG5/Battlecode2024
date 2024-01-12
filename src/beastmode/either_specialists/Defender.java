@@ -5,6 +5,7 @@ import beastmode.Movement;
 import beastmode.Utility;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Defender {
     RobotController rc;
@@ -27,11 +28,13 @@ public class Defender {
 
     public void run() throws GameActionException {
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        if (enemies.length != 0) tryToPlaceBomb(enemies);
         moveAroundBread();
-        if (enemies.length != 0) {
-            MapLocation enemy = utility.enemyWithLowestHP(enemies);
+        RobotInfo[] enemies2 = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        if (enemies2.length != 0) {
+            MapLocation enemy = utility.enemyWithLowestHP(enemies2);
             if (rc.canAttack(enemy)) rc.attack(enemy);
-            tryToPlaceBomb();
+            tryToPlaceBomb(enemies2);
         }
     }
 
@@ -94,9 +97,15 @@ public class Defender {
     /**
      * Attempt to place a bomb at current location
      */
-    private void tryToPlaceBomb() throws GameActionException {
-        if (rc.canBuild(TrapType.EXPLOSIVE, rc.getLocation()))
-            rc.build(TrapType.EXPLOSIVE, rc.getLocation());
+    private void tryToPlaceBomb(RobotInfo[] enemies) throws GameActionException {
+        MapLocation closestEnemy = closestEnemyToFlag(enemies);
+        Direction dir = null;
+        if (closestEnemy != null) dir = myFlag.directionTo(closestEnemy);
+
+        if (dir != null && rc.canBuild(TrapType.EXPLOSIVE, myFlag.add(dir)))
+            rc.build(TrapType.EXPLOSIVE, myFlag.add(dir));
+
+        rc.setIndicatorString("Tried to place bomb");
     }
 
 
@@ -113,5 +122,17 @@ public class Defender {
                 if (rc.canSpawn(location)) rc.spawn(location);
             }
         }
+    }
+
+    public MapLocation closestEnemyToFlag(RobotInfo[] nearbyEnemies) {
+        RobotInfo closestEnemy = null;
+
+        for (RobotInfo enemy : nearbyEnemies) {
+            if (closestEnemy == null) closestEnemy = enemy;
+            else if (myFlag.distanceSquaredTo(enemy.getLocation()) < myFlag.distanceSquaredTo(closestEnemy.getLocation()))
+                closestEnemy = enemy;
+        }
+        if (closestEnemy != null) return closestEnemy.getLocation();
+        return null;
     }
 }
