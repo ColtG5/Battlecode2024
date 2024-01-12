@@ -25,6 +25,7 @@ public class Flagrunner {
     public void run() throws GameActionException {
         rc.setIndicatorString( "I am a flagrunner");
         RobotInfo[] robotEnemyInfo = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        RobotInfo[] roboInfo = rc.senseNearbyRobots(-1, rc.getTeam());
         if(KILLMODE){
 
             if(robotEnemyInfo.length == 0){
@@ -35,10 +36,13 @@ public class Flagrunner {
                 wipeThemOut(robotEnemyInfo);
                 return;
             }
+
         }
-        RobotInfo[] roboInfo = rc.senseNearbyRobots(-1, rc.getTeam());
+        
+
         for(RobotInfo info: roboInfo){
             if(info.hasFlag){
+                rc.setIndicatorString("I am a flagrunner and I am following the flag");
             followFlag(info.getLocation());
             attackTheLocals();
             return;
@@ -66,6 +70,16 @@ public class Flagrunner {
                 target = info.getLocation();
             }
         }
+        MapInfo[] mapInfo = rc.senseNearbyMapInfos();
+        int count = 0;
+        for(MapInfo info: mapInfo){
+            if((info.getTrapType() == TrapType.STUN) || (info.getTrapType() == TrapType.EXPLOSIVE)){
+               count++;
+            }
+        }
+        if (count >=3){
+            target = rc.getLocation().add(rc.getLocation().directionTo(target).opposite());
+        }
         movement.hardMove(target);
         cheekyBomb(target);
         attackTheLocals();
@@ -75,14 +89,33 @@ public class Flagrunner {
     private void cheekyBomb(MapLocation mapLocation) throws GameActionException{
         MapInfo[] mapInfo = rc.senseNearbyMapInfos();
         int numberOfStuns = 0;
+        int numberOfExplosives = 0;
         for(MapInfo info: mapInfo){
             if(info.getTrapType() == TrapType.STUN){
                 numberOfStuns++;
 
             }
+            if(info.getTrapType() == TrapType.EXPLOSIVE){
+                numberOfExplosives++;
+            }
 
         }
-        if(numberOfStuns <4){
+        if(numberOfExplosives <2){
+            if(mapLocation.isWithinDistanceSquared(rc.getLocation(), 6)){
+                if(rc.canBuild(TrapType.EXPLOSIVE, rc.getLocation().add(rc.getLocation().directionTo(mapLocation)))){
+                    rc.setIndicatorString("I am a flagrunner and I am building a explosive trap");
+                    rc.build(TrapType.EXPLOSIVE,  rc.getLocation().add(rc.getLocation().directionTo(mapLocation)));
+                }else if(rc.canBuild(TrapType.EXPLOSIVE, rc.getLocation().add(rc.getLocation().directionTo(mapLocation).rotateRight()))){
+                    rc.setIndicatorString("I am a flagrunner and I am building a explosive trap");
+                    rc.build(TrapType.EXPLOSIVE,  rc.getLocation().add(rc.getLocation().directionTo(mapLocation).rotateRight()));
+                }
+                else if(rc.canBuild(TrapType.EXPLOSIVE, rc.getLocation().add(rc.getLocation().directionTo(mapLocation).rotateLeft()))){
+                    rc.setIndicatorString("I am a flagrunner and I am building a explosive trap");
+                    rc.build(TrapType.EXPLOSIVE,  rc.getLocation().add(rc.getLocation().directionTo(mapLocation).rotateLeft()));
+                }
+            }
+        }
+        if(numberOfStuns <2){
             if(mapLocation.isWithinDistanceSquared(rc.getLocation(), 6)){
                 if(rc.canBuild(TrapType.STUN, rc.getLocation().add(rc.getLocation().directionTo(mapLocation)))){
                     rc.setIndicatorString("I am a flagrunner and I am building a stun trap");
@@ -97,6 +130,7 @@ public class Flagrunner {
                 }
             }
         }
+
 
     }
     static MapLocation lastFlagFollowerLocation = null;
@@ -173,10 +207,20 @@ public class Flagrunner {
             }
 
         }
+
         if(flag != null){
-            movement.hardMove(flag.getLocation());
+            rc.setIndicatorString("I am a flagrunner and flag is not null");
+            if(rc.getLocation().equals(flag.getLocation())){
+                rc.setIndicatorString("I am a flagrunner and I am at the flag");
+                flag = null;
+            }
+            else {
+                movement.hardMove(flag.getLocation());
+                return;
+            }
         }
         else{
+            rc.setIndicatorString("I am moving to broadcast flag locations");
             MapLocation[] flagLocations = rc.senseBroadcastFlagLocations();
             if(flagLocations.length == 0){
                 backToSpawn();
@@ -184,9 +228,17 @@ public class Flagrunner {
             }
             MapLocation closestFlag= flagLocations[0];
             for (MapLocation flag : flagLocations) {
-                if (rc.getLocation().distanceSquaredTo(flag) < rc.getLocation().distanceSquaredTo(closestFlag))
+                if (rc.getLocation().distanceSquaredTo(flag) < rc.getLocation().distanceSquaredTo(closestFlag)) {
+                    if(rc.getLocation().equals(closestFlag)){
+                        rc.setIndicatorString("I made it to the flag and it it is not there");
+                        continue;
+                    }
+
                     closestFlag = flag;
+                }
+
             }
+
             if( rc.senseMapInfo(rc.getLocation().add(rc.getLocation().directionTo(closestFlag))).isWater()){
                 rc.setIndicatorString("I am a flagrunner and I am filling water");
                 if(rc.canFill(rc.getLocation().add(rc.getLocation().directionTo(closestFlag)))){
