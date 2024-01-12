@@ -19,6 +19,10 @@ public strictfp class RobotPlayer {
     static final MapLocation NONELOCATION = new MapLocation(-1, -1);
 
     static int localID;
+    static MapLocation[] spawnAreaCenters;
+    static MapLocation spawnAreaCenter1;
+    static MapLocation spawnAreaCenter2;
+    static MapLocation spawnAreaCenter3;
     static boolean lefty = true; // do u pathfind favouring left first or right first
 
     // before divider drop
@@ -83,11 +87,20 @@ public strictfp class RobotPlayer {
                 if (rc.getRoundNum() == 1) {
                     localID = util.makeLocalID(assigningLocalIDIndex);
                     movement.setLefty((localID % 2) == 1);
+                    util.setLocalID(localID);
+
+                    MapLocation[] spawnAreaCentersLocal = util.findCentersOfSpawnZones();
+                    spawnAreaCenters = spawnAreaCentersLocal;
+                    spawnAreaCenter1 = spawnAreaCentersLocal[0];
+                    spawnAreaCenter2 = spawnAreaCentersLocal[1];
+                    spawnAreaCenter3 = spawnAreaCentersLocal[2];
                 }
 
-                if (!rc.isSpawned()) util.trySpawning();
+                if (!rc.isSpawned()) {
+                    util.trySpawningEvenly(spawnAreaCenters);
+                }
                 if (rc.isSpawned()) {
-
+                    
                     // ----------------------------------------
                     // start of turn logic
                     // ----------------------------------------
