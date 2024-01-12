@@ -20,15 +20,6 @@ public class Bomber {
     }
 
     /**
-     * Attempt to place a bomb at the given location.
-     * @param location MapLocation to build the bomb
-     */
-    private void tryToPlaceBomb(MapLocation location) throws GameActionException {
-        if (rc.canBuild(TrapType.EXPLOSIVE, location))
-            rc.build(TrapType.EXPLOSIVE, location);
-    }
-
-    /**
      * Go dive into the enemies to place a bomb.
      */
     private void kamikaze() throws GameActionException {
@@ -37,6 +28,15 @@ public class Bomber {
         // Place bomb when near flag and have enemies around
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         FlagInfo[] enemyFlags = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
-        if (enemies.length >= 5 && enemyFlags.length != 0) tryToPlaceBomb(rc.getLocation());
+        if (enemies.length >= 5 && enemyFlags.length != 0) tryToPlaceBomb();
+    }
+
+    /**
+     * Attempt to place a bomb at the given location.
+     * @param location MapLocation to build the bomb
+     */
+    private void tryToPlaceBomb() throws GameActionException {
+        if (rc.canBuild(TrapType.EXPLOSIVE, rc.getLocation()))
+            rc.build(TrapType.EXPLOSIVE, rc.getLocation());
     }
 }

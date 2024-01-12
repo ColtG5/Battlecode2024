@@ -115,6 +115,7 @@ public strictfp class RobotPlayer {
                                 } else if (rc.readSharedArray(breadLocThreeIndex) == 0) {
                                     rc.writeSharedArray(breadLocThreeIndex, util.locationToInt(me));
                                 }
+                                isDefender = true;
                             }
                         }
                     }
@@ -132,7 +133,6 @@ public strictfp class RobotPlayer {
 
                         // set all the before divider specializations to false just to make sure no one is running them
                         isScout = false;
-//                        isBuilder = false;
                     }
 
                     if (rc.getRoundNum() > GameConstants.SETUP_ROUNDS) {
@@ -145,11 +145,13 @@ public strictfp class RobotPlayer {
 
                     if (rc.getRoundNum() <= GameConstants.SETUP_ROUNDS) { // before divider drop strategies
                         if (rc.getRoundNum() == 1) { // dont let bots move on the first turn
-
+                            continue;
                         } else if (isCommander) { // no commanders rn
                             commander.run();
                         } else if (isScout) { // rn we make 30 scouts
                             scout.run();
+                        } else if (isDefender) {
+                            defender.run();
                         } else { // none unspecialized rn (all taken up to be scouts)
                             unspecialized.run();
                         }
@@ -160,6 +162,8 @@ public strictfp class RobotPlayer {
                             bomber.run();
                         } else if (isFlagrunner){ // so 30 bots switch from scout to unspecialized
                             flagrunner.run();
+                        } else if (isDefender) {
+                            defender.run();
                         } else {
                             unspecialized.run();
                         }
