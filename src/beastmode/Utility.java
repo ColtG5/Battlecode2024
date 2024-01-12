@@ -384,8 +384,9 @@ public class Utility {
      * gives a bot their current group leader
      * @return the localID of the group leader
      */
-    public int whoIsMyGroupLeader() {
-        return 42;
+    public int whoIsMyGroupLeader() throws GameActionException {
+        int whatIndexToReadFrom = 50 + whichFlagrunnerGroup;
+        return rc.readSharedArray(whatIndexToReadFrom);
     }
 
     public MapLocation getLocationOfMyGroupLeader() throws GameActionException {
