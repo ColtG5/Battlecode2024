@@ -50,7 +50,7 @@ public class Flagrunner {
 
         //HEALING LOGIC
         //IF NO ENEMIES AROUND, HEAL SELF IF IN RANGE OF DYING FROM LAND MINE
-        //ELSE, HEAL OTHERS IF IN RANGE OF DYING FROM LAND MINE BUT DON'S STOP MOVING
+        //ELSE, HEAL OTHERS IF IN RANGE OF DYING FROM LAND MINE BUT DON'T STOP MOVING
         if (robotEnemyInfo.length == 0 && !rc.hasFlag()) {
             if (rc.getHealth() < 750) {
                 if (rc.canHeal(rc.getLocation())) {
@@ -99,7 +99,7 @@ public class Flagrunner {
      * @param robotEnemyInfo array of enemy robots
      * @throws GameActionException
      */
-    private void wipeThemOut(RobotInfo[] robotEnemyInfo) throws GameActionException {
+    public void wipeThemOut(RobotInfo[] robotEnemyInfo) throws GameActionException {
         //THIS FINDS THE LOWEST HEALTH ENEMY AND TARGETS THEM AS MOVEMENT CHOICE
         int maxHP = GameConstants.DEFAULT_HEALTH;
         MapLocation target = robotEnemyInfo[0].getLocation();
@@ -130,7 +130,7 @@ public class Flagrunner {
      * @param mapLocation location to place traps
      * @throws GameActionException
      */
-    private void cheekyBomb(MapLocation mapLocation) throws GameActionException {
+    public void cheekyBomb(MapLocation mapLocation) throws GameActionException {
         //CHECKS ALL SURROUNDING AREA, IF THERE ARE LESS THAN 2 EXPLOSIVE TRAPS, TRY TO PLACE ONE IN DIRECTION OF ENEMY
         MapInfo[] mapInfo = rc.senseNearbyMapInfos();
         int numberOfStuns = 0;
@@ -177,7 +177,7 @@ public class Flagrunner {
      * @param mapLocOfFlagRunner location of ally with flag
      * @throws GameActionException
      */
-    private void followFlag(MapLocation mapLocOfFlagRunner) throws GameActionException {
+    public void followFlag(MapLocation mapLocOfFlagRunner) throws GameActionException {
         //IF AND ELSE ARE USED FOR DETERMINING IF YOU HAVE BEEN FOLLOWING A BOT WITH A FLAG OR JUST FOUND BOT WITH FLAG
         //IF YOU JUST FOUND A BOT WITH FLAG THEN MOVE OPPOSITE DIRECTION OF CLOSEST FLAG TO AS FLAG BOT MOVES TO CLOSEST ONE. THIS WAY YOU GET BEHIND THE BOT WITH FLAG
         if (lastFlagFollowerLocation == null) {
@@ -206,7 +206,7 @@ public class Flagrunner {
      * ATTACKS ENEMIES AROUND YOU
      * @throws GameActionException
      */
-    private void attackTheLocals() throws GameActionException {
+    public void attackTheLocals() throws GameActionException {
         RobotInfo[] robotInfo = rc.senseNearbyRobots(GameConstants.ATTACK_RADIUS_SQUARED, rc.getTeam().opponent());
         MapLocation target = null;
         //FIND LOWEST HEALTH ENEMY AND TARGET THEM
@@ -231,7 +231,7 @@ public class Flagrunner {
      * GOES BACK TO SPAWN
      * @throws GameActionException
      */
-    private void backToSpawn() throws GameActionException {
+    public void backToSpawn() throws GameActionException {
         // This array will never be null
         MapLocation[] spawnLocations = rc.getAllySpawnLocations();
         MapLocation closestSpawn = spawnLocations[0];
@@ -241,10 +241,13 @@ public class Flagrunner {
         }
         movement.hardMove(closestSpawn);
     }
-
-    private void fetchFlag() throws GameActionException {
+    /**
+     * FETCHES THE FLAG
+     * @throws GameActionException
+     */
+    public void fetchFlag() throws GameActionException {
         FlagInfo[] flagInfo = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
-        
+        //CHECK FOR NEARBY FLAGS
         for (FlagInfo info : flagInfo) {
             if (info.isPickedUp() && info.equals(flag)) {
                 flag = null;
@@ -259,7 +262,7 @@ public class Flagrunner {
                 }
             }
         }
-
+        //MOVE TOWARDS CLOSEST FLAG
         if (flag != null) {
             rc.setIndicatorString("I am a flagrunner and flag is not null");
             if (rc.getLocation().equals(flag.getLocation())) {
