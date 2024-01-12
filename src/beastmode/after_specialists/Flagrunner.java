@@ -29,6 +29,7 @@ public class Flagrunner {
         rc.setIndicatorString("I am a flagrunner");
         RobotInfo[] robotEnemyInfo = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         RobotInfo[] robotInfo = rc.senseNearbyRobots(-1, rc.getTeam());
+
         if (KILLMODE) {
             if (robotEnemyInfo.length == 0) KILLMODE = false;
             else {
@@ -64,7 +65,7 @@ public class Flagrunner {
         }
         lastFlagFollowerLocation = null;
 
-        if (robotEnemyInfo.length > 5) {
+        if (robotEnemyInfo.length > 5 && !rc.hasFlag()) {
             wipeThemOut(robotEnemyInfo);
             KILLMODE = true;
             return;
@@ -158,7 +159,7 @@ public class Flagrunner {
             if (mapLocOfFlagRunner.add(mapLocOfFlagRunner.directionTo(lastFlagFollowerLocation)).isWithinDistanceSquared(rc.getLocation(), 2)) {
                 MapLocation theSpotOfOpposite = mapLocOfFlagRunner.add(mapLocOfFlagRunner.directionTo(lastFlagFollowerLocation));
                 movement.hardMove(rc.getLocation().add(rc.getLocation().directionTo(theSpotOfOpposite).opposite()));
-            } else movement.hardMove(lastFlagFollowerLocation);
+            } else movement.hardMove(lastFlagFollowerLocation.add(mapLocOfFlagRunner.directionTo(lastFlagFollowerLocation)));
         }
         lastFlagFollowerLocation = mapLocOfFlagRunner;
     }
