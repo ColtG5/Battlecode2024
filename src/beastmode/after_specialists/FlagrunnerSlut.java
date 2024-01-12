@@ -30,48 +30,9 @@ RobotController rc;
                 inRangeOfLeader = true;
                 break;
             }
-
         }
         if(inRangeOfLeader){
-            RobotInfo[] robotEnemyInfo = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-            RobotInfo[] robotInfo = rc.senseNearbyRobots(-1, rc.getTeam());
-            if(KILLMODE){
-                if (robotEnemyInfo.length == 0) KILLMODE = false;
-                else {
-                    rc.setIndicatorString("ITS KILLMODE TIME");
-                    flagrunner.wipeThemOut(robotEnemyInfo);
-                    return;
-                }
-            }
-            if (robotEnemyInfo.length == 0 && !rc.hasFlag()) {
-                if (rc.getHealth() <= TrapType.EXPLOSIVE.enterDamage) {
-                    if (rc.canHeal(rc.getLocation())) {
-                        rc.heal(rc.getLocation());
-                        return;
-                    }
-                }
-                for (RobotInfo info : robotInfo) {
-                    if (info.getHealth() < GameConstants.DEFAULT_HEALTH) {
-                        if (rc.canHeal(info.getLocation())) {
-                            rc.heal(info.getLocation());
-                            return;
-                        }
-                    }
-                }
-            }
-            for (RobotInfo info : robotInfo) {
-                if (info.hasFlag) {
-                    rc.setIndicatorString("I am a flagrunner and I am following the flag");
-                    flagrunner.followFlag(info.getLocation());
-                    flagrunner.attackTheLocals();
-                    return;
-                }
-            }
-            if (robotEnemyInfo.length >= 6) {
-                KILLMODE = true;
-                flagrunner.wipeThemOut(robotEnemyInfo);
-                return;
-            }
+           flagrunner.run();
 
         }else{
             KILLMODE = false;

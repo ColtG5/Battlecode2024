@@ -79,6 +79,7 @@ public strictfp class RobotPlayer {
         // after strategies
         Bomber bomber = new Bomber(rc, movement, util);
         Flagrunner flagrunner = new Flagrunner(rc, movement, util, lefty);
+        FlagrunnerSlut flagrunnerSlut = new FlagrunnerSlut(rc, movement, util, flagrunner);
         Defender defender = new Defender(rc, movement, util);
 
         // either strategies
@@ -157,7 +158,14 @@ public strictfp class RobotPlayer {
                     } else { // after divider drop strategies
                         if (isCommander) commander.run();
                         else if (isBomber) bomber.run(); // none rn
-                        else if (isFlagrunner) flagrunner.run(); // so 30 bots switch from scout to unspecialized
+                        else if (isFlagrunner){
+                            if(util.whoIsMyGroupLeader() ==localID){
+                                flagrunner.run();
+                            }else{
+                                flagrunnerSlut.run();
+                            }
+                            // so 30 bots switch from scout to unspecialized
+                        }
                         else if (isDefender) defender.run();
                         else unspecialized.run();
                     }
