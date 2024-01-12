@@ -102,7 +102,12 @@ public strictfp class RobotPlayer {
 
                     util.setInitialGroupLeaders();
 
-                    whichFlagrunnerGroup = util.getMyFlagrunnerGroup(); // change this later to only be called by flagRunners
+                    whichFlagrunnerGroup = util.getMyFlagrunnerGroup();
+                }
+
+                if (localID == 1) {
+                    if (rc.getRoundNum() == GameConstants.GLOBAL_UPGRADE_ROUNDS && rc.canBuyGlobal(GlobalUpgrade.ACTION)) rc.buyGlobal(GlobalUpgrade.ACTION);
+                    if (rc.getRoundNum() == GameConstants.GLOBAL_UPGRADE_ROUNDS * 2 && rc.canBuyGlobal(GlobalUpgrade.HEALING)) rc.buyGlobal(GlobalUpgrade.HEALING);
                 }
 
                 // read every other robots info from the shared array, store it in coolRobotInfoArray
