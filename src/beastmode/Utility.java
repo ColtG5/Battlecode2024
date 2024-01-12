@@ -387,4 +387,11 @@ public class Utility {
     public int whoIsMyGroupLeader() {
         return 42;
     }
+
+    public MapLocation getLocationOfMyGroupLeader() throws GameActionException {
+        int arrayIndexToReadFrom = 50 + whichFlagrunnerGroup;
+        int localIDOfGroupLeader = rc.readSharedArray(arrayIndexToReadFrom);
+        CoolRobotInfo groupLeaderInfo = coolRobotInfoArray[localIDOfGroupLeader - 1];
+        return groupLeaderInfo.curLocation;
+    }
 }
