@@ -54,7 +54,7 @@ public strictfp class RobotPlayer {
     /**
      * SHARED ARRAY
      * [0,          1-50,          51,  52,  53]
-     * id     id's of all ducks    3 spawn loc's
+     * id     id's of all ducks    3 bread loc's
      *
      */
 
@@ -96,6 +96,9 @@ public strictfp class RobotPlayer {
                     spawnAreaCenter3 = spawnAreaCentersLocal[2];
                 }
 
+                // read every other robots info from the shared array, store it in coolRobotInfoArray
+                coolRobotInfoArray = util.readAllBotsInfoFromSharedArray(coolRobotInfoArray);
+
                 if (!rc.isSpawned()) {
                     util.trySpawningEvenly(spawnAreaCenters);
                 }
@@ -105,31 +108,8 @@ public strictfp class RobotPlayer {
                     // start of turn logic
                     // ----------------------------------------
 
-                    // read every other robots info from the shared array, store it in coolRobotInfoArray
-                    if (rc.getRoundNum() > 1) { // not all bots have written their stuff into their index until round 2 starts
-                        for (int i = 1; i <= 50; i++) {
-                            int coolRobotInfoInt = rc.readSharedArray(i);
-                            coolRobotInfoArray[i-1] = util.new CoolRobotInfo(i, coolRobotInfoInt);
-                        }
-                    }
-
-                    if (rc.getRoundNum() == 1) {
-                        MapLocation me = rc.getLocation();
-                        FlagInfo[] flags = rc.senseNearbyFlags(1, rc.getTeam());
-                        if (flags.length > 0) {
-                            MapLocation flagLoc = flags[0].getLocation();
-                            if (me.x == flagLoc.x && me.y == flagLoc.y) {
-                                if (rc.readSharedArray(breadLocOneIndex) == 0) {
-                                    rc.writeSharedArray(breadLocOneIndex, util.locationToInt(me));
-                                } else if (rc.readSharedArray(breadLocTwoIndex) == 0) {
-                                    rc.writeSharedArray(breadLocTwoIndex, util.locationToInt(me));
-                                } else if (rc.readSharedArray(breadLocThreeIndex) == 0) {
-                                    rc.writeSharedArray(breadLocThreeIndex, util.locationToInt(me));
-                                }
-                                isDefender = true;
-                            }
-                        }
-                    }
+                    // writes the first 3 bread locations into the shared array, and also checks if this bot is a defender
+                    isDefender = util.didISpawnOnFlag(util);
 
                     // ----------------------------------------
                     // logic for who will specialize to what (subject to change idrk what im doing ong no cap on 4nem)
@@ -175,12 +155,7 @@ public strictfp class RobotPlayer {
                 }
 
                 // after every round whether spawned or not, convert your info to an int and write it to the shared array
-                MapLocation locationToStore;
-                if (rc.isSpawned()) locationToStore = rc.getLocation();
-                else locationToStore = NONELOCATION; // NONELOCATION (-1, -1) represents not spawned rn (no location)
-                int coolRobotInfoInt = util.convertRobotInfoToInt(locationToStore, false);
-//                if (rc.getRoundNum() == 1) System.out.println("id: " + localID + "coolRobotInfoInt: " + Integer.toBinaryString(coolRobotInfoInt));
-                rc.writeSharedArray(localID, coolRobotInfoInt);
+                util.writeMyInfoToSharedArray();
 
             } catch (GameActionException e) {
                 System.out.println("GameActionException");
