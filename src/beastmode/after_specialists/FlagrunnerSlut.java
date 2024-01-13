@@ -20,6 +20,7 @@ public class FlagrunnerSlut {
     static boolean KILLMODE = false;
 
     public void run() throws GameActionException {
+        if (rc.hasFlag()) flagrunner.backToSpawn();
         //Assumptions: - they have been assigned a local ID and are not picked as a Flagrunner leader
         MapLocation leaderLoc = utility.getLocationOfMyGroupLeader();
 

@@ -30,6 +30,7 @@ public class Flagrunner {
      * @throws GameActionException
      */
     public void run() throws GameActionException {
+        if (rc.hasFlag()) backToSpawn();
         rc.setIndicatorString("I am a flagrunner");
         RobotInfo[] robotEnemyInfo = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         RobotInfo[] robotInfo = rc.senseNearbyRobots(-1, rc.getTeam());
@@ -288,12 +289,18 @@ public class Flagrunner {
                     closestFlag = flag;
                 }
             }
-            MapLocation loc = rc.getLocation().add(rc.getLocation().directionTo(closestFlag));
-            if (rc.senseMapInfo(loc).isWater()) {
-                rc.setIndicatorString("I am a flagrunner and I am filling water");
-                if (rc.canFill(loc)) rc.fill(loc);
-            }
+//            MapLocation loc = rc.getLocation().add(rc.getLocation().directionTo(closestFlag));
+//            if (rc.senseMapInfo(loc).isWater()) {
+//                rc.setIndicatorString("I am a flagrunner and I am filling water");
+//                if (rc.canFill(loc)) rc.fill(loc);
+//            }
             movement.hardMove(closestFlag);
+        }
+        MapInfo[] mapInfos = rc.senseNearbyMapInfos(2);
+        for (MapInfo info : mapInfos) {
+            if (info.isWater()) {
+                if (rc.canFill(info.getMapLocation())) rc.fill(info.getMapLocation());
+            }
         }
     }
 }

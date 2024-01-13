@@ -422,6 +422,20 @@ public class Utility {
     }
 
     /**
+     * checks if that ducks group leader is dead, and if so, makes the duck checking, the new group leader
+     * @throws GameActionException if the duck cannot read/write to array
+     */
+    public void handleIfGroupLeaderDied() throws GameActionException {
+        int arrayIndexToReadFrom = flagRunnerGroupIndexingStart + whichFlagrunnerGroup;
+        int localIDOfGroupLeader = rc.readSharedArray(arrayIndexToReadFrom);
+        CoolRobotInfo groupLeaderInfo = coolRobotInfoArray[localIDOfGroupLeader - 1];
+        if (groupLeaderInfo.curLocation == NONELOCATION) {
+            // if group leader is dead, make ourselves the new group leader
+            rc.writeSharedArray(arrayIndexToReadFrom, localID);
+        }
+    }
+
+    /**
      *
      * @param nearbyEnemies Array of robots
      * @return Enemy with lowest HP or null if no enemies around

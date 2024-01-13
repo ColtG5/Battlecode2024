@@ -166,6 +166,7 @@ public strictfp class RobotPlayer {
                         if (isCommander) commander.run();
                         else if (isBomber) bomber.run();
                         else if (isFlagrunner) {
+                            util.handleIfGroupLeaderDied(); // switches group leaders if they died, to the bot checking
                             if (util.whoIsMyGroupLeader() == localID) flagrunner.run();
                             else flagrunnerSlut.run();
                             // so 30 bots switch from scout to unspecialized
