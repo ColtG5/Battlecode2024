@@ -339,7 +339,7 @@ public class Utility {
 //        return intToLocation(locToRead);
 //    }
 
-    public boolean didISpawnOnFlag(Utility util) throws GameActionException {
+    public void didISpawnOnFlag(Utility util) throws GameActionException {
         MapLocation me = rc.getLocation();
         FlagInfo[] flags = rc.senseNearbyFlags(1, rc.getTeam());
         if (flags.length > 0) {
@@ -352,10 +352,8 @@ public class Utility {
                 } else if (rc.readSharedArray(breadLocThreeIndex) == 0) {
                     rc.writeSharedArray(breadLocThreeIndex, util.locationToInt(me));
                 }
-                return true;
             }
         }
-        return false;
     }
 
     /**
@@ -368,16 +366,33 @@ public class Utility {
         rc.writeSharedArray(flagRunnerGroupThreeLocIndex, 21);
     }
 
+    /**
+     * splits all flagrunners into the three groups. if a non flagrunner calls this func, they will get a group of 0.
+     * dont let that happen unless you intend it !!! !!! !!!
+     * @return int representing which group the bot is in (1, 2, or 3 (0 for none))
+     */
     public int getMyFlagrunnerGroup() {
-        if (localID <= 10) {
+//        if (localID <= 10) {
+//            return 1;
+//        } else if (localID <= 20) {
+//            return 2;
+//        } else if (localID <= 30) {
+//            return 3;
+//        } else {
+//            return 0;
+//        }
+        // the max number of flagrunner groups is 3. the max amount of flag runners is stored in the constant in robotcontroller AMOUNT_OF_FLAGRUNNERS
+        // divide the first 1/3 of flagrunners into group 1, the second 1/3 into group 2, and the last 1/3 into group 3
+        if (localID <= AMOUNT_OF_FLAGRUNNERS / 3) {
             return 1;
-        } else if (localID <= 20) {
+        } else if (localID <= 2 * AMOUNT_OF_FLAGRUNNERS / 3) {
             return 2;
-        } else if (localID <= 30) {
+        } else if (localID <= AMOUNT_OF_FLAGRUNNERS) {
             return 3;
         } else {
-            return 0;
+            return 0; // this is bad if it returns 0 !
         }
+
     }
 
     /**
@@ -385,13 +400,23 @@ public class Utility {
      * @return the localID of the group leader
      */
     public int whoIsMyGroupLeader() throws GameActionException {
-        int whatIndexToReadFrom = 50 + whichFlagrunnerGroup;
+        int whatIndexToReadFrom = flagRunnerGroupIndexingStart + whichFlagrunnerGroup;
         return rc.readSharedArray(whatIndexToReadFrom);
     }
 
     public MapLocation getLocationOfMyGroupLeader() throws GameActionException {
-        int arrayIndexToReadFrom = 50 + whichFlagrunnerGroup;
+        int arrayIndexToReadFrom = flagRunnerGroupIndexingStart + whichFlagrunnerGroup;
+
+//        // print the entire shared array
+//        for (int i = 0; i < 64; i++) {
+//            System.out.println("index: " + i + "value: " + rc.readSharedArray(i));
+//        }
+
+//        System.out.println("localID: " + localID);
+//        System.out.println("index reading: " + arrayIndexToReadFrom);
         int localIDOfGroupLeader = rc.readSharedArray(arrayIndexToReadFrom);
+//        System.out.println(localIDOfGroupLeader);
+
         CoolRobotInfo groupLeaderInfo = coolRobotInfoArray[localIDOfGroupLeader - 1];
         return groupLeaderInfo.curLocation;
     }

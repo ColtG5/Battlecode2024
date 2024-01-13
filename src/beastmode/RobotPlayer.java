@@ -33,6 +33,7 @@ public strictfp class RobotPlayer {
     // after divider drop
     static boolean isBomber = false;
     static boolean isFlagrunner = false;
+    static final int AMOUNT_OF_FLAGRUNNERS = 42; // must be divisible by three (as long as we have three flagrunner groups
     static int whichFlagrunnerGroup;
 
     // either
@@ -63,6 +64,7 @@ public strictfp class RobotPlayer {
     static final int breadLocOneIndex = 51;
     static final int breadLocTwoIndex = 52;
     static final int breadLocThreeIndex = 53;
+    static final int flagRunnerGroupIndexingStart = 53;
     static final int flagRunnerGroupOneLocIndex = 54;
     static final int flagRunnerGroupTwoLocIndex = 55;
     static final int flagRunnerGroupThreeLocIndex = 56;
@@ -92,7 +94,10 @@ public strictfp class RobotPlayer {
                 if (rc.getRoundNum() == 1) {
                     localID = util.makeLocalID(assigningLocalIDIndex);
                     movement.setLefty((localID % 2) == 1);
+
+                    // here you can set localID's for each specialist class
                     util.setLocalID(localID);
+                    defender.setLocalID(localID);
 
                     MapLocation[] spawnAreaCentersLocal = util.findCentersOfSpawnZones();
                     spawnAreaCenters = spawnAreaCentersLocal;
@@ -124,18 +129,20 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
 
                     // writes the first 3 bread locations into the shared array, and also checks if this bot is a defender
-                    if (rc.getRoundNum() == 1) isDefender = util.didISpawnOnFlag(util);
+                    if (rc.getRoundNum() == 1) util.didISpawnOnFlag(util);
 
                     // ----------------------------------------
                     // logic for who will specialize to what (subject to change idrk what im doing ong no cap on 4nem)
                     // ----------------------------------------
 
                     if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) {
-                        if (!isDefender) isScout = true;
+                        if (48 <= localID && localID <= 50) isDefender = true; // set the proper defenders
+                        else isScout = true; // set the proper scouts
                     }
 
                     if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS) {
-                        if (isScout) isFlagrunner = true; // change all scouts to flagrunners
+                        if (localID <= AMOUNT_OF_FLAGRUNNERS) isFlagrunner = true; // set the proper flagrunners
+                        else if (!isDefender) isBomber = true; // set the proper bombers
 
                         // set all the before divider specializations to false just to make sure no one is running them
                         isScout = false;
@@ -157,13 +164,10 @@ public strictfp class RobotPlayer {
                         else unspecialized.run(); // none unspecialized rn (all taken up to be scouts)
                     } else { // after divider drop strategies
                         if (isCommander) commander.run();
-                        else if (isBomber) bomber.run(); // none rn
-                        else if (isFlagrunner){
-                            if(util.whoIsMyGroupLeader() ==localID){
-                                flagrunner.run();
-                            }else{
-                                flagrunnerSlut.run();
-                            }
+                        else if (isBomber) bomber.run();
+                        else if (isFlagrunner) {
+                            if (util.whoIsMyGroupLeader() == localID) flagrunner.run();
+                            else flagrunnerSlut.run();
                             // so 30 bots switch from scout to unspecialized
                         }
                         else if (isDefender) defender.run();

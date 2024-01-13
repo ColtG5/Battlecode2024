@@ -4,8 +4,9 @@ import battlecode.common.*;
 import beastmode.Movement;
 import beastmode.Utility;
 import beastmode.after_specialists.Flagrunner;
+
 public class FlagrunnerSlut {
-RobotController rc;
+    RobotController rc;
     Movement movement;
     Utility utility;
     Flagrunner flagrunner;
@@ -15,6 +16,7 @@ RobotController rc;
         this.utility = utility;
         this.flagrunner = flagrunner;
     }
+
     static boolean KILLMODE = false;
 
     public void run() throws GameActionException {
