@@ -1,13 +1,9 @@
 package beastmode.after_specialists;
 
 import battlecode.common.*;
-import battlecode.schema.GameplayConstants;
 import beastmode.Movement;
 import beastmode.Utility;
 
-/**
- * Just a base strategy class, if a bot doesn't specialize in any strategy (not entirely sure if needed, but just for now)
- */
 public class Flagrunner {
     RobotController rc;
     Movement movement;

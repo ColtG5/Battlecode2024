@@ -78,7 +78,7 @@ public strictfp class RobotPlayer {
 
         // after strategies
         Bomber bomber = new Bomber(rc, movement, util);
-        Flagrunner flagrunner = new Flagrunner(rc, movement, util, lefty);
+        Flagrunner flagrunner = new Flagrunner(rc, movement, util);
         Defender defender = new Defender(rc, movement, util);
 
         // either strategies

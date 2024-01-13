@@ -233,10 +233,17 @@ public class Utility {
         rc.writeSharedArray(flagRunnerGroupThreeLocIndex, 21);
     }
 
+    /**
+     * checks if you are the leader of a group. since the localID of the group leader is stored as a funky number of
+     * 1-14 due to space constraints, we need to convert the localID of the group leader back to the actual localID
+     * @return
+     * @throws GameActionException
+     */
     public boolean amIAGroupLeader() throws GameActionException {
-        int arrayIndexToReadFrom = 53 + whichFlagrunnerGroup;
+        int arrayIndexToReadFrom = flagRunnerGroupIndexingStart + whichFlagrunnerGroup;
         int localIDOfGroupLeader = rc.readSharedArray(arrayIndexToReadFrom);
-        return localIDOfGroupLeader == localID;
+        return localID == (localIDOfGroupLeader & 15) + (whichFlagrunnerGroup - 1) * 14;
+
     }
 
     public int getMyFlagrunnerGroup() {
@@ -254,13 +261,14 @@ public class Utility {
     }
 
     /**
-     * gives a bot their current group leader
+     * gives a bot their current group leader.
      *
      * @return the localID of the group leader
      */
     public int whoIsMyGroupLeader() throws GameActionException {
-        int whatIndexToReadFrom = flagRunnerGroupIndexingStart + whichFlagrunnerGroup;
-        return rc.readSharedArray(whatIndexToReadFrom);
+        int arrayIndexToReadFrom = flagRunnerGroupIndexingStart + whichFlagrunnerGroup;
+        int localIDOfGroupLeader = rc.readSharedArray(arrayIndexToReadFrom);
+        return (localIDOfGroupLeader & 15) + (whichFlagrunnerGroup - 1) * 14;
     }
 
     public MapLocation getLocationOfMyGroupLeader() throws GameActionException {
@@ -296,6 +304,53 @@ public class Utility {
     }
 
     /**
+     * method for group leaders to write the location they wish group to see to the array.
+     * this flagrunnerGroup index in the array stores the location the group should see, AS WELL AS
+     * the id of the group leader. the location is the high 12 bits, and the id is the low 4 bits. since 2^4 = 16,
+     * we cannot store the full localID, so if we store "5", this means the 5th duck in your group is the group leader.
+     * this way we can store the localID of the group leader as well as the location, in the same index in the shared array.
+     * @param locationForFlagrunnerGroup loc for the flagrunner group to follow, attack, etc
+     */
+    public void writeToFlagrunnerGroupIndex(MapLocation locationForFlagrunnerGroup) throws GameActionException {
+        // high 12 bits: location
+        // low 4 bits: localID of group leader, but this num is only between 1-14, as each group has exactly 14 ducks
+        int intToWrite = locationToInt(locationForFlagrunnerGroup) << 4; // loc in int form, in high 12 bits
+        intToWrite += localID % 15; // converting the leader localID to a "flagrunner group localID" (1-14)
+        int arrayIndexToWriteTo = flagRunnerGroupIndexingStart + whichFlagrunnerGroup;
+
+        rc.writeSharedArray(arrayIndexToWriteTo, intToWrite);
+    }
+
+    /**
+     * if you want to just change who the group leader is for a group, but not change the location, use this !
+     * @throws GameActionException
+     */
+    public void writeJustLocalIDToFlagrunnerGroupIndex() throws GameActionException {
+        int arrayIndexToWriteTo = flagRunnerGroupIndexingStart + whichFlagrunnerGroup;
+        int intToWrite = rc.readSharedArray(arrayIndexToWriteTo); // this int holds location in high 12 bits, and "fake" localID in low 4 bits. we want to preserve the location, but overwrite the 4 bits of localID
+        intToWrite = intToWrite & 4080; // 4080 is all 1's except the last 4 bits, so this will preserve the location, but make the localID 0
+        intToWrite += localID % 15; // converting the leader localID to a "flagrunner group localID" (1-14), and putting it into the int we gonna write
+        rc.writeSharedArray(arrayIndexToWriteTo, intToWrite);
+    }
+
+    public MapLocation readLocationFromFlagrunnerGroupIndex() throws GameActionException {
+        int arrayIndexToReadFrom = flagRunnerGroupIndexingStart + whichFlagrunnerGroup;
+        int intToRead = rc.readSharedArray(arrayIndexToReadFrom);
+        return intToLocation(intToRead >> 4);
+    }
+
+    /**
+     * since the localID in the array is 1-14, we need to convert it back to the actual localID in the process of this method
+     * @return localID of your current group leader
+     * @throws GameActionException
+     */
+    public int readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex() throws GameActionException {
+        int arrayIndexToReadFrom = flagRunnerGroupIndexingStart + whichFlagrunnerGroup;
+        int intToRead = rc.readSharedArray(arrayIndexToReadFrom);
+        return (intToRead & 15) + (whichFlagrunnerGroup - 1) * 14;
+    }
+
+    /**
      * @param nearbyEnemies Array of robots
      * @return Enemy with lowest HP or null if no enemies around
      */
@@ -308,5 +363,27 @@ public class Utility {
         }
         if (enemyWithLowestHP != null) return enemyWithLowestHP.getLocation();
         return null;
+    }
+
+    /**
+     * used to return two things from a func (idk a better way rn sorry)
+     * @param <T>
+     */
+    public static class MyPair<T, U> {
+        private final T pair_first;
+        private final U pair_second;
+
+        public MyPair(T first, U second) {
+            pair_first = first;
+            pair_second = second;
+        }
+
+        public T first() {
+            return pair_first;
+        }
+
+        public U second() {
+            return pair_second;
+        }
     }
 }
