@@ -6,6 +6,8 @@ import GoldenSon.Utility;
 
 import java.util.ArrayList;
 
+import static GoldenSon.RobotPlayer.*;
+
 public class Flagrunner {
     RobotController rc;
     Movement movement;
@@ -22,22 +24,27 @@ public class Flagrunner {
         if (util.amIAGroupLeader()) locationForFlagrunnerGroup = setLocationForGroup(); // decide where the group will go (including you)
         else locationForFlagrunnerGroup = getLocationForGroup();
 
-        rc.setIndicatorDot(locationForFlagrunnerGroup, 0, 0, 255);
+//        rc.setIndicatorDot(locationForFlagrunnerGroup, 0, 0, 255);
 
         boolean isLeader = util.amIAGroupLeader();
+        if (rc.getRoundNum() == 201) System.out.println(isLeader);
 
         if (isLeader) {
             if (tooFewGroupMembersAround(5)) { // if leader don't got a lotta homies, maybe just sit and wait for the gang?
                 attackMicroWithMoveAvailable();
                 // have the option of choosing to sit in place to wait for dudes to pull up on you
                 // attackMicroWithNoMoveAvailable();
+//                rc.setIndicatorDot(rc.getLocation(), 255, 255, 0);
             } else { // if u got homies, gameplan as usual.
                 attackMicroWithMoveAvailable();
             }
+            if (rc.getRoundNum() == 201) System.out.println("gang gang");
+            rc.setIndicatorDot(rc.getLocation(), 0, 0, 125);
         } else { // a follower
             if (isDistanceToGroupLeaderMoreThan(10)) { // if too far from group leader, use ur movement to get back to them!!
                 movement.hardMove(util.getLocationOfMyGroupLeader());
                 attackMicroWithNoMoveAvailable();
+//                rc.setIndicatorDot(util.getLocationOfMyGroupLeader(), 0, 255, 0);
             } else { // if ur close enough, u can use ur movement in ur micro
                 attackMicroWithMoveAvailable();
             }
@@ -65,21 +72,58 @@ public class Flagrunner {
     }
 
     public MapLocation setLocationForGroup() throws GameActionException {
-        // decide what location the group gonna have
-//        MapLocation locForGroup = new MapLocation(0, 0);
+        MapLocation locForGroup = null;
 
-        MapLocation[] allDroppedFlags = rc.senseBroadcastFlagLocations();
-        if (allDroppedFlags.length != 0) { // there is still a flag left for us to conquer
-            MapLocation closestFlag = allDroppedFlags[0];
-        } else { // none on ground means at least one dude is hauling a flag back rn!!! go help him!!!
-
+        // see if we can sense any enemy flags
+        FlagInfo[] enemyFlags = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
+        // filter out flags that are picked up by us (this group only going to capture a flag rn. if a flag is picked up by us,
+        // lets assume for now that he has his own group to be backup
+        ArrayList<FlagInfo> enemyFlagsNotPickedUp = new ArrayList<FlagInfo>();
+        for (FlagInfo enemyFlag : enemyFlags) {
+            if (!enemyFlag.isPickedUp()) enemyFlagsNotPickedUp.add(enemyFlag);
         }
 
-        // write this locForGroup into the spot in the shared array for this group
-//        util.writeToFlagrunnerGroupIndex(locForGroup);
+        MapLocation[] allDroppedFlags = rc.senseBroadcastFlagLocations();
 
-//        return locForGroup;
-        return new MapLocation(0, 0);
+        if (enemyFlagsNotPickedUp.size() != 0) { // if we can see a flag to conquer
+            // get the closest flag to us
+            MapLocation closestFlag = enemyFlags[0].getLocation();
+            for (FlagInfo enemyFlag : enemyFlags) {
+                if (rc.getLocation().distanceSquaredTo(enemyFlag.getLocation()) < rc.getLocation().distanceSquaredTo(closestFlag)) {
+                    closestFlag = enemyFlag.getLocation();
+                }
+            }
+            locForGroup = closestFlag;
+        } else if (allDroppedFlags.length != 0) { // there is still a flag left for us to conquer
+            // get the closest flag to us that is on the ground
+            MapLocation closestFlag = allDroppedFlags[0];
+            for (MapLocation droppedFlag : allDroppedFlags) {
+                if (rc.getLocation().distanceSquaredTo(droppedFlag) < rc.getLocation().distanceSquaredTo(closestFlag)) {
+                    closestFlag = droppedFlag;
+                }
+            }
+            locForGroup = closestFlag;
+        } else { // none on ground means at least one dude is hauling a flag back rn!!! go help him!!!
+            // see if anyone on our team is carrying a flag
+
+            int indexOfFirstTeammate = 1 + (FLAGRUNNERS_PER_GROUP * (util.getMyFlagrunnerGroup()-1)); // 1, 15, 29
+            int indexOfLastTeammate = util.getMyFlagrunnerGroup() * FLAGRUNNERS_PER_GROUP; // 14, 28, 42
+
+            for (int i = indexOfFirstTeammate-1; i <= indexOfLastTeammate-1; i++) {
+                Utility.CoolRobotInfo coolRobotInfo = coolRobotInfoArray[i];
+                if (coolRobotInfo.getHasFlag()) {
+                    locForGroup = coolRobotInfo.getCurLocation();
+                    break;
+                }
+            }
+        }
+        if (locForGroup == null) locForGroup = rc.getLocation(); // literally no flags in play (should never happen right
+
+//        rc.setIndicatorDot(locForGroup, 255, 0, 255);
+
+        // write this locForGroup into the spot in the shared array for this group
+        util.writeToFlagrunnerGroupIndex(locForGroup);
+        return locForGroup;
     }
 
     public MapLocation getLocationForGroup() throws GameActionException {
@@ -90,7 +134,7 @@ public class Flagrunner {
     //                        attacking/healing micro helper funcs
     // ---------------------------------------------------------------------------------
 
-    public MapLocation getAttackableEnemyWithLowestHealth(RobotInfo[] enemyRobots) throws GameActionException {
+    public MapLocation getAttackableEnemyWithLowestHealth(RobotInfo[] enemyRobots) {
         ArrayList<RobotInfo> attackableEnemies = new ArrayList<RobotInfo>();
         for (RobotInfo enemyRobot : enemyRobots) {
             if (rc.canAttack(enemyRobot.location)) attackableEnemies.add(enemyRobot);

@@ -30,8 +30,9 @@ public strictfp class RobotPlayer {
     // after divider drop
     static boolean isBomber = false;
     static boolean isFlagrunner = false;
-    static final int AMOUNT_OF_FLAGRUNNERS = 42; // must be divisible by three (as long as we have three flagrunner groups
-    static int whichFlagrunnerGroup;
+    public static final int AMOUNT_OF_FLAGRUNNERS = 42; // must be divisible by FLAGRUNNERS_PER_GROUP
+    public static final int FLAGRUNNERS_PER_GROUP = 14;
+    public static final int AMOUNT_OF_FLAGRUNNER_GROUPS = AMOUNT_OF_FLAGRUNNERS / FLAGRUNNERS_PER_GROUP;
 
     // either
     static boolean isCommander = false;
@@ -98,13 +99,11 @@ public strictfp class RobotPlayer {
                     spawnAreaCenter1 = spawnAreaCentersLocal[0];
                     spawnAreaCenter2 = spawnAreaCentersLocal[1];
                     spawnAreaCenter3 = spawnAreaCentersLocal[2];
-
-                    util.setInitialGroupLeaders();
-
-                    whichFlagrunnerGroup = util.getMyFlagrunnerGroup();
                 }
 
                 if (localID == 1) {
+                    if (rc.getRoundNum() == 1) util.setInitialGroupLeaders();
+
                     if (rc.getRoundNum() == GameConstants.GLOBAL_UPGRADE_ROUNDS && rc.canBuyGlobal(GlobalUpgrade.ACTION)) rc.buyGlobal(GlobalUpgrade.ACTION);
                     if (rc.getRoundNum() == GameConstants.GLOBAL_UPGRADE_ROUNDS * 2 && rc.canBuyGlobal(GlobalUpgrade.HEALING)) rc.buyGlobal(GlobalUpgrade.HEALING);
                 }
@@ -158,8 +157,12 @@ public strictfp class RobotPlayer {
                         else unspecialized.run(); // none unspecialized rn (all taken up to be scouts)
                     } else { // after divider drop strategies
                         if (isCommander) commander.run();
-                        else if (isBomber) bomber.run(); // none rn
+                        else if (isBomber) bomber.run();
                         else if (isFlagrunner) {
+                            if (rc.getRoundNum() == 201) {
+                                System.out.println("group leader is: " + util.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex());
+                                System.out.println("" + localID + " flagrunner.run(), amILeader: " + util.amIAGroupLeader() + "\n");
+                            }
                             util.handleIfGroupLeaderDied(); // switches group leaders if they died, to the bot checking
                             flagrunner.run();
                         }
@@ -173,6 +176,10 @@ public strictfp class RobotPlayer {
 
 //                    if (rc.getRoundNum() == 410) rc.resign();
 
+                }
+
+                if (rc.getRoundNum() == 1 || rc.getRoundNum() == 2 || rc.getRoundNum() == 199 || rc.getRoundNum() == 200 || rc.getRoundNum() == 201) {
+                    System.out.println("\t\t\treading the array directly: " + rc.readSharedArray(flagRunnerGroupTwoLocIndex));
                 }
 
                 // after every round whether spawned or not, convert your info to an int and write it to the shared array
