@@ -1,11 +1,10 @@
-package OG_Simpson;
+package OGOG_Simpson;
 
 import battlecode.common.*;
-import OG_Simpson.before_specialists.*;
-import OG_Simpson.after_specialists.*;
-import OG_Simpson.either_specialists.*;
+import OGOG_Simpson.before_specialists.*;
+import OGOG_Simpson.after_specialists.*;
+import OGOG_Simpson.either_specialists.*;
 
-import java.util.ArrayList;
 import java.util.Random;
 
 /**
@@ -94,6 +93,10 @@ public strictfp class RobotPlayer {
                     spawnAreaCenter1 = spawnAreaCentersLocal[0];
                     spawnAreaCenter2 = spawnAreaCentersLocal[1];
                     spawnAreaCenter3 = spawnAreaCentersLocal[2];
+
+//                    util.setInitialGroupLeaders();
+//
+//                    whichFlagrunnerGroup = util.getMyFlagrunnerGroup();
                 }
 
                 if (localID == 1) {
@@ -115,44 +118,38 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
 
                     // writes the first 3 bread locations into the shared array, and also checks if this bot is a defender
-                    FlagInfo[] myFlags = rc.senseNearbyFlags(4, rc.getTeam());
-                    if (myFlags.length != 0) {
-                        if (rc.canBuild(TrapType.EXPLOSIVE, rc.getLocation()))
-                            rc.build(TrapType.EXPLOSIVE, rc.getLocation());
+                    if (rc.getRoundNum() == 1) {
+                        isDefender = util.didISpawnOnFlag(util);
                     }
 
                     // ----------------------------------------
                     // logic for who will specialize to what (subject to change idrk what im doing ong no cap on 4nem)
                     // ----------------------------------------
 
-                    if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 40) {
+                    if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) {
                         if (!isDefender) isScout = true;
-                    } else if (rc.getRoundNum() <= GameConstants.SETUP_ROUNDS) {
-                        if (isScout) isFlagrunner = true;
+                    }
+
+                    if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS) {
+                        if (isScout) isFlagrunner = true; // change all scouts to flagrunners
+
+                        // set all the before divider specializations to false just to make sure no one is running them
                         isScout = false;
                     }
 
-//                    if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS) {
-//                        if (isScout) isFlagrunner = true; // change all scouts to flagrunners
-//
-//                        // set all the before divider specializations to false just to make sure no one is running them
-//                        isScout = false;
-//                    }
-//
-//                    if (rc.getRoundNum() > GameConstants.SETUP_ROUNDS) {
-//                        // setting specializations after the setup rounds
-//                    }
+                    if (rc.getRoundNum() > GameConstants.SETUP_ROUNDS) {
+                        // setting specializations after the setup rounds
+                    }
 
                     // ----------------------------------------
                     // big switch statement thing for what strategy the robot will run for this turn
                     // ----------------------------------------
 
                     if (rc.getRoundNum() <= GameConstants.SETUP_ROUNDS) { // before divider drop strategies
-//                        if (rc.getRoundNum() == 1) continue; // dont let bots move on the first turn
-                        if (isCommander) commander.run();  // no commanders rn
+                        if (rc.getRoundNum() == 1) continue; // dont let bots move on the first turn
+                        else if (isCommander) commander.run();  // no commanders rn
                         else if (isScout) scout.run(); // rn we make 30 scouts
                         else if (isDefender) defender.run();
-                        else if (isFlagrunner) flagrunner.run();
                         else unspecialized.run(); // none unspecialized rn (all taken up to be scouts)
                     } else { // after divider drop strategies
                         if (isCommander) commander.run();

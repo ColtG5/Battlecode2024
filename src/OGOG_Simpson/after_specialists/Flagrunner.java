@@ -1,10 +1,10 @@
-package OG_Simpson.after_specialists;
+package OGOG_Simpson.after_specialists;
 
 import battlecode.common.*;
-import OG_Simpson.Movement;
-import OG_Simpson.Utility;
+import OGOG_Simpson.Movement;
+import OGOG_Simpson.Utility;
 
-import static OG_Simpson.RobotPlayer.coolRobotInfoArray;
+import static OGOG_Simpson.RobotPlayer.coolRobotInfoArray;
 
 /**
  * Just a base strategy class, if a bot doesn't specialize in any strategy (not entirely sure if needed, but just for now)
@@ -52,8 +52,7 @@ public class Flagrunner {
         //HEALING LOGIC
         //IF NO ENEMIES AROUND, HEAL SELF IF IN RANGE OF DYING FROM LAND MINE
         //ELSE, HEAL OTHERS IF IN RANGE OF DYING FROM LAND MINE BUT DON'S STOP MOVING
-        RobotInfo[] nearbyEnemies = rc.senseNearbyRobots(GameConstants.ATTACK_RADIUS_SQUARED, rc.getTeam().opponent());
-        if (nearbyEnemies.length == 0 && !rc.hasFlag()) {
+        if (robotEnemyInfo.length == 0 && !rc.hasFlag()) {
             if (rc.getHealth() < 750) {
                 if (rc.canHeal(rc.getLocation())) {
                     rc.heal(rc.getLocation());
@@ -134,44 +133,42 @@ public class Flagrunner {
      */
     private void cheekyBomb(MapLocation mapLocation) throws GameActionException {
         //CHECKS ALL SURROUNDING AREA, IF THERE ARE LESS THAN 2 EXPLOSIVE TRAPS, TRY TO PLACE ONE IN DIRECTION OF ENEMY
-//        MapInfo[] mapInfo = rc.senseNearbyMapInfos();
-//        int numberOfStuns = 0;
-//        int numberOfExplosives = 0;
-//        for (MapInfo info : mapInfo) {
-//            if (info.getTrapType() == TrapType.STUN) numberOfStuns++;
-//            if (info.getTrapType() == TrapType.EXPLOSIVE) numberOfExplosives++;
-//        }
-//        if (numberOfExplosives < 2) {
-        if (mapLocation.isWithinDistanceSquared(rc.getLocation(), 6)) {
-            if (rc.canBuild(TrapType.EXPLOSIVE, rc.getLocation().add(rc.getLocation().directionTo(mapLocation)))) {
-                rc.setIndicatorString("I am a flagrunner and I am building a explosive trap");
-                rc.build(TrapType.EXPLOSIVE, rc.getLocation().add(rc.getLocation().directionTo(mapLocation)));
-            } else if (rc.canBuild(TrapType.EXPLOSIVE, rc.getLocation().add(rc.getLocation().directionTo(mapLocation).rotateRight()))) {
-                rc.setIndicatorString("I am a flagrunner and I am building a explosive trap");
-                rc.build(TrapType.EXPLOSIVE, rc.getLocation().add(rc.getLocation().directionTo(mapLocation).rotateRight()));
-            } else if (rc.canBuild(TrapType.EXPLOSIVE, rc.getLocation().add(rc.getLocation().directionTo(mapLocation).rotateLeft()))) {
-                rc.setIndicatorString("I am a flagrunner and I am building a explosive trap");
-                rc.build(TrapType.EXPLOSIVE, rc.getLocation().add(rc.getLocation().directionTo(mapLocation).rotateLeft()));
+        MapInfo[] mapInfo = rc.senseNearbyMapInfos();
+        int numberOfStuns = 0;
+        int numberOfExplosives = 0;
+        for (MapInfo info : mapInfo) {
+            if (info.getTrapType() == TrapType.STUN) numberOfStuns++;
+            if (info.getTrapType() == TrapType.EXPLOSIVE) numberOfExplosives++;
+        }
+        if (numberOfExplosives < 2) {
+            if (mapLocation.isWithinDistanceSquared(rc.getLocation(), 6)) {
+                if (rc.canBuild(TrapType.EXPLOSIVE, rc.getLocation().add(rc.getLocation().directionTo(mapLocation)))) {
+                    rc.setIndicatorString("I am a flagrunner and I am building a explosive trap");
+                    rc.build(TrapType.EXPLOSIVE, rc.getLocation().add(rc.getLocation().directionTo(mapLocation)));
+                } else if (rc.canBuild(TrapType.EXPLOSIVE, rc.getLocation().add(rc.getLocation().directionTo(mapLocation).rotateRight()))) {
+                    rc.setIndicatorString("I am a flagrunner and I am building a explosive trap");
+                    rc.build(TrapType.EXPLOSIVE, rc.getLocation().add(rc.getLocation().directionTo(mapLocation).rotateRight()));
+                } else if (rc.canBuild(TrapType.EXPLOSIVE, rc.getLocation().add(rc.getLocation().directionTo(mapLocation).rotateLeft()))) {
+                    rc.setIndicatorString("I am a flagrunner and I am building a explosive trap");
+                    rc.build(TrapType.EXPLOSIVE, rc.getLocation().add(rc.getLocation().directionTo(mapLocation).rotateLeft()));
+                }
             }
-//            }
         }
         //CHECKS ALL SURROUNDING AREA, IF THERE ARE LESS THAN 1 STUN TRAPS, TRY TO PLACE ONE IN DIRECTION OF ENEMY
-//        if (numberOfStuns < 1) {
-//            if (mapLocation.isWithinDistanceSquared(rc.getLocation(), 6)) {
-//                if (rc.canBuild(TrapType.STUN, rc.getLocation().add(rc.getLocation().directionTo(mapLocation)))) {
-//                    rc.setIndicatorString("I am a flagrunner and I am building a stun trap");
-//                    rc.build(TrapType.STUN, rc.getLocation().add(rc.getLocation().directionTo(mapLocation)));
-//                } else if (rc.canBuild(TrapType.STUN, rc.getLocation().add(rc.getLocation().directionTo(mapLocation).rotateRight()))) {
-//                    rc.setIndicatorString("I am a flagrunner and I am building a stun trap");
-//                    rc.build(TrapType.STUN, rc.getLocation().add(rc.getLocation().directionTo(mapLocation).rotateRight()));
-//                } else if (rc.canBuild(TrapType.STUN, rc.getLocation().add(rc.getLocation().directionTo(mapLocation).rotateLeft()))) {
-//                    rc.setIndicatorString("I am a flagrunner and I am building a stun trap");
-//                    rc.build(TrapType.STUN, rc.getLocation().add(rc.getLocation().directionTo(mapLocation).rotateLeft()));
-//                }
-//            }
-//        }
-
-
+        if (numberOfStuns < 1) {
+            if (mapLocation.isWithinDistanceSquared(rc.getLocation(), 6)) {
+                if (rc.canBuild(TrapType.STUN, rc.getLocation().add(rc.getLocation().directionTo(mapLocation)))) {
+                    rc.setIndicatorString("I am a flagrunner and I am building a stun trap");
+                    rc.build(TrapType.STUN, rc.getLocation().add(rc.getLocation().directionTo(mapLocation)));
+                } else if (rc.canBuild(TrapType.STUN, rc.getLocation().add(rc.getLocation().directionTo(mapLocation).rotateRight()))) {
+                    rc.setIndicatorString("I am a flagrunner and I am building a stun trap");
+                    rc.build(TrapType.STUN, rc.getLocation().add(rc.getLocation().directionTo(mapLocation).rotateRight()));
+                } else if (rc.canBuild(TrapType.STUN, rc.getLocation().add(rc.getLocation().directionTo(mapLocation).rotateLeft()))) {
+                    rc.setIndicatorString("I am a flagrunner and I am building a stun trap");
+                    rc.build(TrapType.STUN, rc.getLocation().add(rc.getLocation().directionTo(mapLocation).rotateLeft()));
+                }
+            }
+        }
     }
 
     /**
