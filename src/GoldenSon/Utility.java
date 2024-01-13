@@ -267,8 +267,8 @@ public class Utility {
      */
     public int whoIsMyGroupLeader() throws GameActionException {
         int arrayIndexToReadFrom = flagRunnerGroupIndexingStart + whichFlagrunnerGroup;
-        int localIDOfGroupLeader = rc.readSharedArray(arrayIndexToReadFrom);
-        return (localIDOfGroupLeader & 15) + (whichFlagrunnerGroup - 1) * 14;
+        int fakeLocalIDOfGroupLeader = rc.readSharedArray(arrayIndexToReadFrom);
+        return (fakeLocalIDOfGroupLeader & 15) + (whichFlagrunnerGroup - 1) * 14;
     }
 
     public MapLocation getLocationOfMyGroupLeader() throws GameActionException {
@@ -281,10 +281,11 @@ public class Utility {
 
 //        System.out.println("localID: " + localID);
 //        System.out.println("index reading: " + arrayIndexToReadFrom);
-        int localIDOfGroupLeader = rc.readSharedArray(arrayIndexToReadFrom);
+        int fakeLocalIDOfGroupLeader = rc.readSharedArray(arrayIndexToReadFrom);
+        int LocalIDOfGroupLeader = (fakeLocalIDOfGroupLeader & 15) + (whichFlagrunnerGroup - 1) * 14;
 //        System.out.println(localIDOfGroupLeader);
 
-        CoolRobotInfo groupLeaderInfo = coolRobotInfoArray[localIDOfGroupLeader - 1];
+        CoolRobotInfo groupLeaderInfo = coolRobotInfoArray[LocalIDOfGroupLeader - 1];
         return groupLeaderInfo.getCurLocation();
     }
 
@@ -295,7 +296,8 @@ public class Utility {
      */
     public void handleIfGroupLeaderDied() throws GameActionException {
         int arrayIndexToReadFrom = flagRunnerGroupIndexingStart + whichFlagrunnerGroup;
-        int localIDOfGroupLeader = rc.readSharedArray(arrayIndexToReadFrom);
+        int fakeLocalIDOfGroupLeader = rc.readSharedArray(arrayIndexToReadFrom);
+        int localIDOfGroupLeader = (fakeLocalIDOfGroupLeader & 15) + (whichFlagrunnerGroup - 1) * 14;
         CoolRobotInfo groupLeaderInfo = coolRobotInfoArray[localIDOfGroupLeader - 1];
         if (groupLeaderInfo.getCurLocation() == NONELOCATION) {
             // if group leader is dead, make ourselves the new group leader

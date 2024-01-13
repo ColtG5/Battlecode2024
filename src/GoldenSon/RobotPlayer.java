@@ -1,9 +1,9 @@
 package GoldenSon;
 
+import battlecode.common.*;
 import GoldenSon.after_specialists.*;
 import GoldenSon.before_specialists.*;
 import GoldenSon.either_specialists.*;
-import battlecode.common.*;
 
 import java.util.Random;
 
@@ -134,7 +134,7 @@ public strictfp class RobotPlayer {
                         else isScout = true; // set the proper scouts
                     }
 
-                    if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS) {
+                    if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS) { // change this to round 199? or earlier? idk
                         if (localID <= AMOUNT_OF_FLAGRUNNERS) isFlagrunner = true; // set the proper flagrunners
                         else if (!isDefender) isBomber = true; // set the proper bombers
 
@@ -151,7 +151,7 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
 
                     if (rc.getRoundNum() <= GameConstants.SETUP_ROUNDS) { // before divider drop strategies
-                        if (rc.getRoundNum() == 1) continue; // dont let bots move on the first turn
+                        if (rc.getRoundNum() == 1) continue; // don't let bots move on the first turn (I forget why but there's prob a reason)
                         else if (isCommander) commander.run();  // no commanders rn
                         else if (isScout) scout.run(); // rn we make 30 scouts
                         else if (isDefender) defender.run();
@@ -161,7 +161,7 @@ public strictfp class RobotPlayer {
                         else if (isBomber) bomber.run(); // none rn
                         else if (isFlagrunner) {
                             util.handleIfGroupLeaderDied(); // switches group leaders if they died, to the bot checking
-                            flagrunner.run(); // so 30 bots switch from scout to unspecialized
+                            flagrunner.run();
                         }
                         else if (isDefender) defender.run();
                         else unspecialized.run();
@@ -170,6 +170,8 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
                     // end of turn stuff
                     // ----------------------------------------
+
+//                    if (rc.getRoundNum() == 410) rc.resign();
 
                 }
 

@@ -22,6 +22,8 @@ public class Flagrunner {
         if (util.amIAGroupLeader()) locationForFlagrunnerGroup = setLocationForGroup(); // decide where the group will go (including you)
         else locationForFlagrunnerGroup = getLocationForGroup();
 
+        rc.setIndicatorDot(locationForFlagrunnerGroup, 0, 0, 255);
+
         boolean isLeader = util.amIAGroupLeader();
 
         if (isLeader) {
@@ -64,7 +66,14 @@ public class Flagrunner {
 
     public MapLocation setLocationForGroup() throws GameActionException {
         // decide what location the group gonna have
-        MapLocation locForGroup = new MapLocation(0, 0);
+//        MapLocation locForGroup = new MapLocation(0, 0);
+
+        MapLocation[] allDroppedFlags = rc.senseBroadcastFlagLocations();
+        if (allDroppedFlags.length != 0) { // there is still a flag left for us to conquer
+            MapLocation closestFlag = allDroppedFlags[0];
+        } else { // none on ground means at least one dude is hauling a flag back rn!!! go help him!!!
+
+        }
 
         // write this locForGroup into the spot in the shared array for this group
         util.writeToFlagrunnerGroupIndex(locForGroup);

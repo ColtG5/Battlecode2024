@@ -5,7 +5,6 @@ import beastmode.Movement;
 import beastmode.Utility;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Defender {
     RobotController rc;
