@@ -76,9 +76,10 @@ public class Flagrunner {
         }
 
         // write this locForGroup into the spot in the shared array for this group
-        util.writeToFlagrunnerGroupIndex(locForGroup);
+//        util.writeToFlagrunnerGroupIndex(locForGroup);
 
-        return locForGroup;
+//        return locForGroup;
+        return new MapLocation(0, 0);
     }
 
     public MapLocation getLocationForGroup() throws GameActionException {
