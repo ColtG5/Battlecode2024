@@ -2,7 +2,7 @@ package RedRising;
 
 import battlecode.common.*;
 
-import static beastmode.RobotPlayer.*;
+import static RedRising.RobotPlayer.*;
 
 public class Utility {
     RobotController rc;

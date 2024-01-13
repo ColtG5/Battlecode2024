@@ -176,6 +176,14 @@ public strictfp class RobotPlayer {
                     // end of turn stuff
                     // ----------------------------------------
 
+//                    if (localID == 50) {
+//                        RobotInfo[] frens = rc.senseNearbyRobots(-1, rc.getTeam());
+//                        for (RobotInfo fren : frens) {
+//                            rc.setIndicatorDot(fren.getLocation(), 0, 255, 255);
+//                        }
+//                    }
+
+
                 }
 
                 // after every round whether spawned or not, convert your info to an int and write it to the shared array
