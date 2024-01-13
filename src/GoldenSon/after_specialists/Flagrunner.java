@@ -4,7 +4,7 @@ import GoldenSon.Movement;
 import GoldenSon.Utility;
 import battlecode.common.*;
 
-import static OG_Simpson.RobotPlayer.coolRobotInfoArray;
+import static GoldenSon.RobotPlayer.coolRobotInfoArray;
 
 /**
  * Just a base strategy class, if a bot doesn't specialize in any strategy (not entirely sure if needed, but just for now)

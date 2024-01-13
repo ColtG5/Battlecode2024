@@ -2,7 +2,7 @@ package GoldenSon;
 
 import battlecode.common.*;
 
-import static OG_Simpson.RobotPlayer.*;
+import static GoldenSon.RobotPlayer.*;
 
 public class Utility {
     RobotController rc;

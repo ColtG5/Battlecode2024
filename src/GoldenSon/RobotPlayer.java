@@ -1,10 +1,8 @@
 package GoldenSon;
 
-import GoldenSon.after_specialists.Flagrunner;
-import GoldenSon.before_specialists.Scout;
-import GoldenSon.either_specialists.Commander;
-import GoldenSon.either_specialists.Defender;
-import GoldenSon.either_specialists.Unspecialized;
+import GoldenSon.after_specialists.*;
+import GoldenSon.before_specialists.*;
+import GoldenSon.either_specialists.*;
 import battlecode.common.*;
 
 import java.util.Random;

@@ -1,12 +1,8 @@
 package RedRising;
 
-import RedRising.after_specialists.Bomber;
-import RedRising.after_specialists.Flagrunner;
-import RedRising.after_specialists.FlagrunnerSlut;
-import RedRising.before_specialists.Scout;
-import RedRising.either_specialists.Commander;
-import RedRising.either_specialists.Defender;
-import RedRising.either_specialists.Unspecialized;
+import RedRising.after_specialists.*;
+import RedRising.before_specialists.*;
+import RedRising.either_specialists.*;
 import battlecode.common.*;
 
 import java.util.Random;
