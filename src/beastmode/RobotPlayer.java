@@ -61,7 +61,8 @@ public strictfp class RobotPlayer {
     static final int breadLocOneIndex = 51;
     static final int breadLocTwoIndex = 52;
     static final int breadLocThreeIndex = 53;
-    static final int flagRunnerGroupIndexingStart = 53;
+
+    public static final int flagRunnerGroupIndexingStart = 53;
     static final int flagRunnerGroupOneLocIndex = 54;
     static final int flagRunnerGroupTwoLocIndex = 55;
     static final int flagRunnerGroupThreeLocIndex = 56;
@@ -183,7 +184,6 @@ public strictfp class RobotPlayer {
 //                        }
 //                    }
 
-
                 }
 
                 // after every round whether spawned or not, convert your info to an int and write it to the shared array
@@ -197,34 +197,6 @@ public strictfp class RobotPlayer {
                 e.printStackTrace();
             } finally {
                 Clock.yield();
-            }
-        }
-    }
-
-    public static MapLocation findClosestEnemy(RobotController rc) throws GameActionException {
-        RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        MapLocation closestEnemy = null;
-        //rc.setIndicatorString("There are nearby enemy robots! Scary!");
-        for (RobotInfo enemy : enemies) {
-            MapLocation enemyLoc = enemy.getLocation();
-            if (closestEnemy == null) {
-                closestEnemy = enemyLoc;
-            }
-            else if (rc.getLocation().distanceSquaredTo(enemyLoc) < rc.getLocation().distanceSquaredTo(closestEnemy)) {
-                closestEnemy = enemyLoc;
-            }
-        }
-        return closestEnemy;
-    }
-
-    public static void tryToHeal(RobotController rc) throws GameActionException {
-        if (rc.getActionCooldownTurns() < GameConstants.COOLDOWN_LIMIT) {
-            if (rc.getHealth() < 1000 && rc.canHeal(rc.getLocation())) rc.heal(rc.getLocation());
-            else {
-                RobotInfo[] teammies = rc.senseNearbyRobots(-1, rc.getTeam());
-                for (RobotInfo teammie : teammies) {
-                    if (rc.getHealth() < 1000 && rc.canHeal(teammie.getLocation())) rc.heal(teammie.getLocation());
-                }
             }
         }
     }

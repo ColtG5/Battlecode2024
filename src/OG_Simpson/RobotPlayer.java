@@ -30,7 +30,7 @@ public strictfp class RobotPlayer {
     // after divider drop
     static boolean isBomber = false;
     static boolean isFlagrunner = false;
-    static int whichFlagrunnerGroup;
+    static final int AMOUNT_OF_FLAGRUNNERS = 42; // must be divisible by three (as long as we have three flagrunner groups
 
     // either
     static boolean isCommander = false;
@@ -52,8 +52,8 @@ public strictfp class RobotPlayer {
 
     /**
      * SHARED ARRAY
-     * [0,          1-50,          51,  52,  53,             54,    55,    56]
-     * id     id's of all ducks    3 bread loc's      each flagRunner group move loc
+     * [0,          1-50,          51,  52,  53]
+     * id     id's of all ducks    3 bread loc's
      *
      */
 
@@ -61,9 +61,6 @@ public strictfp class RobotPlayer {
     static final int breadLocOneIndex = 51;
     static final int breadLocTwoIndex = 52;
     static final int breadLocThreeIndex = 53;
-    static final int flagRunnerGroupOneLocIndex = 54;
-    static final int flagRunnerGroupTwoLocIndex = 55;
-    static final int flagRunnerGroupThreeLocIndex = 56;
 
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws Exception {
@@ -97,9 +94,6 @@ public strictfp class RobotPlayer {
                     spawnAreaCenter2 = spawnAreaCentersLocal[1];
                     spawnAreaCenter3 = spawnAreaCentersLocal[2];
 
-                    util.setInitialGroupLeaders();
-
-                    whichFlagrunnerGroup = util.getMyFlagrunnerGroup();
                 }
 
                 if (localID == 1) {
@@ -128,11 +122,13 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
 
                     if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) {
-                        if (!isDefender) isScout = true;
+                        if (48 <= localID && localID <= 50) isDefender = true; // set the proper defenders
+                        else isScout = true; // set the proper scouts
                     }
 
                     if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS) {
-                        if (isScout) isFlagrunner = true; // change all scouts to flagrunners
+                        if (localID <= AMOUNT_OF_FLAGRUNNERS) isFlagrunner = true; // set the proper flagrunners
+                        else if (!isDefender) isBomber = true; // set the proper bombers
 
                         // set all the before divider specializations to false just to make sure no one is running them
                         isScout = false;
@@ -177,34 +173,6 @@ public strictfp class RobotPlayer {
                 e.printStackTrace();
             } finally {
                 Clock.yield();
-            }
-        }
-    }
-
-    public static MapLocation findClosestEnemy(RobotController rc) throws GameActionException {
-        RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        MapLocation closestEnemy = null;
-        //rc.setIndicatorString("There are nearby enemy robots! Scary!");
-        for (RobotInfo enemy : enemies) {
-            MapLocation enemyLoc = enemy.getLocation();
-            if (closestEnemy == null) {
-                closestEnemy = enemyLoc;
-            }
-            else if (rc.getLocation().distanceSquaredTo(enemyLoc) < rc.getLocation().distanceSquaredTo(closestEnemy)) {
-                closestEnemy = enemyLoc;
-            }
-        }
-        return closestEnemy;
-    }
-
-    public static void tryToHeal(RobotController rc) throws GameActionException {
-        if (rc.getActionCooldownTurns() < GameConstants.COOLDOWN_LIMIT) {
-            if (rc.getHealth() < 1000 && rc.canHeal(rc.getLocation())) rc.heal(rc.getLocation());
-            else {
-                RobotInfo[] teammies = rc.senseNearbyRobots(-1, rc.getTeam());
-                for (RobotInfo teammie : teammies) {
-                    if (rc.getHealth() < 1000 && rc.canHeal(teammie.getLocation())) rc.heal(teammie.getLocation());
-                }
             }
         }
     }

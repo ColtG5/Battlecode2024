@@ -48,107 +48,11 @@ public class Utility {
         rc.writeSharedArray(localID, coolRobotInfoInt);
     }
 
-    /**
-     * Spawns the bots evenly distributed among the three spawn zones using localID (for start of game)
-     *
-     * @throws GameActionException if spawning fails
-     */
-//    public void trySpawningEvenly() throws GameActionException {
-//        if (rc.isSpawned()) return;
-//        MapLocation[] spawnLocs = rc.getAllySpawnLocations();
-//        // each individual bot decides which to spawn by localID % 3
-//        int whichSpawnArea = localID % 3;
-//
-//        MapLocation[] spawnArea1Locs = new MapLocation[9];
-//        System.arraycopy(spawnLocs, 0, spawnArea1Locs, 0, 9);
-//        MapLocation[] spawnArea2Locs = new MapLocation[9];
-//        System.arraycopy(spawnLocs, 9, spawnArea2Locs, 0, 9);
-//        MapLocation[] spawnArea3Locs = new MapLocation[9];
-//        System.arraycopy(spawnLocs, 18, spawnArea3Locs, 0, 9);
-//
-//        switch (whichSpawnArea) {
-//            case 0:
-//                spawnLocs = spawnArea1Locs;
-//                break;
-//            case 1:
-//                spawnLocs = spawnArea2Locs;
-//                break;
-//            case 2:
-//                spawnLocs = spawnArea3Locs;
-//                break;
-//        }
-//
-//        for (MapLocation loc : spawnLocs) {
-//            rc.setIndicatorDot(loc, 255, 0, 255);
-//            if (rc.canSpawn(loc)) {
-//                rc.spawn(loc);
-//            }
-//        }
-//    }
-
     public MapLocation[] findCentersOfSpawnZones() {
         MapLocation[] spawnLocs = rc.getAllySpawnLocations();
 
         int spawnCentersTracker = 0;
-
         MapLocation[] spawnAreaCenters = new MapLocation[3];
-
-//        for (MapLocation loc : spawnLocs) {
-//            // create an array of the 8 mapLocations surrounding loc, so that loc is the center of the 3x3 square
-//            MapLocation[] surroundingSpawnLocs = new MapLocation[8];
-//            int tracker = 0;
-//            for (Direction dir : Direction.allDirections()) {
-//                if (dir == Direction.CENTER) continue;
-//                surroundingSpawnLocs[tracker] = loc.add(dir);
-//                tracker++;
-//            }
-//
-//            // check if all the surroundingSPawnLocs are in the spawnLocs array. if this is the case, then the loc is the center of one of the 3 3x3 spawn areas, which is what we are looking for!
-//            if (Arrays.stream(surroundingSpawnLocs).allMatch(spawnLoc -> Arrays.asList(spawnLocs).contains(spawnLoc))) {
-//                switch (spawnCentersTracker) {
-//                    case 0:
-//                        spawnAreaCenters[0] = loc;
-//                        break;
-//                    case 1:
-//                        spawnAreaCenters[1] = loc;
-//                        break;
-//                    case 2:
-//                        spawnAreaCenters[2] = loc;
-//                        break;
-//                }
-//                spawnCentersTracker++;
-//            }
-//        }
-
-//        for (MapLocation loc : spawnLocs) {
-//            if (spawnCentersTracker == 2) break;
-//            // sense the 8 surrounding squares to check if they are all spawnLocs. if they are, this is a spawn area center
-//            MapInfo[] potentialSpawnAreaSquare = rc.senseNearbyMapInfos(loc, 2);
-//            System.out.println(potentialSpawnAreaSquare.length);
-//            boolean chillinRelaxinAllCool = false;
-//            for (MapInfo mapInfo : potentialSpawnAreaSquare) {
-//                if (!mapInfo.isSpawnZone()) {
-//                    chillinRelaxinAllCool = true;
-//                    break;
-//                }
-//            }
-//            if (chillinRelaxinAllCool) {
-//                switch (spawnCentersTracker) {
-//                    case 0:
-//                        spawnAreaCenters[0] = loc;
-//                        break;
-//                    case 1:
-//                        spawnAreaCenters[1] = loc;
-//                        break;
-//                    case 2:
-//                        spawnAreaCenters[2] = loc;
-//                        break;
-//                }
-//                spawnCentersTracker++;
-//            }
-//        }
-
-//        if (rc.getRoundNum() == 1) System.out.println("id:" + localID + " bytecode used before: " + Clock.getBytecodeNum());
 
         for (MapLocation loc : spawnLocs) {
             if (spawnCentersTracker == 3) break;
@@ -158,25 +62,6 @@ public class Utility {
             potentialSpawnAreaSquare[0] = loc.add(Direction.NORTHWEST);
             potentialSpawnAreaSquare[1] = loc.add(Direction.SOUTHEAST);
 
-//            for (MapLocation mapLoc : potentialSpawnAreaSquare) {
-//                for (MapLocation spawnLoc : spawnLocs) {
-//                    if (mapLoc.equals(spawnLoc)) {
-//                        chillinRelaxinAllCool = true;
-//                        break;
-//                    }
-//                }
-//            }
-//            boolean chillinRelaxinAllCool = false;
-//            for (MapLocation mapLoc : potentialSpawnAreaSquare) {
-//                for (MapLocation spawnLoc : spawnLocs) {
-//                    if (mapLoc.equals(spawnLoc)) {
-//                        chillinRelaxinAllCool = true;
-//                        break;
-//                    }
-//                }
-//                if (!chillinRelaxinAllCool) break;
-//            }
-            // rewrite the above, but make sure that if just one location in potentialSpawnAreaSquare is NOT in spawnLocs, then that entire loc is disqualified from being a spawn area center
             boolean chillinRelaxinAllCool = true;
             for (MapLocation mapLoc : potentialSpawnAreaSquare) {
                 boolean thisMapLocIsChillinRelaxinAllCool = false;
@@ -210,9 +95,9 @@ public class Utility {
 
 //        if (rc.getRoundNum() == 1) System.out.println("id:" + localID + " bytecode used after: " + Clock.getBytecodeNum());
 //
-        rc.setIndicatorDot(spawnAreaCenters[0], 255, 0, 255);
-        rc.setIndicatorDot(spawnAreaCenters[1], 255, 0, 255);
-        rc.setIndicatorDot(spawnAreaCenters[2], 255, 0, 255);
+//        rc.setIndicatorDot(spawnAreaCenters[0], 255, 0, 255);
+//        rc.setIndicatorDot(spawnAreaCenters[1], 255, 0, 255);
+//        rc.setIndicatorDot(spawnAreaCenters[2], 255, 0, 255);
 
         return spawnAreaCenters;
     }
@@ -240,23 +125,6 @@ public class Utility {
         }
 
     }
-
-//    public void trySpawningEvenly() throws GameActionException {
-//        if (rc.isSpawned()) return;
-//
-//        MapLocation[] spawnLocs = rc.getAllySpawnLocations();
-//        int whichSpawnArea = localID % 3;
-//
-//        MapLocation[] chosenSpawnArea = Arrays.copyOfRange(spawnLocs, whichSpawnArea * 9, (whichSpawnArea + 1) * 9);
-//
-//        for (MapLocation loc : chosenSpawnArea) {
-//            rc.setIndicatorDot(loc, 255, 0, 255);
-//            if (rc.canSpawn(loc)) {
-//                rc.spawn(loc);
-//                break; // Spawn at the first valid location
-//            }
-//        }
-//    }
 
 
     /**
@@ -335,18 +203,6 @@ public class Utility {
         return new MapLocation(integerLocation >> 6, integerLocation & 63);
     }
 
-//    public void writeWhereYouAreToArray(int localID) throws GameActionException {
-//        int locToStore = locationToInt(rc.getLocation());
-//        if (rc.canWriteSharedArray(localID, locToStore)) {
-//            rc.writeSharedArray(localID, locToStore);
-//        }
-//    }
-//
-//    public MapLocation readABotsLocationFromArray(int localID) throws GameActionException {
-//        int locToRead = rc.readSharedArray(localID);
-//        return intToLocation(locToRead);
-//    }
-
     public boolean didISpawnOnFlag(Utility util) throws GameActionException {
         MapLocation me = rc.getLocation();
         FlagInfo[] flags = rc.senseNearbyFlags(1, rc.getTeam());
@@ -364,43 +220,6 @@ public class Utility {
             }
         }
         return false;
-    }
-
-    /**
-     * set leader of each group as the lowest ID duck in each group
-     * @throws GameActionException if cannot write to shared array
-     */
-    public void setInitialGroupLeaders() throws GameActionException {
-        rc.writeSharedArray(flagRunnerGroupOneLocIndex, 1);
-        rc.writeSharedArray(flagRunnerGroupTwoLocIndex, 11);
-        rc.writeSharedArray(flagRunnerGroupThreeLocIndex, 21);
-    }
-
-    public int getMyFlagrunnerGroup() {
-        if (localID <= 10) {
-            return 1;
-        } else if (localID <= 20) {
-            return 2;
-        } else if (localID <= 30) {
-            return 3;
-        } else {
-            return 0;
-        }
-    }
-
-    /**
-     * gives a bot their current group leader
-     * @return the localID of the group leader
-     */
-    public int whoIsMyGroupLeader() {
-        return 42;
-    }
-
-    public MapLocation getLocationOfMyGroupLeader() throws GameActionException {
-        int arrayIndexToReadFrom = 50 + whichFlagrunnerGroup;
-        int localIDOfGroupLeader = rc.readSharedArray(arrayIndexToReadFrom);
-        CoolRobotInfo groupLeaderInfo = coolRobotInfoArray[localIDOfGroupLeader - 1];
-        return groupLeaderInfo.curLocation;
     }
 
     /**

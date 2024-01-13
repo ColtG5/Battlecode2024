@@ -32,7 +32,7 @@ public class Utility {
         if (rc.getRoundNum() > 1) { // not all bots have written their stuff into their index until round 2 starts
             for (int i = 1; i <= 50; i++) {
                 int coolRobotInfoInt = rc.readSharedArray(i);
-                coolRobotInfoArray[i-1] = new CoolRobotInfo(i, coolRobotInfoInt);
+                coolRobotInfoArray[i - 1] = new CoolRobotInfo(i, coolRobotInfoInt);
             }
         }
         return coolRobotInfoArray;
@@ -53,102 +53,12 @@ public class Utility {
      *
      * @throws GameActionException if spawning fails
      */
-//    public void trySpawningEvenly() throws GameActionException {
-//        if (rc.isSpawned()) return;
-//        MapLocation[] spawnLocs = rc.getAllySpawnLocations();
-//        // each individual bot decides which to spawn by localID % 3
-//        int whichSpawnArea = localID % 3;
-//
-//        MapLocation[] spawnArea1Locs = new MapLocation[9];
-//        System.arraycopy(spawnLocs, 0, spawnArea1Locs, 0, 9);
-//        MapLocation[] spawnArea2Locs = new MapLocation[9];
-//        System.arraycopy(spawnLocs, 9, spawnArea2Locs, 0, 9);
-//        MapLocation[] spawnArea3Locs = new MapLocation[9];
-//        System.arraycopy(spawnLocs, 18, spawnArea3Locs, 0, 9);
-//
-//        switch (whichSpawnArea) {
-//            case 0:
-//                spawnLocs = spawnArea1Locs;
-//                break;
-//            case 1:
-//                spawnLocs = spawnArea2Locs;
-//                break;
-//            case 2:
-//                spawnLocs = spawnArea3Locs;
-//                break;
-//        }
-//
-//        for (MapLocation loc : spawnLocs) {
-//            rc.setIndicatorDot(loc, 255, 0, 255);
-//            if (rc.canSpawn(loc)) {
-//                rc.spawn(loc);
-//            }
-//        }
-//    }
 
     public MapLocation[] findCentersOfSpawnZones() {
         MapLocation[] spawnLocs = rc.getAllySpawnLocations();
 
         int spawnCentersTracker = 0;
-
         MapLocation[] spawnAreaCenters = new MapLocation[3];
-
-//        for (MapLocation loc : spawnLocs) {
-//            // create an array of the 8 mapLocations surrounding loc, so that loc is the center of the 3x3 square
-//            MapLocation[] surroundingSpawnLocs = new MapLocation[8];
-//            int tracker = 0;
-//            for (Direction dir : Direction.allDirections()) {
-//                if (dir == Direction.CENTER) continue;
-//                surroundingSpawnLocs[tracker] = loc.add(dir);
-//                tracker++;
-//            }
-//
-//            // check if all the surroundingSPawnLocs are in the spawnLocs array. if this is the case, then the loc is the center of one of the 3 3x3 spawn areas, which is what we are looking for!
-//            if (Arrays.stream(surroundingSpawnLocs).allMatch(spawnLoc -> Arrays.asList(spawnLocs).contains(spawnLoc))) {
-//                switch (spawnCentersTracker) {
-//                    case 0:
-//                        spawnAreaCenters[0] = loc;
-//                        break;
-//                    case 1:
-//                        spawnAreaCenters[1] = loc;
-//                        break;
-//                    case 2:
-//                        spawnAreaCenters[2] = loc;
-//                        break;
-//                }
-//                spawnCentersTracker++;
-//            }
-//        }
-
-//        for (MapLocation loc : spawnLocs) {
-//            if (spawnCentersTracker == 2) break;
-//            // sense the 8 surrounding squares to check if they are all spawnLocs. if they are, this is a spawn area center
-//            MapInfo[] potentialSpawnAreaSquare = rc.senseNearbyMapInfos(loc, 2);
-//            System.out.println(potentialSpawnAreaSquare.length);
-//            boolean chillinRelaxinAllCool = false;
-//            for (MapInfo mapInfo : potentialSpawnAreaSquare) {
-//                if (!mapInfo.isSpawnZone()) {
-//                    chillinRelaxinAllCool = true;
-//                    break;
-//                }
-//            }
-//            if (chillinRelaxinAllCool) {
-//                switch (spawnCentersTracker) {
-//                    case 0:
-//                        spawnAreaCenters[0] = loc;
-//                        break;
-//                    case 1:
-//                        spawnAreaCenters[1] = loc;
-//                        break;
-//                    case 2:
-//                        spawnAreaCenters[2] = loc;
-//                        break;
-//                }
-//                spawnCentersTracker++;
-//            }
-//        }
-
-//        if (rc.getRoundNum() == 1) System.out.println("id:" + localID + " bytecode used before: " + Clock.getBytecodeNum());
 
         for (MapLocation loc : spawnLocs) {
             if (spawnCentersTracker == 3) break;
@@ -158,25 +68,6 @@ public class Utility {
             potentialSpawnAreaSquare[0] = loc.add(Direction.NORTHWEST);
             potentialSpawnAreaSquare[1] = loc.add(Direction.SOUTHEAST);
 
-//            for (MapLocation mapLoc : potentialSpawnAreaSquare) {
-//                for (MapLocation spawnLoc : spawnLocs) {
-//                    if (mapLoc.equals(spawnLoc)) {
-//                        chillinRelaxinAllCool = true;
-//                        break;
-//                    }
-//                }
-//            }
-//            boolean chillinRelaxinAllCool = false;
-//            for (MapLocation mapLoc : potentialSpawnAreaSquare) {
-//                for (MapLocation spawnLoc : spawnLocs) {
-//                    if (mapLoc.equals(spawnLoc)) {
-//                        chillinRelaxinAllCool = true;
-//                        break;
-//                    }
-//                }
-//                if (!chillinRelaxinAllCool) break;
-//            }
-            // rewrite the above, but make sure that if just one location in potentialSpawnAreaSquare is NOT in spawnLocs, then that entire loc is disqualified from being a spawn area center
             boolean chillinRelaxinAllCool = true;
             for (MapLocation mapLoc : potentialSpawnAreaSquare) {
                 boolean thisMapLocIsChillinRelaxinAllCool = false;
@@ -210,9 +101,9 @@ public class Utility {
 
 //        if (rc.getRoundNum() == 1) System.out.println("id:" + localID + " bytecode used after: " + Clock.getBytecodeNum());
 //
-        rc.setIndicatorDot(spawnAreaCenters[0], 255, 0, 255);
-        rc.setIndicatorDot(spawnAreaCenters[1], 255, 0, 255);
-        rc.setIndicatorDot(spawnAreaCenters[2], 255, 0, 255);
+//        rc.setIndicatorDot(spawnAreaCenters[0], 255, 0, 255);
+//        rc.setIndicatorDot(spawnAreaCenters[1], 255, 0, 255);
+//        rc.setIndicatorDot(spawnAreaCenters[2], 255, 0, 255);
 
         return spawnAreaCenters;
     }
@@ -241,24 +132,6 @@ public class Utility {
 
     }
 
-//    public void trySpawningEvenly() throws GameActionException {
-//        if (rc.isSpawned()) return;
-//
-//        MapLocation[] spawnLocs = rc.getAllySpawnLocations();
-//        int whichSpawnArea = localID % 3;
-//
-//        MapLocation[] chosenSpawnArea = Arrays.copyOfRange(spawnLocs, whichSpawnArea * 9, (whichSpawnArea + 1) * 9);
-//
-//        for (MapLocation loc : chosenSpawnArea) {
-//            rc.setIndicatorDot(loc, 255, 0, 255);
-//            if (rc.canSpawn(loc)) {
-//                rc.spawn(loc);
-//                break; // Spawn at the first valid location
-//            }
-//        }
-//    }
-
-
     /**
      * this class stores info about a bot, as it is stored in the shared array. create an object of this class
      * for each robot's stuff u read from the shared array
@@ -277,7 +150,16 @@ public class Utility {
             // 13th bit will be if the robot has a flag, so take the 13th bit, and store it into hasFlag
             hasFlag = ((intOfRobotFromArray >> 3) & 1) == 1;
         }
+
+        public boolean getHasFlag() {
+            return hasFlag;
+        }
+
+        public MapLocation getCurLocation() {
+            return curLocation;
+        }
     }
+
 
     /**
      * call this one when u are converting ur own into to an int
@@ -327,18 +209,6 @@ public class Utility {
         return new MapLocation(integerLocation >> 6, integerLocation & 63);
     }
 
-//    public void writeWhereYouAreToArray(int localID) throws GameActionException {
-//        int locToStore = locationToInt(rc.getLocation());
-//        if (rc.canWriteSharedArray(localID, locToStore)) {
-//            rc.writeSharedArray(localID, locToStore);
-//        }
-//    }
-//
-//    public MapLocation readABotsLocationFromArray(int localID) throws GameActionException {
-//        int locToRead = rc.readSharedArray(localID);
-//        return intToLocation(locToRead);
-//    }
-
     public void didISpawnOnFlag(Utility util) throws GameActionException {
         MapLocation me = rc.getLocation();
         FlagInfo[] flags = rc.senseNearbyFlags(1, rc.getTeam());
@@ -358,6 +228,7 @@ public class Utility {
 
     /**
      * set leader of each group as the lowest ID duck in each group
+     *
      * @throws GameActionException if cannot write to shared array
      */
     public void setInitialGroupLeaders() throws GameActionException {
@@ -369,18 +240,10 @@ public class Utility {
     /**
      * splits all flagrunners into the three groups. if a non flagrunner calls this func, they will get a group of 0.
      * dont let that happen unless you intend it !!! !!! !!!
+     *
      * @return int representing which group the bot is in (1, 2, or 3 (0 for none))
      */
     public int getMyFlagrunnerGroup() {
-//        if (localID <= 10) {
-//            return 1;
-//        } else if (localID <= 20) {
-//            return 2;
-//        } else if (localID <= 30) {
-//            return 3;
-//        } else {
-//            return 0;
-//        }
         // the max number of flagrunner groups is 3. the max amount of flag runners is stored in the constant in robotcontroller AMOUNT_OF_FLAGRUNNERS
         // divide the first 1/3 of flagrunners into group 1, the second 1/3 into group 2, and the last 1/3 into group 3
         if (localID <= AMOUNT_OF_FLAGRUNNERS / 3) {
@@ -397,6 +260,7 @@ public class Utility {
 
     /**
      * gives a bot their current group leader
+     *
      * @return the localID of the group leader
      */
     public int whoIsMyGroupLeader() throws GameActionException {
@@ -423,6 +287,7 @@ public class Utility {
 
     /**
      * checks if that ducks group leader is dead, and if so, makes the duck checking, the new group leader
+     *
      * @throws GameActionException if the duck cannot read/write to array
      */
     public void handleIfGroupLeaderDied() throws GameActionException {
@@ -436,7 +301,6 @@ public class Utility {
     }
 
     /**
-     *
      * @param nearbyEnemies Array of robots
      * @return Enemy with lowest HP or null if no enemies around
      */
