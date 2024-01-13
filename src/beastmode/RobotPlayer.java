@@ -4,10 +4,7 @@ import battlecode.common.*;
 import beastmode.before_specialists.*;
 import beastmode.after_specialists.*;
 import beastmode.either_specialists.*;
-import javafx.util.Pair;
-import scala.Tuple1;
 
-import java.io.File;
 import java.util.Random;
 
 /**
