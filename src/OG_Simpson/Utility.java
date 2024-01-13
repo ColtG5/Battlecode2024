@@ -92,13 +92,6 @@ public class Utility {
                 spawnCentersTracker++;
             }
         }
-
-//        if (rc.getRoundNum() == 1) System.out.println("id:" + localID + " bytecode used after: " + Clock.getBytecodeNum());
-//
-//        rc.setIndicatorDot(spawnAreaCenters[0], 255, 0, 255);
-//        rc.setIndicatorDot(spawnAreaCenters[1], 255, 0, 255);
-//        rc.setIndicatorDot(spawnAreaCenters[2], 255, 0, 255);
-
         return spawnAreaCenters;
     }
 

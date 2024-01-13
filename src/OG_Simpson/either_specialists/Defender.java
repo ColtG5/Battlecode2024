@@ -10,7 +10,6 @@ public class Defender {
     RobotController rc;
     Movement movement;
     Utility utility;
-    int localID;
 
     static final int breadLocOneIndex = 51;
     static final int breadLocTwoIndex = 52;
@@ -24,10 +23,6 @@ public class Defender {
         this.rc = rc;
         this.movement = movement;
         this.utility = utility;
-    }
-
-    public void setLocalID(int localID) {
-        this.localID = localID;
     }
 
     public void run() throws GameActionException {
@@ -55,30 +50,25 @@ public class Defender {
                 utility.intToLocation(rc.readSharedArray(breadLocThreeIndex))
         };
 
-//        // Set flag for the defender to the flag they spawned on
-//        if (myFlag == null) {
-//            for (MapLocation flag : flags) {
-//                if (me.equals(flag)) {
-//                    myFlag = flag;
-//                    break;
-//                }
-//            }
-//        }
+        // Set flag for the defender to the flag they spawned on
         if (myFlag == null) {
-            myFlag = utility.intToLocation(rc.readSharedArray(localID + 3));
+            for (MapLocation flag : flags) {
+                if (me.equals(flag)) {
+                    myFlag = flag;
+                    break;
+                }
+            }
         }
 
-        if (rc.getRoundNum() > GameConstants.SETUP_ROUNDS) {
-            FlagInfo[] nearbyFlags = rc.senseNearbyFlags(2, rc.getTeam());
-            for (FlagInfo flag : nearbyFlags) {
-                MapLocation stolenFlag = flag.getLocation();
-                if (!stolenFlag.equals(myFlag)) {
-                    rc.setIndicatorString("TRYING TO GET FLAG BACK");
-                    movement.hardMove(stolenFlag);
-                    if (rc.canAttack(stolenFlag)) rc.attack(stolenFlag);
-                    // If killed the duck, then try and pick up the flag
-                    if (rc.canPickupFlag(stolenFlag)) rc.pickupFlag(stolenFlag);
-                }
+        FlagInfo[] nearbyFlags = rc.senseNearbyFlags(2, rc.getTeam());
+        for (FlagInfo flag : nearbyFlags) {
+            MapLocation stolenFlag = flag.getLocation();
+            if (!stolenFlag.equals(myFlag)) {
+                rc.setIndicatorString("TRYING TO GET FLAG BACK");
+                movement.hardMove(stolenFlag);
+                if (rc.canAttack(stolenFlag)) rc.attack(stolenFlag);
+                // If killed the duck, then try and pick up the flag
+                if (rc.canPickupFlag(stolenFlag)) rc.pickupFlag(stolenFlag);
             }
         }
 

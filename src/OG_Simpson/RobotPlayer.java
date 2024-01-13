@@ -5,6 +5,7 @@ import OG_Simpson.before_specialists.*;
 import OG_Simpson.after_specialists.*;
 import OG_Simpson.either_specialists.*;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 /**
@@ -30,7 +31,7 @@ public strictfp class RobotPlayer {
     // after divider drop
     static boolean isBomber = false;
     static boolean isFlagrunner = false;
-    static final int AMOUNT_OF_FLAGRUNNERS = 42; // must be divisible by three (as long as we have three flagrunner groups
+    static int whichFlagrunnerGroup;
 
     // either
     static boolean isCommander = false;
@@ -52,8 +53,8 @@ public strictfp class RobotPlayer {
 
     /**
      * SHARED ARRAY
-     * [0,          1-50,          51,  52,  53]
-     * id     id's of all ducks    3 bread loc's
+     * [0,          1-50,          51,  52,  53,             54,    55,    56]
+     * id     id's of all ducks    3 bread loc's      each flagRunner group move loc
      *
      */
 
@@ -94,6 +95,9 @@ public strictfp class RobotPlayer {
                     spawnAreaCenter2 = spawnAreaCentersLocal[1];
                     spawnAreaCenter3 = spawnAreaCentersLocal[2];
 
+//                    util.setInitialGroupLeaders();
+//
+//                    whichFlagrunnerGroup = util.getMyFlagrunnerGroup();
                 }
 
                 if (localID == 1) {
@@ -115,28 +119,35 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
 
                     // writes the first 3 bread locations into the shared array, and also checks if this bot is a defender
-                    if (rc.getRoundNum() == 1) isDefender = util.didISpawnOnFlag(util);
+//                    if (rc.getRoundNum() == 1) {
+//                    }
+                    FlagInfo[] myFlags = rc.senseNearbyFlags(2, rc.getTeam());
+                    if (myFlags.length != 0) {
+                        if (rc.canBuild(TrapType.EXPLOSIVE, rc.getLocation()))
+                            rc.build(TrapType.EXPLOSIVE, rc.getLocation());
+                    }
 
                     // ----------------------------------------
                     // logic for who will specialize to what (subject to change idrk what im doing ong no cap on 4nem)
                     // ----------------------------------------
 
-                    if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) {
-                        if (48 <= localID && localID <= 50) isDefender = true; // set the proper defenders
-                        else isScout = true; // set the proper scouts
-                    }
-
-                    if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS) {
-                        if (localID <= AMOUNT_OF_FLAGRUNNERS) isFlagrunner = true; // set the proper flagrunners
-                        else if (!isDefender) isBomber = true; // set the proper bombers
-
-                        // set all the before divider specializations to false just to make sure no one is running them
+                    if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 20) {
+                        if (!isDefender) isScout = true;
+                    } else {
+                        if (isScout) isFlagrunner = true;
                         isScout = false;
                     }
 
-                    if (rc.getRoundNum() > GameConstants.SETUP_ROUNDS) {
-                        // setting specializations after the setup rounds
-                    }
+//                    if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS) {
+//                        if (isScout) isFlagrunner = true; // change all scouts to flagrunners
+//
+//                        // set all the before divider specializations to false just to make sure no one is running them
+//                        isScout = false;
+//                    }
+//
+//                    if (rc.getRoundNum() > GameConstants.SETUP_ROUNDS) {
+//                        // setting specializations after the setup rounds
+//                    }
 
                     // ----------------------------------------
                     // big switch statement thing for what strategy the robot will run for this turn
@@ -147,6 +158,7 @@ public strictfp class RobotPlayer {
                         else if (isCommander) commander.run();  // no commanders rn
                         else if (isScout) scout.run(); // rn we make 30 scouts
                         else if (isDefender) defender.run();
+                        else if (isFlagrunner) flagrunner.run();
                         else unspecialized.run(); // none unspecialized rn (all taken up to be scouts)
                     } else { // after divider drop strategies
                         if (isCommander) commander.run();
