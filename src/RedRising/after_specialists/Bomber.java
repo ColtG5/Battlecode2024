@@ -1,8 +1,8 @@
-package OG_Simpson.after_specialists;
+package RedRising.after_specialists;
 
+import RedRising.Movement;
+import RedRising.Utility;
 import battlecode.common.*;
-import OG_Simpson.Movement;
-import OG_Simpson.Utility;
 
 public class Bomber {
     RobotController rc;
