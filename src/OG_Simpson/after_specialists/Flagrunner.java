@@ -4,6 +4,8 @@ import battlecode.common.*;
 import OG_Simpson.Movement;
 import OG_Simpson.Utility;
 
+import static OG_Simpson.RobotPlayer.coolRobotInfoArray;
+
 /**
  * Just a base strategy class, if a bot doesn't specialize in any strategy (not entirely sure if needed, but just for now)
  */
@@ -270,25 +272,35 @@ public class Flagrunner {
             rc.setIndicatorString("I am moving to broadcast flag locations");
             MapLocation[] flagLocations = rc.senseBroadcastFlagLocations();
             if (flagLocations.length == 0) {
-                backToSpawn();
-                return;
-            }
-            MapLocation closestFlag = flagLocations[0];
-            for (MapLocation flag : flagLocations) {
-                if (rc.getLocation().distanceSquaredTo(flag) < rc.getLocation().distanceSquaredTo(closestFlag)) {
-                    if (rc.getLocation().equals(closestFlag)) {
-                        rc.setIndicatorString("I made it to the flag and it it is not there");
-                        continue;
+//                backToSpawn();
+//                return;
+
+                // loop through coolRobotINfoArray and see if they have a flag
+                for (Utility.CoolRobotInfo coolRobotInfo : coolRobotInfoArray) {
+                    if (coolRobotInfo.getHasFlag()) {
+                        movement.hardMove(coolRobotInfo.getCurLocation());
+                        break;
                     }
-                    closestFlag = flag;
                 }
+            } else {
+                MapLocation closestFlag = flagLocations[0];
+                for (MapLocation flag : flagLocations) {
+                    if (rc.getLocation().distanceSquaredTo(flag) < rc.getLocation().distanceSquaredTo(closestFlag)) {
+                        if (rc.getLocation().equals(closestFlag)) {
+                            rc.setIndicatorString("I made it to the flag and it it is not there");
+                            continue;
+                        }
+                        closestFlag = flag;
+                    }
+                }
+
+                MapLocation loc = rc.getLocation().add(rc.getLocation().directionTo(closestFlag));
+                if (rc.senseMapInfo(loc).isWater()) {
+                    rc.setIndicatorString("I am a flagrunner and I am filling water");
+                    if (rc.canFill(loc)) rc.fill(loc);
+                }
+                movement.hardMove(closestFlag);
             }
-            MapLocation loc = rc.getLocation().add(rc.getLocation().directionTo(closestFlag));
-            if (rc.senseMapInfo(loc).isWater()) {
-                rc.setIndicatorString("I am a flagrunner and I am filling water");
-                if (rc.canFill(loc)) rc.fill(loc);
-            }
-            movement.hardMove(closestFlag);
         }
     }
 }

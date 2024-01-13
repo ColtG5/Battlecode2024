@@ -277,6 +277,14 @@ public class Utility {
             // 13th bit will be if the robot has a flag, so take the 13th bit, and store it into hasFlag
             hasFlag = ((intOfRobotFromArray >> 3) & 1) == 1;
         }
+
+        public boolean getHasFlag() {
+            return hasFlag;
+        }
+
+        public MapLocation getCurLocation() {
+            return curLocation;
+        }
     }
 
     /**

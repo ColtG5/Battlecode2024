@@ -34,7 +34,7 @@ public strictfp class RobotPlayer {
 
     // either
     static boolean isCommander = false;
-    static Utility.CoolRobotInfo[] coolRobotInfoArray = new Utility.CoolRobotInfo[50];
+    public static Utility.CoolRobotInfo[] coolRobotInfoArray = new Utility.CoolRobotInfo[50];
 
     static final Random rng = new Random(6147);
 
