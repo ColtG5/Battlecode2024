@@ -1,9 +1,6 @@
 package GoldenSon;
 
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
+import battlecode.common.*;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -117,6 +114,9 @@ public class Movement {
         if (MovementStack.empty()) {
             //HYPE is the direction
             Direction hype = rc.getLocation().directionTo(mapLocation);
+
+            if (rc.canFill(rc.getLocation().add(hype))) rc.fill(rc.getLocation().add(hype));
+
             if (smallMove(hype)) return true;
             else {
                 MovementStack.push(hype);

@@ -30,23 +30,19 @@ public class Defender {
     }
 
     public void run() throws GameActionException {
-        rc.setIndicatorString("I am defender");
         // yes its hardcoded, i dont care !!!!!
         if (!isMyBreadSet) {
             int whichBread = (localID % 3) + 1;
             myBreadIDefendForMyLife = spawnAreaCenters[whichBread-1];
             isMyBreadSet = true;
-            System.out.println("My bread ::" + myBreadIDefendForMyLife);
         }
         movement.hardMove(myBreadIDefendForMyLife);
 //        if (rc.getExperience(SkillType.BUILD) < 10 && rc.getRoundNum() <= GameConstants.SETUP_ROUNDS) {
 //            farmEXP();
-//        } else {
-//            movement.hardMove(myBreadIDefendForMyLife);
-//        }
+//        } else movement.hardMove(myBreadIDefendForMyLife);
+
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         if (enemies.length != 0) tryToPlaceBomb(enemies);
-//        moveAroundBread();
         RobotInfo[] enemies2 = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         if (enemies2.length != 0) {
             MapLocation enemy = utility.enemyWithLowestHP(enemies2);
