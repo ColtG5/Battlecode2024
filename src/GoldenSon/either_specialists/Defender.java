@@ -14,14 +14,7 @@ public class Defender {
     int localID;
     MapLocation[] spawnAreaCenters;
     static MapLocation myBreadIDefendForMyLife = null;
-
-    static final int breadLocOneIndex = 51;
-    static final int breadLocTwoIndex = 52;
-    static final int breadLocThreeIndex = 53;
-
-    ArrayList<MapLocation> aroundBread = new ArrayList<>();
-    static int moveToIndex = 0;
-
+    static boolean isMyBreadSet = false;
     public Defender(RobotController rc, Movement movement, Utility utility) {
         this.rc = rc;
         this.movement = movement;
@@ -37,19 +30,22 @@ public class Defender {
     }
 
     public void run() throws GameActionException {
+        rc.setIndicatorString("I am defender");
         // yes its hardcoded, i dont care !!!!!
-        if (rc.getRoundNum() == 2) {
+        if (!isMyBreadSet) {
             int whichBread = (localID % 3) + 1;
             myBreadIDefendForMyLife = spawnAreaCenters[whichBread-1];
+            isMyBreadSet = true;
+            System.out.println("My bread ::" + myBreadIDefendForMyLife);
         }
         movement.hardMove(myBreadIDefendForMyLife);
-//        if (rc.getExperience(SkillType.BUILD) < 30 && rc.getRoundNum() <= GameConstants.SETUP_ROUNDS) {
+//        if (rc.getExperience(SkillType.BUILD) < 10 && rc.getRoundNum() <= GameConstants.SETUP_ROUNDS) {
 //            farmEXP();
 //        } else {
 //            movement.hardMove(myBreadIDefendForMyLife);
 //        }
-//        RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-//        if (enemies.length != 0) tryToPlaceBomb(enemies);
+        RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        if (enemies.length != 0) tryToPlaceBomb(enemies);
 //        moveAroundBread();
         RobotInfo[] enemies2 = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         if (enemies2.length != 0) {
@@ -58,64 +54,6 @@ public class Defender {
 //            tryToPlaceBomb(enemies2);
         }
     }
-
-    /**
-     * Make the defender move in circles around the flag
-     * @throws GameActionException
-     */
-//    private void moveAroundBread() throws GameActionException {
-//        MapLocation me = rc.getLocation();
-//        // Create a array that holds the flags
-//        MapLocation[] flags = new MapLocation[]{
-//                utility.intToLocation(rc.readSharedArray(breadLocOneIndex)),
-//                utility.intToLocation(rc.readSharedArray(breadLocTwoIndex)),
-//                utility.intToLocation(rc.readSharedArray(breadLocThreeIndex))
-//        };
-//
-//        // Set flag for the defender to the flag they spawned on
-//        if (myFlag == null) {
-//            for (MapLocation flag : flags) {
-//                if (me.equals(flag)) {
-//                    myFlag = flag;
-//                    break;
-//                }
-//            }
-//        }
-//
-////        if (rc.getRoundNum() == 169) { // dont run this code before u are around ur designated flag, or else u will think one of our other flags is a stolen flag !!!
-////            FlagInfo[] nearbyFlags = rc.senseNearbyFlags(2, rc.getTeam());
-////            for (FlagInfo flag : nearbyFlags) {
-////                MapLocation stolenFlag = flag.getLocation();
-////                if (!stolenFlag.equals(myFlag)) {
-////                    rc.setIndicatorString("TRYING TO GET FLAG BACK");
-////                    movement.hardMove(stolenFlag);
-////                    if (rc.canAttack(stolenFlag)) rc.attack(stolenFlag);
-////                    // If killed the duck, then try and pick up the flag
-////                    if (rc.canPickupFlag(stolenFlag)) rc.pickupFlag(stolenFlag);
-////                }
-////            }
-////        }
-//
-//        // If we found a flag, add the 8 locations around it
-//        if (myFlag != null) {
-//            aroundBread.add(myFlag.add(Direction.NORTH));
-//            aroundBread.add(myFlag.add(Direction.NORTHEAST));
-//            aroundBread.add(myFlag.add(Direction.EAST));
-//            aroundBread.add(myFlag.add(Direction.SOUTHEAST));
-//            aroundBread.add(myFlag.add(Direction.SOUTH));
-//            aroundBread.add(myFlag.add(Direction.SOUTHWEST));
-//            aroundBread.add(myFlag.add(Direction.WEST));
-//            aroundBread.add(myFlag.add(Direction.NORTHWEST));
-//        }
-//
-//        // Try to move to next location around bread
-//        MapLocation moveTo = aroundBread.get(moveToIndex);
-//        if (rc.canMove(me.directionTo(moveTo)))
-//            rc.move(me.directionTo(moveTo));
-//
-//        // Calculate next location to move to next turn
-//        moveToIndex = (moveToIndex + 1) % aroundBread.size();
-//    }
 
     private void farmEXP() throws GameActionException {
         MapInfo[] infos = rc.senseNearbyMapInfos(-1);
