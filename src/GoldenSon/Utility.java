@@ -3,10 +3,10 @@ package GoldenSon;
 import battlecode.common.*;
 
 import static GoldenSon.RobotPlayer.*;
-
 public class Utility {
     RobotController rc;
     int localID;
+    CoolRobotInfo[] coolRobotInfoArray = null;
 
     public Utility(RobotController rc) {
         this.rc = rc;
@@ -14,6 +14,10 @@ public class Utility {
 
     public void setLocalID(int localID) {
         this.localID = localID;
+    }
+
+    public void setCoolRobotInfoArray(CoolRobotInfo[] coolRobotInfoArray) {
+        this.coolRobotInfoArray = coolRobotInfoArray;
     }
 
     public int makeLocalID(int assigningLocalIDIndex) throws GameActionException {
@@ -284,6 +288,7 @@ public class Utility {
 
 //        System.out.println("localID: " + localID);
 //        System.out.println("index reading: " + arrayIndexToReadFrom);
+
         int fakeLocalIDOfGroupLeader = rc.readSharedArray(arrayIndexToReadFrom);
         int LocalIDOfGroupLeader = (fakeLocalIDOfGroupLeader & 15) + (getMyFlagrunnerGroup() - 1) * AMOUNT_OF_FLAGRUNNERS / 3;
 //        System.out.println(localIDOfGroupLeader);

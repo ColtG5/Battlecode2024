@@ -37,6 +37,7 @@ public strictfp class RobotPlayer {
 
     // either
     static boolean isCommander = false;
+
     public static Utility.CoolRobotInfo[] coolRobotInfoArray = new Utility.CoolRobotInfo[50];
 
     static final Random rng = new Random(6147);
@@ -115,7 +116,10 @@ public strictfp class RobotPlayer {
 
                 // read every other robots info from the shared array, store it in coolRobotInfoArray
                 coolRobotInfoArray = util.readAllBotsInfoFromSharedArray(coolRobotInfoArray);
+                util.setCoolRobotInfoArray(coolRobotInfoArray);
                 flagrunner.coolrobotinfoarray(coolRobotInfoArray);
+
+
                 if (!rc.isSpawned()) {
                     if (rc.getRoundNum() != 5 && isDefender) defender.tryToSpawnOnMyFlag();
                     else util.trySpawningEvenly(spawnAreaCenters);
