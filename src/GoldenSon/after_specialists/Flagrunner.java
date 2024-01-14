@@ -43,6 +43,26 @@ public class Flagrunner {
             movement.hardMove(closetSpawnAreaCenter);
             return;
         }
+        FlagInfo[] flagInfo = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
+        for (FlagInfo info : flagInfo) {
+            if(!info.isPickedUp()){
+                rc.setIndicatorString("GOING TO FLAG");
+                if(rc.canPickupFlag(info.getLocation())){
+                    rc.pickupFlag(info.getLocation());
+                    util.writeToFlagrunnerGroupIndex(rc.getLocation());
+                    MapLocation closetSpawnAreaCenter = getClosetSpawnAreaCenter();
+                    movement.hardMove(closetSpawnAreaCenter);
+                    return;
+                }
+                movement.hardMove(info.getLocation());
+                RobotInfo[] enemyRobot = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+                if(enemyRobot.length != 0){rc.attack(getAttackableEnemyWithLowestHealth(enemyRobot));
+                }else{
+                    tryToHeal();
+                }
+
+            }
+        }
 
 
 
@@ -60,8 +80,17 @@ public class Flagrunner {
 //            if (rc.getRoundNum() == 201) System.out.println("gang gang");
 //            rc.setIndicatorDot(rc.getLocation(), 0, 0, 125);
         } else { // a follower
-            if (isDistanceToGroupLeaderMoreThan(10)) { // if too far from group leader, use ur movement to get back to them!
-                if(coolRobotInfoArray[util.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex()].getHasFlag()){
+            if (isDistanceToGroupLeaderMoreThan(10)) {
+                // if too far from group leader, use ur movement to get back to them!
+                rc.setIndicatorString("FUCK");
+
+                movement.hardMove(util.getLocationOfMyGroupLeader());
+                //attackMicroWithNoMoveAvailable();
+                attackMicroWithMoveAvailable();
+//                rc.setIndicatorDot(util.getLocationOfMyGroupLeader(), 0, 255, 0);
+            } else { // if ur close enough, u can use ur movement in ur micro
+                if(coolRobotInfoArray[util.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex() -1 ].getHasFlag()){
+                    rc.setIndicatorString("TRYING TO GET FLAG BACK");
                     MapInfo[] mapInfos = rc.senseNearbyMapInfos();
                     ArrayList<MapLocation> bannedPlaces = new ArrayList<>();
                     for(MapInfo mapInfo:mapInfos){
@@ -72,11 +101,7 @@ public class Flagrunner {
                     movement.hardMove(util.getLocationOfMyGroupLeader(),bannedPlaces);
                     return;
                 }
-                movement.hardMove(util.getLocationOfMyGroupLeader());
-                //attackMicroWithNoMoveAvailable();
-                attackMicroWithMoveAvailable();
-//                rc.setIndicatorDot(util.getLocationOfMyGroupLeader(), 0, 255, 0);
-            } else { // if ur close enough, u can use ur movement in ur micro
+                rc.setIndicatorString("SHIT");
                 attackMicroWithMoveAvailable();
             }
         }
