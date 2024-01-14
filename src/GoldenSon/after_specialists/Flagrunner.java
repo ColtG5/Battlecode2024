@@ -120,7 +120,7 @@ public class Flagrunner {
         }
         if (locForGroup == null) locForGroup = rc.getLocation(); // literally no flags in play (should never happen right
 
-//        rc.setIndicatorDot(locForGroup, 255, 0, 255);
+        rc.setIndicatorDot(locForGroup, 255, 0, 255);
 
         // write this locForGroup into the spot in the shared array for this group
         util.writeToFlagrunnerGroupIndex(locForGroup);

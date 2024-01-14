@@ -210,4 +210,8 @@ public strictfp class RobotPlayer {
             }
         }
     }
+
+    public static Utility.CoolRobotInfo[] getCoolRobotInfoArray() {
+        return coolRobotInfoArray;
+    }
 }
