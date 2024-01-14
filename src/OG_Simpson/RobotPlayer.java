@@ -94,10 +94,6 @@ public strictfp class RobotPlayer {
                     spawnAreaCenter1 = spawnAreaCentersLocal[0];
                     spawnAreaCenter2 = spawnAreaCentersLocal[1];
                     spawnAreaCenter3 = spawnAreaCentersLocal[2];
-
-//                    util.setInitialGroupLeaders();
-//
-//                    whichFlagrunnerGroup = util.getMyFlagrunnerGroup();
                 }
 
                 if (localID == 1) {
@@ -119,9 +115,7 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
 
                     // writes the first 3 bread locations into the shared array, and also checks if this bot is a defender
-//                    if (rc.getRoundNum() == 1) {
-//                    }
-                    FlagInfo[] myFlags = rc.senseNearbyFlags(2, rc.getTeam());
+                    FlagInfo[] myFlags = rc.senseNearbyFlags(4, rc.getTeam());
                     if (myFlags.length != 0) {
                         if (rc.canBuild(TrapType.EXPLOSIVE, rc.getLocation()))
                             rc.build(TrapType.EXPLOSIVE, rc.getLocation());
@@ -131,9 +125,9 @@ public strictfp class RobotPlayer {
                     // logic for who will specialize to what (subject to change idrk what im doing ong no cap on 4nem)
                     // ----------------------------------------
 
-                    if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 20) {
+                    if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 40) {
                         if (!isDefender) isScout = true;
-                    } else {
+                    } else if (rc.getRoundNum() <= GameConstants.SETUP_ROUNDS) {
                         if (isScout) isFlagrunner = true;
                         isScout = false;
                     }
@@ -154,8 +148,8 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
 
                     if (rc.getRoundNum() <= GameConstants.SETUP_ROUNDS) { // before divider drop strategies
-                        if (rc.getRoundNum() == 1) continue; // dont let bots move on the first turn
-                        else if (isCommander) commander.run();  // no commanders rn
+//                        if (rc.getRoundNum() == 1) continue; // dont let bots move on the first turn
+                        if (isCommander) commander.run();  // no commanders rn
                         else if (isScout) scout.run(); // rn we make 30 scouts
                         else if (isDefender) defender.run();
                         else if (isFlagrunner) flagrunner.run();
