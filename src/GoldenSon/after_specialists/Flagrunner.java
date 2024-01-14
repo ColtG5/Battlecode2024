@@ -27,7 +27,7 @@ public class Flagrunner {
 //        rc.setIndicatorDot(locationForFlagrunnerGroup, 0, 0, 255);
 
         boolean isLeader = util.amIAGroupLeader();
-        if (rc.getRoundNum() == 201) System.out.println(isLeader);
+//        if (rc.getRoundNum() == 201) System.out.println(isLeader);
 
         if (isLeader) {
             if (tooFewGroupMembersAround(5)) { // if leader don't got a lotta homies, maybe just sit and wait for the gang?
@@ -38,8 +38,8 @@ public class Flagrunner {
             } else { // if u got homies, gameplan as usual.
                 attackMicroWithMoveAvailable();
             }
-            if (rc.getRoundNum() == 201) System.out.println("gang gang");
-            rc.setIndicatorDot(rc.getLocation(), 0, 0, 125);
+//            if (rc.getRoundNum() == 201) System.out.println("gang gang");
+//            rc.setIndicatorDot(rc.getLocation(), 0, 0, 125);
         } else { // a follower
             if (isDistanceToGroupLeaderMoreThan(10)) { // if too far from group leader, use ur movement to get back to them!!
                 movement.hardMove(util.getLocationOfMyGroupLeader());
@@ -78,14 +78,14 @@ public class Flagrunner {
         FlagInfo[] enemyFlags = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
         // filter out flags that are picked up by us (this group only going to capture a flag rn. if a flag is picked up by us,
         // lets assume for now that he has his own group to be backup
-        ArrayList<FlagInfo> enemyFlagsNotPickedUp = new ArrayList<FlagInfo>();
+        ArrayList<FlagInfo> enemyFlagsNotPickedUp = new ArrayList<>();
         for (FlagInfo enemyFlag : enemyFlags) {
             if (!enemyFlag.isPickedUp()) enemyFlagsNotPickedUp.add(enemyFlag);
         }
 
         MapLocation[] allDroppedFlags = rc.senseBroadcastFlagLocations();
 
-        if (enemyFlagsNotPickedUp.size() != 0) { // if we can see a flag to conquer
+        if (!enemyFlagsNotPickedUp.isEmpty()) { // if we can see a flag to conquer
             // get the closest flag to us
             MapLocation closestFlag = enemyFlags[0].getLocation();
             for (FlagInfo enemyFlag : enemyFlags) {
@@ -135,11 +135,11 @@ public class Flagrunner {
     // ---------------------------------------------------------------------------------
 
     public MapLocation getAttackableEnemyWithLowestHealth(RobotInfo[] enemyRobots) {
-        ArrayList<RobotInfo> attackableEnemies = new ArrayList<RobotInfo>();
+        ArrayList<RobotInfo> attackableEnemies = new ArrayList<>();
         for (RobotInfo enemyRobot : enemyRobots) {
             if (rc.canAttack(enemyRobot.location)) attackableEnemies.add(enemyRobot);
         }
-        if (attackableEnemies.size() == 0) return null;
+        if (attackableEnemies.isEmpty()) return null;
 
         RobotInfo lowestHealthEnemy = attackableEnemies.get(0);
         for (RobotInfo enemyRobot : attackableEnemies) {
@@ -165,7 +165,7 @@ public class Flagrunner {
                 break;
             }
         }
-        return new Utility.MyPair<Boolean, MapLocation>(canEnemyAttackMeNextTurn, locationOfEnemyThatCanAttackMe);
+        return new Utility.MyPair<>(canEnemyAttackMeNextTurn, locationOfEnemyThatCanAttackMe);
     }
 
     public void tryToHeal() throws GameActionException {

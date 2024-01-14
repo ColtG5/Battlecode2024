@@ -29,6 +29,7 @@ public strictfp class RobotPlayer {
 
     // after divider drop
     static boolean isBomber = false;
+    static boolean isBuilder = false;
     static boolean isFlagrunner = false;
     public static final int AMOUNT_OF_FLAGRUNNERS = 42; // must be divisible by FLAGRUNNERS_PER_GROUP
     public static final int FLAGRUNNERS_PER_GROUP = 14;
@@ -85,6 +86,7 @@ public strictfp class RobotPlayer {
         // either strategies
         Unspecialized unspecialized = new Unspecialized(rc, movement, util);
         Commander commander = new Commander(rc, movement, util);
+        Builder builder = new Builder(rc, movement, util);
 
         while (true) {
             turnCount += 1;  // We have now been alive for one more turn!
@@ -128,22 +130,29 @@ public strictfp class RobotPlayer {
                     // logic for who will specialize to what (subject to change idrk what im doing ong no cap on 4nem)
                     // ----------------------------------------
 
-                    if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) {
+                    if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 20) {
                         if (48 <= localID && localID <= 50) isDefender = true; // set the proper defenders
+                        else if (45 <= localID && localID <= 47) isBuilder = true;
                         else isScout = true; // set the proper scouts
-                    }
-
-                    if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS) { // change this to round 199? or earlier? idk
+                    } else if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) {
                         if (localID <= AMOUNT_OF_FLAGRUNNERS) isFlagrunner = true; // set the proper flagrunners
-                        else if (!isDefender) isBomber = true; // set the proper bombers
+                        else if (!isDefender && !isBuilder) isBomber = true; // set the proper bombers
 
                         // set all the before divider specializations to false just to make sure no one is running them
                         isScout = false;
                     }
 
-                    if (rc.getRoundNum() > GameConstants.SETUP_ROUNDS) {
-                        // setting specializations after the setup rounds
-                    }
+//                    if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS) { // change this to round 199? or earlier? idk
+//                        if (localID <= AMOUNT_OF_FLAGRUNNERS) isFlagrunner = true; // set the proper flagrunners
+//                        else if (!isDefender) isBomber = true; // set the proper bombers
+//
+//                        // set all the before divider specializations to false just to make sure no one is running them
+//                        isScout = false;
+//                    }
+
+//                    if (rc.getRoundNum() > GameConstants.SETUP_ROUNDS) {
+//                        // setting specializations after the setup rounds
+//                    }
 
                     // ----------------------------------------
                     // big switch statement thing for what strategy the robot will run for this turn
@@ -154,19 +163,22 @@ public strictfp class RobotPlayer {
                         else if (isCommander) commander.run();  // no commanders rn
                         else if (isScout) scout.run(); // rn we make 30 scouts
                         else if (isDefender) defender.run();
+                        else if (isFlagrunner) flagrunner.run();
+                        else if (isBuilder) builder.run();
                         else unspecialized.run(); // none unspecialized rn (all taken up to be scouts)
                     } else { // after divider drop strategies
                         if (isCommander) commander.run();
                         else if (isBomber) bomber.run();
                         else if (isFlagrunner) {
-                            if (rc.getRoundNum() == 201) {
-                                System.out.println("group leader is: " + util.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex());
-                                System.out.println("" + localID + " flagrunner.run(), amILeader: " + util.amIAGroupLeader() + "\n");
-                            }
+//                            if (rc.getRoundNum() == 201) {
+//                                System.out.println("group leader is: " + util.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex());
+//                                System.out.println("" + localID + " flagrunner.run(), amILeader: " + util.amIAGroupLeader() + "\n");
+//                            }
                             util.handleIfGroupLeaderDied(); // switches group leaders if they died, to the bot checking
                             flagrunner.run();
                         }
                         else if (isDefender) defender.run();
+                        else if (isBuilder) builder.run();
                         else unspecialized.run();
                     }
 
@@ -178,9 +190,9 @@ public strictfp class RobotPlayer {
 
                 }
 
-                if (rc.getRoundNum() == 1 || rc.getRoundNum() == 2 || rc.getRoundNum() == 199 || rc.getRoundNum() == 200 || rc.getRoundNum() == 201) {
-                    System.out.println("\t\t\treading the array directly: " + rc.readSharedArray(flagRunnerGroupTwoLocIndex));
-                }
+//                if (rc.getRoundNum() == 1 || rc.getRoundNum() == 2 || rc.getRoundNum() == 199 || rc.getRoundNum() == 200 || rc.getRoundNum() == 201) {
+//                    System.out.println("\t\t\treading the array directly: " + rc.readSharedArray(flagRunnerGroupTwoLocIndex));
+//                }
 
                 // after every round whether spawned or not, convert your info to an int and write it to the shared array
                 util.writeMyInfoToSharedArray();
