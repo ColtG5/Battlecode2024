@@ -103,6 +103,7 @@ public strictfp class RobotPlayer {
                     spawnAreaCenter2 = spawnAreaCentersLocal[1];
                     spawnAreaCenter3 = spawnAreaCentersLocal[2];
                     defender.setSpawnAreaCenters(spawnAreaCentersLocal);
+                    flagrunner.setSpawnAreaCenters(spawnAreaCentersLocal);
                 }
 
                 if (localID == 1) {
@@ -114,7 +115,7 @@ public strictfp class RobotPlayer {
 
                 // read every other robots info from the shared array, store it in coolRobotInfoArray
                 coolRobotInfoArray = util.readAllBotsInfoFromSharedArray(coolRobotInfoArray);
-
+                flagrunner.coolrobotinfoarray(coolRobotInfoArray);
                 if (!rc.isSpawned()) {
                     if (rc.getRoundNum() != 5 && isDefender) defender.tryToSpawnOnMyFlag();
                     else util.trySpawningEvenly(spawnAreaCenters);

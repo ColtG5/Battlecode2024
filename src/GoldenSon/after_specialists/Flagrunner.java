@@ -3,6 +3,7 @@ package GoldenSon.after_specialists;
 import battlecode.common.*;
 import GoldenSon.Movement;
 import GoldenSon.Utility;
+import GoldenSon.RobotPlayer.*;
 
 import java.util.ArrayList;
 
@@ -14,12 +15,20 @@ public class Flagrunner {
     Utility util;
     MapLocation locationForFlagrunnerGroup;
 
+    Utility.CoolRobotInfo[] coolRobotInfoArray;
+    MapLocation[] spawnAreaCenters;
+
     public Flagrunner(RobotController rc, Movement movement, Utility util) {
         this.rc = rc;
         this.movement = movement;
         this.util = util;
     }
-
+    public void setSpawnAreaCenters(MapLocation[] spawnAreaCenters) {
+        this.spawnAreaCenters = spawnAreaCenters;
+    }
+    public void coolrobotinfoarray(Utility.CoolRobotInfo[] coolRobotInfoArray){
+        this.coolRobotInfoArray = coolRobotInfoArray;
+    }
     public void run() throws GameActionException {
         if (util.amIAGroupLeader()) locationForFlagrunnerGroup = setLocationForGroup(); // decide where the group will go (including you)
         else locationForFlagrunnerGroup = getLocationForGroup();
@@ -27,6 +36,16 @@ public class Flagrunner {
 //        rc.setIndicatorDot(locationForFlagrunnerGroup, 0, 0, 255);
 
         boolean isLeader = util.amIAGroupLeader();
+
+        if(rc.hasFlag()){
+            util.writeToFlagrunnerGroupIndex(rc.getLocation());
+            MapLocation closetSpawnAreaCenter = getClosetSpawnAreaCenter();
+            movement.hardMove(closetSpawnAreaCenter);
+            return;
+        }
+
+
+
 //        if (rc.getRoundNum() == 201) System.out.println(isLeader);
 
         if (isLeader) {
@@ -41,7 +60,18 @@ public class Flagrunner {
 //            if (rc.getRoundNum() == 201) System.out.println("gang gang");
 //            rc.setIndicatorDot(rc.getLocation(), 0, 0, 125);
         } else { // a follower
-            if (isDistanceToGroupLeaderMoreThan(10)) { // if too far from group leader, use ur movement to get back to them!!
+            if (isDistanceToGroupLeaderMoreThan(10)) { // if too far from group leader, use ur movement to get back to them!
+                if(coolRobotInfoArray[util.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex()].getHasFlag()){
+                    MapInfo[] mapInfos = rc.senseNearbyMapInfos();
+                    ArrayList<MapLocation> bannedPlaces = new ArrayList<>();
+                    for(MapInfo mapInfo:mapInfos){
+                        if(mapInfo.getMapLocation().isAdjacentTo(util.getLocationOfMyGroupLeader())){
+                            bannedPlaces.add(mapInfo.getMapLocation());
+                        }
+                    }
+                    movement.hardMove(util.getLocationOfMyGroupLeader(),bannedPlaces);
+                    return;
+                }
                 movement.hardMove(util.getLocationOfMyGroupLeader());
                 //attackMicroWithNoMoveAvailable();
                 attackMicroWithMoveAvailable();
@@ -50,6 +80,19 @@ public class Flagrunner {
                 attackMicroWithMoveAvailable();
             }
         }
+    }
+
+    private MapLocation getClosetSpawnAreaCenter() {
+        int closetDistence = spawnAreaCenters[0].distanceSquaredTo(rc.getLocation());
+        MapLocation closetSpawnAreaCenter = spawnAreaCenters[0];
+        for( MapLocation spawnAreaCenter : spawnAreaCenters){
+            if(spawnAreaCenter.distanceSquaredTo(rc.getLocation()) < closetDistence){
+                closetDistence = spawnAreaCenter.distanceSquaredTo(rc.getLocation());
+                closetSpawnAreaCenter = spawnAreaCenter;
+
+            }
+        }
+        return closetSpawnAreaCenter;
     }
 
     // ---------------------------------------------------------------------------------
