@@ -105,6 +105,8 @@ public strictfp class RobotPlayer {
                     spawnAreaCenter3 = spawnAreaCentersLocal[2];
                     defender.setSpawnAreaCenters(spawnAreaCentersLocal);
                     flagrunner.setSpawnAreaCenters(spawnAreaCentersLocal);
+
+                    if (48 <= localID && localID <= 50) isDefender = true;
                 }
 
                 if (localID == 1) {
@@ -121,7 +123,7 @@ public strictfp class RobotPlayer {
 
 
                 if (!rc.isSpawned()) {
-                    if (rc.getRoundNum() != 5 && isDefender) defender.tryToSpawnOnMyFlag();
+                    if (rc.getRoundNum() > 5 && isDefender) defender.tryToSpawnOnMyFlag();
                     else util.trySpawningEvenly(spawnAreaCenters);
                 }
                 if (rc.isSpawned()) {
@@ -138,9 +140,9 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
 
                     if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 20) {
-                        if (48 <= localID && localID <= 50) isDefender = true; // set the proper defenders
-//                        else if (45 <= localID && localID <= 47) isBuilder = true;
-                        else isScout = true; // set the proper scouts
+//                        if (48 <= localID && localID <= 50) isDefender = true; // set the proper defenders
+                        if (45 <= localID && localID <= 47) isBuilder = true;
+                        else if (!isDefender) isScout = true; // set the proper scouts
                     } else if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) {
                         if (localID <= AMOUNT_OF_FLAGRUNNERS) isFlagrunner = true; // set the proper flagrunners
                         else if (!isDefender && !isBuilder) isBomber = true; // set the proper bombers
@@ -149,6 +151,9 @@ public strictfp class RobotPlayer {
                         isScout = false;
                     }
 
+//                    if (rc.getRoundNum() == 2 && isDefender) {
+//                        System.out.println("I am defender :: " + localID);
+//                    }
 //                    if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS) { // change this to round 199? or earlier? idk
 //                        if (localID <= AMOUNT_OF_FLAGRUNNERS) isFlagrunner = true; // set the proper flagrunners
 //                        else if (!isDefender) isBomber = true; // set the proper bombers
