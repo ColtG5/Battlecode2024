@@ -14,6 +14,7 @@ public class Flagrunner {
     Movement movement;
     Utility util;
     MapLocation locationForFlagrunnerGroup;
+    boolean leftySet = false;
 
     Utility.CoolRobotInfo[] coolRobotInfoArray;
     MapLocation[] spawnAreaCenters;
@@ -30,6 +31,11 @@ public class Flagrunner {
         this.coolRobotInfoArray = coolRobotInfoArray;
     }
     public void run() throws GameActionException {
+        if (!leftySet) {
+            leftySet = true;
+            movement.setLefty(util.getMyFlagrunnerGroup() % 2 == 0);
+        }
+
         if (util.amIAGroupLeader()) locationForFlagrunnerGroup = setLocationForGroup(); // decide where the group will go (including you)
         else locationForFlagrunnerGroup = getLocationForGroup();
 
