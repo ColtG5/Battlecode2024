@@ -43,7 +43,8 @@ public class Flagrunner {
         } else { // a follower
             if (isDistanceToGroupLeaderMoreThan(10)) { // if too far from group leader, use ur movement to get back to them!!
                 movement.hardMove(util.getLocationOfMyGroupLeader());
-                attackMicroWithNoMoveAvailable();
+                //attackMicroWithNoMoveAvailable();
+                attackMicroWithMoveAvailable();
 //                rc.setIndicatorDot(util.getLocationOfMyGroupLeader(), 0, 255, 0);
             } else { // if ur close enough, u can use ur movement in ur micro
                 attackMicroWithMoveAvailable();

@@ -203,7 +203,7 @@ public class Utility {
         return new MapLocation(integerLocation >> 6, integerLocation & 63);
     }
 
-    public boolean didISpawnOnFlag(Utility util) throws GameActionException {
+    public void didISpawnOnFlag(Utility util) throws GameActionException {
         MapLocation me = rc.getLocation();
         FlagInfo[] flags = rc.senseNearbyFlags(1, rc.getTeam());
         if (flags.length > 0) {
@@ -216,10 +216,8 @@ public class Utility {
                 } else if (rc.readSharedArray(breadLocThreeIndex) == 0) {
                     rc.writeSharedArray(breadLocThreeIndex, util.locationToInt(me));
                 }
-                return true;
             }
         }
-        return false;
     }
 
     /**

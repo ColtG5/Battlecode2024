@@ -17,10 +17,10 @@ public strictfp class RobotPlayer {
     static final MapLocation NONELOCATION = new MapLocation(-1, -1);
 
     static int localID;
-    static MapLocation[] spawnAreaCenters;
-    static MapLocation spawnAreaCenter1;
-    static MapLocation spawnAreaCenter2;
-    static MapLocation spawnAreaCenter3;
+    public static MapLocation[] spawnAreaCenters;
+    public static MapLocation spawnAreaCenter1;
+    public static MapLocation spawnAreaCenter2;
+    public static MapLocation spawnAreaCenter3;
     static boolean lefty = true; // do u pathfind favouring left first or right first
 
     // before divider drop
@@ -54,8 +54,8 @@ public strictfp class RobotPlayer {
 
 
     /**
-     * SHARED ARRAY
-     * [0,          1-50,          51,  52,  53,             54,    55,    56]
+     * SHARED ARRAY             2^16  1111 1111 1111 1111
+     * [0,          1-50, 6, 23434,          51,  52,  53,             54,    55,    56]
      * id     id's of all ducks    3 bread loc's      each flagRunner group move loc
      *
      */
@@ -95,12 +95,14 @@ public strictfp class RobotPlayer {
                     localID = util.makeLocalID(assigningLocalIDIndex);
                     movement.setLefty((localID % 2) == 1);
                     util.setLocalID(localID);
+                    defender.setLocalID(localID);
 
                     MapLocation[] spawnAreaCentersLocal = util.findCentersOfSpawnZones();
                     spawnAreaCenters = spawnAreaCentersLocal;
                     spawnAreaCenter1 = spawnAreaCentersLocal[0];
                     spawnAreaCenter2 = spawnAreaCentersLocal[1];
                     spawnAreaCenter3 = spawnAreaCentersLocal[2];
+                    defender.setSpawnAreaCenters(spawnAreaCentersLocal);
                 }
 
                 if (localID == 1) {
@@ -114,8 +116,8 @@ public strictfp class RobotPlayer {
                 coolRobotInfoArray = util.readAllBotsInfoFromSharedArray(coolRobotInfoArray);
 
                 if (!rc.isSpawned()) {
-                    if (rc.getRoundNum() != 1 && isDefender) defender.tryToSpawnOnFlag();
-                    util.trySpawningEvenly(spawnAreaCenters);
+                    if (rc.getRoundNum() != 5 && isDefender) defender.tryToSpawnOnMyFlag();
+                    else util.trySpawningEvenly(spawnAreaCenters);
                 }
                 if (rc.isSpawned()) {
 
@@ -124,7 +126,7 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
 
                     // writes the first 3 bread locations into the shared array, and also checks if this bot is a defender
-                    if (rc.getRoundNum() == 1) isDefender = util.didISpawnOnFlag(util);
+                    if (rc.getRoundNum() == 1) util.didISpawnOnFlag(util);
 
                     // ----------------------------------------
                     // logic for who will specialize to what (subject to change idrk what im doing ong no cap on 4nem)
@@ -132,7 +134,7 @@ public strictfp class RobotPlayer {
 
                     if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 20) {
                         if (48 <= localID && localID <= 50) isDefender = true; // set the proper defenders
-                        else if (45 <= localID && localID <= 47) isBuilder = true;
+//                        else if (45 <= localID && localID <= 47) isBuilder = true;
                         else isScout = true; // set the proper scouts
                     } else if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) {
                         if (localID <= AMOUNT_OF_FLAGRUNNERS) isFlagrunner = true; // set the proper flagrunners
