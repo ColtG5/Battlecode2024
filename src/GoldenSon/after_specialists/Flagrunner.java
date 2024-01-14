@@ -56,7 +56,11 @@ public class Flagrunner {
                 }
                 movement.hardMove(info.getLocation());
                 RobotInfo[] enemyRobot = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-                if(enemyRobot.length != 0){rc.attack(getAttackableEnemyWithLowestHealth(enemyRobot));
+                MapLocation attackableEnemy = getAttackableEnemyWithLowestHealth(enemyRobot);
+                if(attackableEnemy != null){
+                    if(rc.canAttack(attackableEnemy)){
+                        rc.attack(attackableEnemy);
+                    }
                 }else{
                     tryToHeal();
                 }
