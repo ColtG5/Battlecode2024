@@ -41,24 +41,22 @@ public class Defender {
         if (rc.getRoundNum() == 2) {
             int whichBread = (localID % 3) + 1;
             myBreadIDefendForMyLife = spawnAreaCenters[whichBread-1];
-            System.out.println("MA BREAD::: " + myBreadIDefendForMyLife);
         }
-
-        if (rc.getExperience(SkillType.BUILD) < 30 && rc.getRoundNum() <= GameConstants.SETUP_ROUNDS) {
-            farmEXP();
-        } else {
-            movement.hardMove(myBreadIDefendForMyLife);
-        }
-        RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        if (enemies.length != 0) tryToPlaceBomb(enemies);
+        movement.hardMove(myBreadIDefendForMyLife);
+//        if (rc.getExperience(SkillType.BUILD) < 30 && rc.getRoundNum() <= GameConstants.SETUP_ROUNDS) {
+//            farmEXP();
+//        } else {
+//            movement.hardMove(myBreadIDefendForMyLife);
+//        }
+//        RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+//        if (enemies.length != 0) tryToPlaceBomb(enemies);
 //        moveAroundBread();
         RobotInfo[] enemies2 = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         if (enemies2.length != 0) {
             MapLocation enemy = utility.enemyWithLowestHP(enemies2);
             if (rc.canAttack(enemy)) rc.attack(enemy);
-            tryToPlaceBomb(enemies2);
+//            tryToPlaceBomb(enemies2);
         }
-        System.out.println(myBreadIDefendForMyLife);
     }
 
     /**
