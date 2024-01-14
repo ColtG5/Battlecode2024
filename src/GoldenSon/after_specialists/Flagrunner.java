@@ -30,7 +30,7 @@ public class Flagrunner {
         if (rc.getRoundNum() == 201) System.out.println(isLeader);
 
         if (isLeader) {
-            if (tooFewGroupMembersAround(5)) { // if leader don't got a lotta homies, maybe just sit and wait for the gang?
+            if (tooFewGroupMembersAround(8)) { // if leader don't got a lotta homies, maybe just sit and wait for the gang?
                 attackMicroWithMoveAvailable();
                 // have the option of choosing to sit in place to wait for dudes to pull up on you
                 // attackMicroWithNoMoveAvailable();
