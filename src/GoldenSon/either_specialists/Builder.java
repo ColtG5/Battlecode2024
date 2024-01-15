@@ -24,6 +24,10 @@ public class Builder {
             farmEXP();
         }
 
+        if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) {
+            return;
+        }
+
 //        // FOr testing only
 //        MapLocation[] enemyFlags = rc.senseBroadcastFlagLocations();
 //        for (MapLocation flag : enemyFlags) {
@@ -72,10 +76,6 @@ public class Builder {
 
         for (MapInfo info : infoAround) {
             if (rc.canBuild(TrapType.EXPLOSIVE, info.getMapLocation())) possiblePlacements.add(info.getMapLocation());
-        }
-
-        if (rc.getRoundNum() > 190 && rc.getRoundNum() < 210) {
-            System.out.println(possiblePlacements);
         }
 
         MapLocation closestEnemy = closestEnemyToMe(rc.senseNearbyRobots(-1, rc.getTeam().opponent()));

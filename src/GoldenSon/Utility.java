@@ -42,7 +42,6 @@ public class Utility {
         return coolRobotInfoArray;
     }
 
-
     public void writeMyInfoToSharedArray() throws GameActionException {
         MapLocation locationToStore;
         if (rc.isSpawned()) locationToStore = rc.getLocation();
@@ -224,74 +223,73 @@ public class Utility {
         }
     }
 
+    public int convertFakeIDToLocalID(int fakeID) {
+        int whatGroupAmI = getMyFlagrunnerGroup();
+        if (whatGroupAmI == 1) {
+            return fakeID + 1;
+        } else if (whatGroupAmI == 2) {
+            return fakeID + FLAGRUNNERS_IN_GROUP_1 + 1;
+        } else if (whatGroupAmI == 3) {
+            return fakeID + FLAGRUNNERS_IN_GROUP_1 + FLAGRUNNERS_IN_GROUP_2 + 1;
+        } else {
+            System.out.println("\n\n\n NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO CONVERTING FAKEID TO LOCALID FAILED \n\n\n");
+            return -9000;
+        }
+    }
+
+    /**
+     * FAKE ID IS NOW BETWEEN 0-15 IN THE ARRAY SO WE CAN STORE 16 ID's NOW
+     * @param localID
+     * @return
+     */
+    public int convertLocalIDToFakeID(int localID) {
+        int whatGroupAmI = getMyFlagrunnerGroup();
+        if (whatGroupAmI == 1) {
+            return localID - 1;
+        } else if (whatGroupAmI == 2) {
+            return localID - FLAGRUNNERS_IN_GROUP_1 - 1;
+        } else if (whatGroupAmI == 3) {
+            return localID - FLAGRUNNERS_IN_GROUP_1 - FLAGRUNNERS_IN_GROUP_2 - 1;
+        } else {
+            System.out.println("\n\n\n NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO CONVERTING LOCALID TO FAKEID FAILED \n\n\n");
+            return -9000;
+        }
+    }
+
     /**
      * set leader of each group as the lowest ID duck in each group
      *
      * @throws GameActionException if cannot write to shared array
      */
     public void setInitialGroupLeaders() throws GameActionException {
-//        System.out.println("setting initial group leaders");
-        int lowestIDDuckForGroup1 = 1 + (FLAGRUNNERS_PER_GROUP * (1 - 1));
-        int lowestIDDuckForGroup2 = 1 + (FLAGRUNNERS_PER_GROUP * (2 - 1));
-//        System.out.println("lowest id duck for group 2: " + lowestIDDuckForGroup2);
-        int lowestIDDuckForGroup3 = 1 + (FLAGRUNNERS_PER_GROUP * (3 - 1));
-        writeJustLocalIDToFlagrunnerGroupIndex(lowestIDDuckForGroup1, flagRunnerGroupOneLocIndex);
-        writeJustLocalIDToFlagrunnerGroupIndex(lowestIDDuckForGroup2, flagRunnerGroupTwoLocIndex);
-        writeJustLocalIDToFlagrunnerGroupIndex(lowestIDDuckForGroup3, flagRunnerGroupThreeLocIndex);
+        writeJustLocalIDToFlagrunnerGroupIndex(INITIAL_GROUP_1_LEADER_ID, flagRunnerGroupOneLocIndex);
+        writeJustLocalIDToFlagrunnerGroupIndex(INITIAL_GROUP_2_LEADER_ID, flagRunnerGroupTwoLocIndex);
+        writeJustLocalIDToFlagrunnerGroupIndex(INITIAL_GROUP_3_LEADER_ID, flagRunnerGroupThreeLocIndex);
 //        System.out.println("\t\t\tAHAHAHAH reading the array directly: " + rc.readSharedArray(flagRunnerGroupTwoLocIndex));
     }
 
     /**
      * checks if you are the leader of a group. since the localID of the group leader is stored as a funky number of
-     * 1-14 due to space constraints, we need to convert the localID of the group leader back to the actual localID
+     * 1-16 due to space constraints, we need to convert the localID of the group leader back to the actual localID
      * @return
      * @throws GameActionException
      */
     public boolean amIAGroupLeader() throws GameActionException {
-        int arrayIndexToReadFrom = flagRunnerGroupIndexingStart + getMyFlagrunnerGroup();
-        int fakeLocalIDOfGroupLeader = rc.readSharedArray(arrayIndexToReadFrom);
-        return localID == (fakeLocalIDOfGroupLeader & 15) + (getMyFlagrunnerGroup() - 1) * FLAGRUNNERS_PER_GROUP;
+        return localID == readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex();
     }
 
     public int getMyFlagrunnerGroup() {
-        // the max number of flagrunner groups is 3. the max amount of flag runners is stored in the constant in robotcontroller AMOUNT_OF_FLAGRUNNERS
-        // divide the first 1/3 of flagrunners into group 1, the second 1/3 into group 2, and the last 1/3 into group 3
-        if (localID <= (FLAGRUNNERS_PER_GROUP)) {
-            return 1;
-        } else if (localID <= (FLAGRUNNERS_PER_GROUP * 2)) {
-            return 2;
-        } else if (localID <= (FLAGRUNNERS_PER_GROUP * 3)) {
-            return 3;
-        } else {
-            return 0; // this is bad if it returns 0 !
+        if (localID <= FLAGRUNNERS_IN_GROUP_1) return 1;
+        else if (localID <= FLAGRUNNERS_IN_GROUP_1 + FLAGRUNNERS_IN_GROUP_2) return 2;
+        else if (localID <= FLAGRUNNERS_IN_GROUP_1 + FLAGRUNNERS_IN_GROUP_2 + FLAGRUNNERS_IN_GROUP_3) return 3;
+        else {
+            System.out.println("\n\n\n NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO GETFLAGRUNNERGROUP FAILED \n\n\n");
+            return -9000;
         }
     }
 
-    /**
-     * gives a bot their current group leader.
-     *
-     * @return the localID of the group leader
-     */
-    public int whoIsMyGroupLeader() throws GameActionException {
-        int arrayIndexToReadFrom = flagRunnerGroupIndexingStart + getMyFlagrunnerGroup();
-        int fakeLocalIDOfGroupLeader = rc.readSharedArray(arrayIndexToReadFrom);
-        return (fakeLocalIDOfGroupLeader & 15) + (getMyFlagrunnerGroup() - 1) * AMOUNT_OF_FLAGRUNNERS / 3;
-    }
-
     public MapLocation getLocationOfMyGroupLeader() throws GameActionException {
-        int arrayIndexToReadFrom = flagRunnerGroupIndexingStart + getMyFlagrunnerGroup();
-
-//        // print the entire shared array
-//        for (int i = 0; i < 64; i++) {
-//            System.out.println("index: " + i + "value: " + rc.readSharedArray(i));
-//        }
-
-//        System.out.println("localID: " + localID);
-//        System.out.println("index reading: " + arrayIndexToReadFrom);
-
-        int fakeLocalIDOfGroupLeader = rc.readSharedArray(arrayIndexToReadFrom);
-        int LocalIDOfGroupLeader = (fakeLocalIDOfGroupLeader & 15) + (getMyFlagrunnerGroup() - 1) * AMOUNT_OF_FLAGRUNNERS / 3;
-//        System.out.println(localIDOfGroupLeader);
+        int LocalIDOfGroupLeader = readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex();
 
         CoolRobotInfo groupLeaderInfo = coolRobotInfoArray[LocalIDOfGroupLeader - 1];
         return groupLeaderInfo.getCurLocation();
@@ -303,9 +301,8 @@ public class Utility {
      * @throws GameActionException if the duck cannot read/write to array
      */
     public void handleIfGroupLeaderDied() throws GameActionException {
-        int arrayIndexToReadFrom = flagRunnerGroupIndexingStart + getMyFlagrunnerGroup();
-        int fakeLocalIDOfGroupLeader = rc.readSharedArray(arrayIndexToReadFrom);
-        int localIDOfGroupLeader = (fakeLocalIDOfGroupLeader & 15) + (getMyFlagrunnerGroup() - 1) * AMOUNT_OF_FLAGRUNNERS / 3;
+        int localIDOfGroupLeader = readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex();
+
         CoolRobotInfo groupLeaderInfo = coolRobotInfoArray[localIDOfGroupLeader - 1];
         if (groupLeaderInfo.getCurLocation() == NONELOCATION) {
             // if group leader is dead, make ourselves the new group leader
@@ -315,21 +312,31 @@ public class Utility {
     }
 
     /**
-     * method for group leaders to write the location they wish group to see to the array.
-     * this flagrunnerGroup index in the array stores the location the group should see, AS WELL AS
-     * the id of the group leader. the location is the high 12 bits, and the id is the low 4 bits. since 2^4 = 16,
-     * we cannot store the full localID, so if we store "5", this means the 5th duck in your group is the group leader.
-     * this way we can store the localID of the group leader as well as the location, in the same index in the shared array.
+     * writes the location of the flagrunner group leader to the shared array, as well as the ID of the duck calling this.
+     * so, you make yourself the group leader by calling this
      * @param locationForFlagrunnerGroup loc for the flagrunner group to follow, attack, etc
      */
     public void writeToFlagrunnerGroupIndex(MapLocation locationForFlagrunnerGroup) throws GameActionException {
         // high 12 bits: location
         // low 4 bits: localID of group leader, but this num is only between 1-14, as each group has exactly 14 ducks
         int intToWrite = locationToInt(locationForFlagrunnerGroup) << 4; // loc in int form, in high 12 bits
-        intToWrite += (localID - 1) % 14 + 1; // localID of group leader, in low 4 bits
+        intToWrite += convertLocalIDToFakeID(localID); // fakeID in lower 4 bits
         int arrayIndexToWriteTo = flagRunnerGroupIndexingStart + getMyFlagrunnerGroup();
-//        System.out.println("what are we mf writing: " + localID + " | " + (((localID - 1) % 14) + 1));
+        rc.writeSharedArray(arrayIndexToWriteTo, intToWrite);
+    }
 
+    /**
+     * change the location set for a specific flagrunner group to a new location, without changing the leader
+     * @param locationForFlagrunnerGroup new location for the flagrunner group to see
+     * @param whichFlagrunnerGroup which group to change the location for
+     * @throws GameActionException if cannot write to shared array
+     */
+    public void writeJustLocationToFlagrunnerGroupIndex(MapLocation locationForFlagrunnerGroup, int whichFlagrunnerGroup) throws GameActionException {
+        int intToWrite = locationToInt(locationForFlagrunnerGroup) << 4; // loc in int form, in high 12 bits
+        // don't overwrite the lower 4 bits of the groupIndex in the shared array, just the higher 12
+        int arrayIndexToWriteTo = flagRunnerGroupIndexingStart + whichFlagrunnerGroup;
+        int currentFakeIDInArray = rc.readSharedArray(arrayIndexToWriteTo) & 15; // 15 is all 1's except the first 4 bits, so this will preserve the lower 4 bits
+        intToWrite += currentFakeIDInArray; // fakeID in lower 4 bits
         rc.writeSharedArray(arrayIndexToWriteTo, intToWrite);
     }
 
@@ -337,19 +344,21 @@ public class Utility {
         int arrayIndexToWriteTo = flagRunnerGroupIndexingStart + getMyFlagrunnerGroup();
         int intToWrite = rc.readSharedArray(arrayIndexToWriteTo); // this int holds location in high 12 bits, and "fake" localID in low 4 bits. we want to preserve the location, but overwrite the 4 bits of localID
         intToWrite = intToWrite & 4080; // 4080 is all 1's except the last 4 bits, so this will preserve the location, but make the localID 0
-        intToWrite += ((localIDOfNewLeader - 1) % 14) + 1; // converting the leader localID to a "flagrunner group localID" (1-14)
-//        System.out.println("what are we mf writing: " + localIDOfNewLeader + " | " + (((localIDOfNewLeader - 1) % 14) + 1));
+        intToWrite += convertLocalIDToFakeID(localIDOfNewLeader); // converting the leader localID to a "flagrunner group localID" (1-14)
         rc.writeSharedArray(arrayIndexToWriteTo, intToWrite);
-//        System.out.println("\t\t\t hm. " + getMyFlagrunnerGroup() + " | " + arrayIndexToWriteTo + " reading the array directly: " + rc.readSharedArray(flagRunnerGroupTwoLocIndex));
     }
 
+    /**
+     * initially, set each group up with a group leader (ONLY time this should be called)
+     * @param localIDOfNewLeader
+     * @param hardCodedWhatArrIndex
+     * @throws GameActionException
+     */
     public void writeJustLocalIDToFlagrunnerGroupIndex(int localIDOfNewLeader, int hardCodedWhatArrIndex) throws GameActionException {
         int intToWrite = rc.readSharedArray(hardCodedWhatArrIndex); // this int holds location in high 12 bits, and "fake" localID in low 4 bits. we want to preserve the location, but overwrite the 4 bits of localID
         intToWrite = intToWrite & 4080; // 4080 is all 1's except the last 4 bits, so this will preserve the location, but make the localID 0
-        intToWrite += ((localIDOfNewLeader - 1) % 14) + 1; // converting the leader localID to a "flagrunner group localID" (1-14)
-//        System.out.println("what are we mf writing: " + localIDOfNewLeader + " | " + (((localIDOfNewLeader - 1) % 14) + 1));
+        intToWrite += convertLocalIDToFakeID(localIDOfNewLeader); // converting the leader localID to a "flagrunner group localID" (1-14)
         rc.writeSharedArray(hardCodedWhatArrIndex, intToWrite);
-//        System.out.println("\t\t\t WOOOOAAAAAAAAAAHHHHHHHH " + getMyFlagrunnerGroup() + " | " + hardCodedWhatArrIndex + " reading the array directly: " + rc.readSharedArray(flagRunnerGroupTwoLocIndex));
     }
 
     public MapLocation readLocationFromFlagrunnerGroupIndex() throws GameActionException {
@@ -358,18 +367,10 @@ public class Utility {
         return intToLocation(intToRead >> 4);
     }
 
-    /**
-     * since the localID in the array is 1-14, we need to convert it back to the actual localID in the process of this method
-     * @return localID of your current group leader
-     * @throws GameActionException
-     */
     public int readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex() throws GameActionException {
         int arrayIndexToReadFrom = flagRunnerGroupIndexingStart + getMyFlagrunnerGroup();
-        int intToRead = rc.readSharedArray(arrayIndexToReadFrom);
-        int fakeLocalIDOfGroupLeader = intToRead & 15;
-//        System.out.println("fakeID awd: " + fakeLocalIDOfGroupLeader);
-        return fakeLocalIDOfGroupLeader + ((getMyFlagrunnerGroup()-1) * FLAGRUNNERS_PER_GROUP);
-//        return (intToRead & 15) + ((getMyFlagrunnerGroup() - 1) * AMOUNT_OF_FLAGRUNNERS / 3);
+        int fakeLocalIDFromGroupIndex = rc.readSharedArray(arrayIndexToReadFrom) & 15;
+        return convertFakeIDToLocalID(fakeLocalIDFromGroupIndex);
     }
 
     /**

@@ -31,9 +31,24 @@ public strictfp class RobotPlayer {
     // after divider drop
     static boolean isBomber = false;
     static boolean isFlagrunner = false;
-    public static final int AMOUNT_OF_FLAGRUNNERS = 42; // must be divisible by FLAGRUNNERS_PER_GROUP
-    public static final int FLAGRUNNERS_PER_GROUP = 14;
-    public static final int AMOUNT_OF_FLAGRUNNER_GROUPS = AMOUNT_OF_FLAGRUNNERS / FLAGRUNNERS_PER_GROUP;
+    public static final int FLAGRUNNERS_IN_GROUP_1 = 16;
+    public static final int INITIAL_GROUP_1_LEADER_ID = 1;
+    public static final int FLAGRUNNER_BUILDER_GROUP_1_ID = INITIAL_GROUP_1_LEADER_ID + 1;
+
+    public static final int FLAGRUNNERS_IN_GROUP_2 = 16;
+    public static final int INITIAL_GROUP_2_LEADER_ID = FLAGRUNNERS_IN_GROUP_1 + 1;
+    public static final int FLAGRUNNER_BUILDER_GROUP_2_ID = INITIAL_GROUP_2_LEADER_ID + 1;
+
+    public static final int FLAGRUNNERS_IN_GROUP_3 = 15;
+    public static final int INITIAL_GROUP_3_LEADER_ID = FLAGRUNNERS_IN_GROUP_1 + FLAGRUNNERS_IN_GROUP_2 + 1;
+    public static final int FLAGRUNNER_BUILDER_GROUP_3_ID = INITIAL_GROUP_3_LEADER_ID + 1;
+
+    public static final int AMOUNT_OF_FLAGRUNNERS = FLAGRUNNERS_IN_GROUP_1 + FLAGRUNNERS_IN_GROUP_2 + FLAGRUNNERS_IN_GROUP_3; // must be divisible by FLAGRUNNERS_PER_GROUP | must add up to all groups added together
+
+
+
+//    public static final int FLAGRUNNERS_PER_GROUP = 14;
+//    public static final int AMOUNT_OF_FLAGRUNNER_GROUPS = 3;
 
     // either
     static boolean isCommander = false;
@@ -141,7 +156,7 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
 
                     if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 40) {
-                        isBuilder = 2 + (FLAGRUNNERS_PER_GROUP * (util.getMyFlagrunnerGroup() - 1)) == localID;
+                        isBuilder = (localID == FLAGRUNNER_BUILDER_GROUP_1_ID || localID == FLAGRUNNER_BUILDER_GROUP_2_ID || localID == FLAGRUNNER_BUILDER_GROUP_3_ID);
                         if (!isDefender && !isBuilder) isScout = true; // set the proper scouts
 
                     } else if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) {
@@ -206,6 +221,8 @@ public strictfp class RobotPlayer {
 //                if (rc.getRoundNum() == 1 || rc.getRoundNum() == 2 || rc.getRoundNum() == 199 || rc.getRoundNum() == 200 || rc.getRoundNum() == 201) {
 //                    System.out.println("\t\t\treading the array directly: " + rc.readSharedArray(flagRunnerGroupTwoLocIndex));
 //                }
+
+                rc.setIndicatorString("MY LOCALID: " + localID);
 
                 // after every round whether spawned or not, convert your info to an int and write it to the shared array
                 util.writeMyInfoToSharedArray();
