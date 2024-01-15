@@ -160,7 +160,7 @@ public class Movement {
             Direction topOfStack = MovementStack.peek();
             if (rc.canMove(topOfStack) && !arrayList.contains(rc.getLocation().add(topOfStack))){
                 Direction last = topOfStack;
-                while (rc.canMove(topOfStack) &&!arrayList.contains(rc.getLocation().add(topOfStack))) {
+                while (rc.canMove(topOfStack) && !arrayList.contains(rc.getLocation().add(topOfStack))) {
                     MovementStack.pop();
                     last = topOfStack;
                     if (MovementStack.empty()) break;
