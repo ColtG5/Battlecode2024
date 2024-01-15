@@ -26,15 +26,19 @@ public class Flagrunner {
         this.movement = movement;
         this.util = util;
     }
+
     public void setLocalID(int localID) {
         this.localID = localID;
     }
+
     public void setSpawnAreaCenters(MapLocation[] spawnAreaCenters) {
         this.spawnAreaCenters = spawnAreaCenters;
     }
-    public void coolrobotinfoarray(Utility.CoolRobotInfo[] coolRobotInfoArray){
+
+    public void coolrobotinfoarray(Utility.CoolRobotInfo[] coolRobotInfoArray) {
         this.coolRobotInfoArray = coolRobotInfoArray;
     }
+
     public void run() throws GameActionException {
         if (!isBuilderSet) {
             isBuilderSet = true;
@@ -53,8 +57,12 @@ public class Flagrunner {
         }
 
         boolean isLeader = util.amIAGroupLeader();
-        if (isLeader) locationForFlagrunnerGroup = setLocationForGroup(); // decide where the group will go (including you)
-        else locationForFlagrunnerGroup = util.readLocationFromFlagrunnerGroupIndex();
+        if (isLeader)
+            locationForFlagrunnerGroup = setLocationForGroup(); // decide where the group will go (including you)
+        else {
+            locationForFlagrunnerGroup = util.readLocationFromFlagrunnerGroupIndex();
+            rc.setIndicatorDot(locationForFlagrunnerGroup, 0, 255, 0);
+        }
 
         if (isBuilder) {
             if (rc.getExperience(SkillType.BUILD) < 30) util.farmBuildEXP();
@@ -80,24 +88,28 @@ public class Flagrunner {
                 attackMicroWithMoveAvailable();
             }
         } else { // a follower
-            if (isDistanceToGroupLeaderMoreThan(10)) {
-                // if too far from group leader, use ur movement to get back to them!
-                movement.hardMove(util.getLocationOfMyGroupLeader());
-                attackMicroWithMoveAvailable();
-            } else { // if ur close enough, u can use ur movement in ur micro
-                if (coolRobotInfoArray[util.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex()-1].getHasFlag()) {
-                   useBannedMovement();
-                }
-                attackMicroWithMoveAvailable();
+//            if (isDistanceToGroupLeaderMoreThan(10)) {
+//                // if too far from group leader, use ur movement to get back to them!
+//                movement.hardMove(util.getLocationOfMyGroupLeader());
+//                attackMicroWithMoveAvailable();
+//            } else { // if ur close enough, u can use ur movement in ur micro
+//                if (coolRobotInfoArray[util.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex()-1].getHasFlag()) {
+//                   useBannedMovement();
+//                }
+//                attackMicroWithMoveAvailable();
+//            }
+            if (coolRobotInfoArray[util.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex() - 1].getHasFlag()) {
+                useBannedMovement();
             }
+            attackMicroWithMoveAvailable();
         }
     }
 
     private MapLocation getClosetSpawnAreaCenter() {
         int closetDistence = spawnAreaCenters[0].distanceSquaredTo(rc.getLocation());
         MapLocation closetSpawnAreaCenter = spawnAreaCenters[0];
-        for( MapLocation spawnAreaCenter : spawnAreaCenters){
-            if(spawnAreaCenter.distanceSquaredTo(rc.getLocation()) < closetDistence){
+        for (MapLocation spawnAreaCenter : spawnAreaCenters) {
+            if (spawnAreaCenter.distanceSquaredTo(rc.getLocation()) < closetDistence) {
                 closetDistence = spawnAreaCenter.distanceSquaredTo(rc.getLocation());
                 closetSpawnAreaCenter = spawnAreaCenter;
             }
@@ -225,9 +237,11 @@ public class Flagrunner {
                 }
             }
         }
-        if (locForGroup == null) locForGroup = getClosetSpawnAreaCenter(); // by my logic, this should never happen, but hey
+        if (locForGroup == null)
+            locForGroup = getClosetSpawnAreaCenter(); // by my logic, this should never happen, but hey
 
         // write this locForGroup into the spot in the shared array for this group
+        rc.setIndicatorDot(locForGroup, 0, 0, 255);
         util.writeToFlagrunnerGroupIndex(locForGroup);
         return locForGroup;
     }
@@ -254,6 +268,7 @@ public class Flagrunner {
     /**
      * Returns a pair of a boolean and a MapLocation. The boolean is true if the enemy can attack me next turn, and
      * false if the enemy cannot attack me next turn. The MapLocation is the location of the enemy that can attack me
+     *
      * @param enemyRobots all enemy robots
      * @return bool of if we could be attacked next turn, and the location of that rapscallion
      */
@@ -347,6 +362,7 @@ public class Flagrunner {
     /**
      * Use this attacking/healing micro when you do NOT want to move in the micro! (you want to beeline to a location and
      * not waste your movement in the micro (getting to the place is super urgent!!!!!)
+     *
      * @throws GameActionException could not attack or heal smthn we tried to I think
      */
     public void attackMicroWithNoMoveAvailable() throws GameActionException {
@@ -374,6 +390,7 @@ public class Flagrunner {
     /**
      * Use this attacking/healing micro when you DO want to move in the micro! (for most cases. Essentially make your
      * journey longer in exchange for being able to move during your attack/healing micro)
+     *
      * @throws GameActionException if we cant move, attack, or heal I think???
      */
     public void attackMicroWithMoveAvailable() throws GameActionException {
@@ -390,7 +407,8 @@ public class Flagrunner {
                     if (rc.isActionReady()) { // we can fight back, so go smack them
                         movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()));
                         attackableEnemyLocation = getAttackableEnemyWithLowestHealth(enemyRobots);
-                        if (attackableEnemyLocation != null && rc.canAttack(attackableEnemyLocation)) rc.attack(attackableEnemyLocation);
+                        if (attackableEnemyLocation != null && rc.canAttack(attackableEnemyLocation))
+                            rc.attack(attackableEnemyLocation);
                     } else { // we cannot fight back, try to run
                         movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
                     }
