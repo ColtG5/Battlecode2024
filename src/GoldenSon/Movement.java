@@ -48,6 +48,7 @@ public class Movement {
         return false;
 
     }
+
     static Stack<Direction> MovementStack = new Stack<>();
 
     public Direction rotateOnce(boolean lefty, Direction hype) {
@@ -68,6 +69,13 @@ public class Movement {
                 return true;
             } else {
                 MapLocation potentialLocation = rc.getLocation().add(hype);
+                if(rc.canFill(potentialLocation)){
+                    rc.fill(potentialLocation);
+                    if(rc.canMove(hype)){
+                        rc.move(hype);
+                        return true;
+                    }
+                }
                 if (rc.onTheMap(potentialLocation)) MovementStack.push(hype);
                 else {
                     MovementStack.clear();
@@ -126,12 +134,13 @@ public class Movement {
             Direction topOfStack = MovementStack.peek();
             if (rc.canMove(topOfStack)){
                 Direction last = topOfStack;
-                while (rc.canMove(topOfStack)) {
+                while (rc.canMove(topOfStack) || rc.canFill(rc.getLocation().add(topOfStack))) {
                     MovementStack.pop();
                     last = topOfStack;
                     if (MovementStack.empty()) break;
                     topOfStack = MovementStack.peek();
                 }
+                if(rc.canFill(rc.getLocation().add(last))) rc.fill(rc.getLocation().add(last));
                 rc.move(last);
                 return true;
             }
