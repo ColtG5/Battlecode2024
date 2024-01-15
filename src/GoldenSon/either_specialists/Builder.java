@@ -37,7 +37,6 @@ public class Builder {
         movement.hardMove(groupLocToMoveTo);
 
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-//        System.out.println("might place bombs if conditon met");
         if (enemies.length > 3 && rc.getRoundNum() > GameConstants.SETUP_ROUNDS) {
             tryToPlaceBomb();
         }

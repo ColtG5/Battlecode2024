@@ -5,6 +5,7 @@ import battlecode.common.*;
 import GoldenSon.Movement;
 import GoldenSon.Utility;
 
+import java.awt.*;
 import java.util.ArrayList;
 
 import static GoldenSon.RobotPlayer.*;
@@ -49,20 +50,29 @@ public class Flagrunner {
             movement.setLefty(util.getMyFlagrunnerGroup() % 2 == 0);
         }
 
+        MapInfo[] damStuff = rc.senseNearbyMapInfos();
+        for (MapInfo location : damStuff) {
+            if (location.isDam() && rc.getLocation().isAdjacentTo(location.getMapLocation()))
+                return;
+        }
+
         if (util.amIAGroupLeader()) locationForFlagrunnerGroup = setLocationForGroup(); // decide where the group will go (including you)
         else locationForFlagrunnerGroup = getLocationForGroup();
 
-//        System.out.println(isBuilder);
         if (isBuilder) {
-            builder.run(locationForFlagrunnerGroup);
-            return;
+            if (rc.getExperience(SkillType.BUILD) < 30) farmEXP();
+
+            RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+            if (enemies.length > 3 && rc.getRoundNum() > GameConstants.SETUP_ROUNDS) {
+                tryToPlaceBomb(enemies);
+            }
         }
 
 //        rc.setIndicatorDot(locationForFlagrunnerGroup, 0, 0, 255);
 
         boolean isLeader = util.amIAGroupLeader();
 
-        if(rc.hasFlag()){
+        if (rc.hasFlag()) {
             util.writeToFlagrunnerGroupIndex(rc.getLocation());
             MapLocation closetSpawnAreaCenter = getClosetSpawnAreaCenter();
             movement.hardMove(closetSpawnAreaCenter);
@@ -70,9 +80,9 @@ public class Flagrunner {
         }
         FlagInfo[] flagInfo = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
         for (FlagInfo info : flagInfo) {
-            if(!info.isPickedUp()){
+            if (!info.isPickedUp() && !isBuilder) {
 //                rc.setIndicatorString("GOING TO FLAG");
-                if(rc.canPickupFlag(info.getLocation())){
+                if (rc.canPickupFlag(info.getLocation())) {
                     rc.pickupFlag(info.getLocation());
                     util.writeToFlagrunnerGroupIndex(rc.getLocation());
                     MapLocation closetSpawnAreaCenter = getClosetSpawnAreaCenter();
@@ -82,32 +92,21 @@ public class Flagrunner {
                 movement.hardMove(info.getLocation());
                 RobotInfo[] enemyRobot = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
                 MapLocation attackableEnemy = getAttackableEnemyWithLowestHealth(enemyRobot);
-                if(attackableEnemy != null){
-                    if(rc.canAttack(attackableEnemy)){
-                        rc.attack(attackableEnemy);
-                    }
-                }else{
-                    tryToHeal();
-                }
-
+                if(attackableEnemy != null) {
+                    if(rc.canAttack(attackableEnemy)) rc.attack(attackableEnemy);
+                } else tryToHeal();
             }
         }
-
-
-
-//        if (rc.getRoundNum() == 201) System.out.println(isLeader);
 
         if (isLeader) {
             if (tooFewGroupMembersAround(8)) { // if leader don't got a lotta homies, maybe just sit and wait for the gang?
                 attackMicroWithMoveAvailable();
                 // have the option of choosing to sit in place to wait for dudes to pull up on you
-                // attackMicroWithNoMoveAvailable();
+//                 attackMicroWithNoMoveAvailable();
 //                rc.setIndicatorDot(rc.getLocation(), 255, 255, 0);
             } else { // if u got homies, gameplan as usual.
                 attackMicroWithMoveAvailable();
             }
-//            if (rc.getRoundNum() == 201) System.out.println("gang gang");
-//            rc.setIndicatorDot(rc.getLocation(), 0, 0, 125);
         } else { // a follower
             if (isDistanceToGroupLeaderMoreThan(10)) {
                 // if too far from group leader, use ur movement to get back to them!
@@ -118,12 +117,12 @@ public class Flagrunner {
                 attackMicroWithMoveAvailable();
 //                rc.setIndicatorDot(util.getLocationOfMyGroupLeader(), 0, 255, 0);
             } else { // if ur close enough, u can use ur movement in ur micro
-                if(coolRobotInfoArray[util.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex() -1 ].getHasFlag()){
+                if (coolRobotInfoArray[util.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex() -1 ].getHasFlag()) {
 //                    rc.setIndicatorString("TRYING TO GET FLAG BACK");
                     MapInfo[] mapInfos = rc.senseNearbyMapInfos();
                     ArrayList<MapLocation> bannedPlaces = new ArrayList<>();
-                    for(MapInfo mapInfo:mapInfos){
-                        if(mapInfo.getMapLocation().isAdjacentTo(util.getLocationOfMyGroupLeader())){
+                    for (MapInfo mapInfo:mapInfos) {
+                        if (mapInfo.getMapLocation().isAdjacentTo(util.getLocationOfMyGroupLeader())) {
                             bannedPlaces.add(mapInfo.getMapLocation());
                         }
                     }
@@ -150,9 +149,82 @@ public class Flagrunner {
     }
 
     // ---------------------------------------------------------------------------------
-    //                               helper funcs below
+    //                               builder funcs below
     // ---------------------------------------------------------------------------------
 
+    private void farmEXP() throws GameActionException {
+        MapInfo[] infos = rc.senseNearbyMapInfos(-1);
+        for (MapInfo info : infos) {
+            if (info.isWater()) {
+                if (rc.canFill(info.getMapLocation()))
+                    rc.fill(info.getMapLocation());
+            } else {
+                if (rc.canDig(info.getMapLocation()))
+                    rc.dig(info.getMapLocation());
+            }
+        }
+    }
+
+    private void tryToPlaceBomb(RobotInfo[] enemies) throws GameActionException {
+
+        MapInfo[] infoAround = rc.senseNearbyMapInfos(10);
+        ArrayList<MapLocation> possiblePlacements = new ArrayList<>();
+
+        int countNumberOfTrapsAround = 0;
+
+        for (MapInfo info : infoAround) {
+            if (info.getTrapType() != TrapType.NONE) {
+                countNumberOfTrapsAround++;
+            }
+        }
+
+        if (countNumberOfTrapsAround > 3) return;
+
+        MapLocation closestEnemy = closestEnemyToMe(enemies);
+
+        for (int i = 0; i < 2; i++) {
+            possiblePlacements.clear();
+
+            for (MapInfo info : infoAround) {
+                if (rc.canBuild(TrapType.EXPLOSIVE, info.getMapLocation()))
+                    possiblePlacements.add(info.getMapLocation());
+            }
+
+            MapLocation bestPlacement = locationClosestToEnemy(possiblePlacements, closestEnemy);
+
+            if (bestPlacement != null && rc.canBuild(TrapType.EXPLOSIVE, bestPlacement))
+                rc.build(TrapType.EXPLOSIVE, bestPlacement);
+        }
+
+        if (rc.canAttack(closestEnemy)) rc.attack(closestEnemy);
+        Direction dir = rc.getLocation().directionTo(closestEnemy).opposite();
+        if (rc.canMove(dir)) rc.move(dir);
+    }
+
+
+    public MapLocation closestEnemyToMe(RobotInfo[] nearbyEnemies) {
+        RobotInfo closestEnemy = null;
+
+        for (RobotInfo enemy : nearbyEnemies) {
+            if (closestEnemy == null) closestEnemy = enemy;
+            else if (rc.getLocation().distanceSquaredTo(enemy.getLocation()) < rc.getLocation().distanceSquaredTo(closestEnemy.getLocation()))
+                closestEnemy = enemy;
+        }
+        if (closestEnemy != null) return closestEnemy.getLocation();
+        return null;
+    }
+
+    public MapLocation locationClosestToEnemy(ArrayList<MapLocation> locations, MapLocation closestEnemy) {
+        MapLocation closestLocation = null;
+
+        for (MapLocation location : locations) {
+            if (closestLocation == null) closestLocation = location;
+            else if (location.distanceSquaredTo(closestEnemy) < closestLocation.distanceSquaredTo(closestEnemy))
+                closestLocation = location;
+        }
+
+        return closestLocation;
+    }
 
     // ---------------------------------------------------------------------------------
     //                              buddy checking funcs
@@ -248,6 +320,7 @@ public class Flagrunner {
         for (RobotInfo enemyRobot : attackableEnemies) {
             if (enemyRobot.health < lowestHealthEnemy.health) lowestHealthEnemy = enemyRobot;
         }
+        rc.setIndicatorString(lowestHealthEnemy.location.toString());
         return lowestHealthEnemy.location;
     }
 
@@ -281,6 +354,10 @@ public class Flagrunner {
         if (friendliesInRangeToHeal.length == 0) return;
         RobotInfo lowestHealthFriendly = friendliesInRangeToHeal[0];
         for (RobotInfo friendly : friendliesInRangeToHeal) {
+            if (friendly.buildLevel > 20) {
+                lowestHealthFriendly = friendly;
+                break;
+            }
             if (friendly.health < lowestHealthFriendly.health) lowestHealthFriendly = friendly;
         }
 
