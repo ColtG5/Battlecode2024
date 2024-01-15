@@ -6,6 +6,7 @@ import battlecode.common.*;
 
 import java.util.ArrayList;
 
+
 public class Builder {
     RobotController rc;
     Movement movement;
@@ -17,22 +18,28 @@ public class Builder {
         this.utility = utility;
     }
 
-    public void run() throws GameActionException {
+    public void run(MapLocation groupLocToMoveTo) throws GameActionException {
         // Don't move when farming exp
-        if ((rc.getExperience(SkillType.BUILD) < 30 && rc.getRoundNum() < GameConstants.SETUP_ROUNDS) ||
-                (rc.getExperience(SkillType.BUILD) < 20 && rc.getRoundNum() > GameConstants.SETUP_ROUNDS)) {
+        if (rc.getExperience(SkillType.BUILD) < 30) {
             farmEXP();
         }
 
-        // FOr testing only
-        MapLocation[] enemyFlags = rc.senseBroadcastFlagLocations();
-        for (MapLocation flag : enemyFlags) {
-            movement.hardMove(flag);
+//        // FOr testing only
+//        MapLocation[] enemyFlags = rc.senseBroadcastFlagLocations();
+//        for (MapLocation flag : enemyFlags) {
+//            movement.hardMove(flag);
+//        }
+
+        if (isDistanceToGroupLeaderMoreThan(10)) {
+            movement.hardMove(utility.getLocationOfMyGroupLeader());
         }
 
+        movement.hardMove(groupLocToMoveTo);
+
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        if (enemies.length > 4 && rc.getRoundNum() > GameConstants.SETUP_ROUNDS) {
-            placeBombs();
+//        System.out.println("might place bombs if conditon met");
+        if (enemies.length > 3 && rc.getRoundNum() > GameConstants.SETUP_ROUNDS) {
+            tryToPlaceBomb();
         }
     }
 
@@ -50,21 +57,78 @@ public class Builder {
     }
 
     private void placeBombs() throws GameActionException {
-       MapInfo[] infoAround = rc.senseNearbyMapInfos(GameConstants.INTERACT_RADIUS_SQUARED);
-       ArrayList<MapLocation> possiblePlacements = new ArrayList<>();
-       for (MapInfo info : infoAround) {
-           if (rc.canBuild(TrapType.EXPLOSIVE, info.getMapLocation())) possiblePlacements.add(info.getMapLocation());
-       }
+//        System.out.println("TRIED !!!");
+        MapInfo[] infoAround = rc.senseNearbyMapInfos(-1);
+        ArrayList<MapLocation> possiblePlacements = new ArrayList<>();
+
+        int countNumberOfTrapsAround = 0;
+
+        for (MapInfo info : infoAround) {
+            if (info.getTrapType() != TrapType.NONE) {
+                countNumberOfTrapsAround++;
+            }
+        }
+
+        if (countNumberOfTrapsAround > 3) return;
+
+        for (MapInfo info : infoAround) {
+            if (rc.canBuild(TrapType.EXPLOSIVE, info.getMapLocation())) possiblePlacements.add(info.getMapLocation());
+        }
+
+        if (rc.getRoundNum() > 190 && rc.getRoundNum() < 210) {
+            System.out.println(possiblePlacements);
+        }
 
         MapLocation closestEnemy = closestEnemyToMe(rc.senseNearbyRobots(-1, rc.getTeam().opponent()));
         MapLocation bestPlacement = locationClosestToEnemy(possiblePlacements, closestEnemy);
 
-        if (bestPlacement != null) {
+        if (bestPlacement != null && rc.getCrumbs() >= TrapType.EXPLOSIVE.buildCost) {
             if (rc.canBuild(TrapType.EXPLOSIVE, bestPlacement)) rc.build(TrapType.EXPLOSIVE, bestPlacement);
         } else {
             if (rc.canAttack(closestEnemy)) rc.attack(closestEnemy);
         }
     }
+
+    private void tryToPlaceBomb() throws GameActionException {
+
+        MapInfo[] infoAround = rc.senseNearbyMapInfos(10);
+        ArrayList<MapLocation> possiblePlacements = new ArrayList<>();
+
+        int countNumberOfTrapsAround = 0;
+
+        for (MapInfo info : infoAround) {
+            if (info.getTrapType() != TrapType.NONE) {
+                countNumberOfTrapsAround++;
+            }
+        }
+
+        if (countNumberOfTrapsAround > 3) return;
+
+        MapLocation closestEnemy = closestEnemyToMe(rc.senseNearbyRobots(-1, rc.getTeam().opponent()));
+
+        for (int i = 0; i < 2; i++) {
+            possiblePlacements.clear();
+
+            for (MapInfo info : infoAround) {
+                if (rc.canBuild(TrapType.EXPLOSIVE, info.getMapLocation()))
+                    possiblePlacements.add(info.getMapLocation());
+            }
+
+            MapLocation bestPlacement = locationClosestToEnemy(possiblePlacements, closestEnemy);
+
+            if (rc.getRoundNum() > 190 && rc.getRoundNum() < 210 && bestPlacement != null) {
+                rc.setIndicatorString(bestPlacement.toString());
+            }
+
+
+            if (bestPlacement != null) {
+                if (rc.canBuild(TrapType.EXPLOSIVE, bestPlacement)) rc.build(TrapType.EXPLOSIVE, bestPlacement);
+            }
+        }
+
+        if (rc.canAttack(closestEnemy)) rc.attack(closestEnemy);
+    }
+
 
     public MapLocation closestEnemyToMe(RobotInfo[] nearbyEnemies) {
         RobotInfo closestEnemy = null;
@@ -88,5 +152,11 @@ public class Builder {
         }
 
         return closestLocation;
+    }
+
+    public boolean isDistanceToGroupLeaderMoreThan(int distance) throws GameActionException {
+        MapLocation myLocation = rc.getLocation();
+        MapLocation groupLeaderLocation = utility.readLocationFromFlagrunnerGroupIndex();
+        return myLocation.distanceSquaredTo(groupLeaderLocation) > distance;
     }
 }

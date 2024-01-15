@@ -1,19 +1,23 @@
 package GoldenSon.after_specialists;
 
+import GoldenSon.either_specialists.Builder;
 import battlecode.common.*;
 import GoldenSon.Movement;
 import GoldenSon.Utility;
-import GoldenSon.RobotPlayer.*;
 
 import java.util.ArrayList;
 
 import static GoldenSon.RobotPlayer.*;
 
 public class Flagrunner {
+    int localID;
     RobotController rc;
     Movement movement;
     Utility util;
     MapLocation locationForFlagrunnerGroup;
+    Builder builder;
+    boolean isBuilder;
+    boolean isBuilderSet = false;
     boolean leftySet = false;
 
     Utility.CoolRobotInfo[] coolRobotInfoArray;
@@ -23,6 +27,10 @@ public class Flagrunner {
         this.rc = rc;
         this.movement = movement;
         this.util = util;
+        builder = new Builder(rc, movement, util);
+    }
+    public void setLocalID(int localID) {
+        this.localID = localID;
     }
     public void setSpawnAreaCenters(MapLocation[] spawnAreaCenters) {
         this.spawnAreaCenters = spawnAreaCenters;
@@ -31,6 +39,11 @@ public class Flagrunner {
         this.coolRobotInfoArray = coolRobotInfoArray;
     }
     public void run() throws GameActionException {
+        if (!isBuilderSet) {
+            int whichDuckOfEachGroupIsDestinedToBeABuilder = 2; // the second duck of each group is gonna be the builder
+            isBuilder = whichDuckOfEachGroupIsDestinedToBeABuilder + (FLAGRUNNERS_PER_GROUP * (util.getMyFlagrunnerGroup() - 1)) == localID; // sets second duck of each group to be a builder
+        }
+
         if (!leftySet) {
             leftySet = true;
             movement.setLefty(util.getMyFlagrunnerGroup() % 2 == 0);
@@ -38,6 +51,12 @@ public class Flagrunner {
 
         if (util.amIAGroupLeader()) locationForFlagrunnerGroup = setLocationForGroup(); // decide where the group will go (including you)
         else locationForFlagrunnerGroup = getLocationForGroup();
+
+//        System.out.println(isBuilder);
+        if (isBuilder) {
+            builder.run(locationForFlagrunnerGroup);
+            return;
+        }
 
 //        rc.setIndicatorDot(locationForFlagrunnerGroup, 0, 0, 255);
 
@@ -52,7 +71,7 @@ public class Flagrunner {
         FlagInfo[] flagInfo = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
         for (FlagInfo info : flagInfo) {
             if(!info.isPickedUp()){
-                rc.setIndicatorString("GOING TO FLAG");
+//                rc.setIndicatorString("GOING TO FLAG");
                 if(rc.canPickupFlag(info.getLocation())){
                     rc.pickupFlag(info.getLocation());
                     util.writeToFlagrunnerGroupIndex(rc.getLocation());
@@ -92,7 +111,7 @@ public class Flagrunner {
         } else { // a follower
             if (isDistanceToGroupLeaderMoreThan(10)) {
                 // if too far from group leader, use ur movement to get back to them!
-                rc.setIndicatorString("FUCK");
+//                rc.setIndicatorString("FUCK");
 
                 movement.hardMove(util.getLocationOfMyGroupLeader());
                 //attackMicroWithNoMoveAvailable();
@@ -100,7 +119,7 @@ public class Flagrunner {
 //                rc.setIndicatorDot(util.getLocationOfMyGroupLeader(), 0, 255, 0);
             } else { // if ur close enough, u can use ur movement in ur micro
                 if(coolRobotInfoArray[util.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex() -1 ].getHasFlag()){
-                    rc.setIndicatorString("TRYING TO GET FLAG BACK");
+//                    rc.setIndicatorString("TRYING TO GET FLAG BACK");
                     MapInfo[] mapInfos = rc.senseNearbyMapInfos();
                     ArrayList<MapLocation> bannedPlaces = new ArrayList<>();
                     for(MapInfo mapInfo:mapInfos){
@@ -111,7 +130,7 @@ public class Flagrunner {
                     movement.hardMove(util.getLocationOfMyGroupLeader(),bannedPlaces);
                     return;
                 }
-                rc.setIndicatorString("SHIT");
+//                rc.setIndicatorString("SHIT");
                 attackMicroWithMoveAvailable();
             }
         }
@@ -152,6 +171,11 @@ public class Flagrunner {
 
     public MapLocation setLocationForGroup() throws GameActionException {
         MapLocation locForGroup = null;
+
+        if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) {
+            locForGroup = new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2);
+            return locForGroup;
+        }
 
         // see if we can sense any enemy flags
         FlagInfo[] enemyFlags = rc.senseNearbyFlags(-1, rc.getTeam().opponent());

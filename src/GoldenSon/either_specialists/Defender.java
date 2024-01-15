@@ -42,13 +42,7 @@ public class Defender {
 //        } else movement.hardMove(myBreadIDefendForMyLife);
 
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        if (enemies.length != 0) tryToPlaceBomb(enemies);
-        RobotInfo[] enemies2 = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        if (enemies2.length != 0) {
-            MapLocation enemy = utility.enemyWithLowestHP(enemies2);
-            if (rc.canAttack(enemy)) rc.attack(enemy);
-//            tryToPlaceBomb(enemies2);
-        }
+        if (enemies.length != 0) tryToPlaceBomb();
     }
 
     private void farmEXP() throws GameActionException {
@@ -67,17 +61,34 @@ public class Defender {
     /**
      * Attempt to place a bomb at current location
      */
-    private void tryToPlaceBomb(RobotInfo[] enemies) throws GameActionException {
-        MapLocation closestEnemy = closestEnemyToFlag(enemies);
-        Direction dir = null;
-        if (closestEnemy != null) {
-            dir = myBreadIDefendForMyLife.directionTo(closestEnemy);
+    private void tryToPlaceBomb() throws GameActionException {
+
+        MapInfo[] infoAround = rc.senseNearbyMapInfos(GameConstants.INTERACT_RADIUS_SQUARED);
+        ArrayList<MapLocation> possiblePlacements = new ArrayList<>();
+
+        MapLocation closestEnemy = closestEnemyToMe(rc.senseNearbyRobots(-1, rc.getTeam().opponent()));
+
+        for (int i = 0; i < 10; i++) {
+            possiblePlacements.clear();
+
+            for (MapInfo info : infoAround) {
+                if (rc.canBuild(TrapType.EXPLOSIVE, info.getMapLocation()))
+                    possiblePlacements.add(info.getMapLocation());
+            }
+
+            MapLocation bestPlacement = locationClosestToEnemy(possiblePlacements, closestEnemy);
+
+            if (rc.getRoundNum() > 190 && rc.getRoundNum() < 210 && bestPlacement != null) {
+                rc.setIndicatorString(bestPlacement.toString());
+            }
+
+
+            if (bestPlacement != null) {
+                if (rc.canBuild(TrapType.EXPLOSIVE, bestPlacement)) rc.build(TrapType.EXPLOSIVE, bestPlacement);
+            }
         }
 
-        if (dir != null && rc.canBuild(TrapType.EXPLOSIVE, myBreadIDefendForMyLife.add(dir)))
-            rc.build(TrapType.EXPLOSIVE, myBreadIDefendForMyLife.add(dir));
-
-        rc.setIndicatorString("Tried to place bomb");
+        if (rc.canAttack(closestEnemy)) rc.attack(closestEnemy);
     }
 
 
@@ -90,15 +101,27 @@ public class Defender {
         if (rc.canSpawn(myBreadIDefendForMyLife)) rc.spawn(myBreadIDefendForMyLife);
     }
 
-    public MapLocation closestEnemyToFlag(RobotInfo[] nearbyEnemies) {
+    public MapLocation closestEnemyToMe(RobotInfo[] nearbyEnemies) {
         RobotInfo closestEnemy = null;
 
         for (RobotInfo enemy : nearbyEnemies) {
             if (closestEnemy == null) closestEnemy = enemy;
-            else if (myBreadIDefendForMyLife.distanceSquaredTo(enemy.getLocation()) < myBreadIDefendForMyLife.distanceSquaredTo(closestEnemy.getLocation()))
+            else if (rc.getLocation().distanceSquaredTo(enemy.getLocation()) < rc.getLocation().distanceSquaredTo(closestEnemy.getLocation()))
                 closestEnemy = enemy;
         }
         if (closestEnemy != null) return closestEnemy.getLocation();
         return null;
+    }
+
+    public MapLocation locationClosestToEnemy(ArrayList<MapLocation> locations, MapLocation closestEnemy) {
+        MapLocation closestLocation = null;
+
+        for (MapLocation location : locations) {
+            if (closestLocation == null) closestLocation = location;
+            else if (location.distanceSquaredTo(closestEnemy) < closestLocation.distanceSquaredTo(closestEnemy))
+                closestLocation = location;
+        }
+
+        return closestLocation;
     }
 }

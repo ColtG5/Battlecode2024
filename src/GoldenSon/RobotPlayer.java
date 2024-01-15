@@ -26,10 +26,10 @@ public strictfp class RobotPlayer {
     // before divider drop
     static boolean isScout = false;
     static boolean isDefender = false;
+    static boolean isBuilder = false;
 
     // after divider drop
     static boolean isBomber = false;
-    static boolean isBuilder = false;
     static boolean isFlagrunner = false;
     public static final int AMOUNT_OF_FLAGRUNNERS = 42; // must be divisible by FLAGRUNNERS_PER_GROUP
     public static final int FLAGRUNNERS_PER_GROUP = 14;
@@ -97,6 +97,7 @@ public strictfp class RobotPlayer {
                     movement.setLefty((localID % 2) == 1);
                     util.setLocalID(localID);
                     defender.setLocalID(localID);
+                    flagrunner.setLocalID(localID);
 
                     MapLocation[] spawnAreaCentersLocal = util.findCentersOfSpawnZones();
                     spawnAreaCenters = spawnAreaCentersLocal;
@@ -140,12 +141,13 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
 
                     if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 40) {
-//                        if (48 <= localID && localID <= 50) isDefender = true; // set the proper defenders
-                        if (45 <= localID && localID <= 47) isBuilder = true;
-                        else if (!isDefender) isScout = true; // set the proper scouts
+                        isBuilder = 2 + (FLAGRUNNERS_PER_GROUP * (util.getMyFlagrunnerGroup() - 1)) == localID;
+                        if (!isDefender && !isBuilder) isScout = true; // set the proper scouts
+
                     } else if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) {
+                        isBuilder = false;
                         if (localID <= AMOUNT_OF_FLAGRUNNERS) isFlagrunner = true; // set the proper flagrunners
-                        else if (!isDefender && !isBuilder) isBomber = true; // set the proper bombers
+//                        else if (!isDefender) isBomber = true; // set the proper bombers
 
                         // set all the before divider specializations to false just to make sure no one is running them
                         isScout = false;
@@ -175,8 +177,8 @@ public strictfp class RobotPlayer {
                         else if (isCommander) commander.run();  // no commanders rn
                         else if (isScout) scout.run(); // rn we make 30 scouts
                         else if (isDefender) defender.run();
+                        else if (isBuilder) builder.run(rc.getLocation());
                         else if (isFlagrunner) flagrunner.run();
-                        else if (isBuilder) builder.run();
                         else unspecialized.run(); // none unspecialized rn (all taken up to be scouts)
                     } else { // after divider drop strategies
                         if (isCommander) commander.run();
@@ -190,7 +192,6 @@ public strictfp class RobotPlayer {
                             flagrunner.run();
                         }
                         else if (isDefender) defender.run();
-                        else if (isBuilder) builder.run();
                         else unspecialized.run();
                     }
 
