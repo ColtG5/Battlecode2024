@@ -373,19 +373,17 @@ public class Utility {
         return convertFakeIDToLocalID(fakeLocalIDFromGroupIndex);
     }
 
-    /**
-     * @param nearbyEnemies Array of robots
-     * @return Enemy with lowest HP or null if no enemies around
-     */
-    public MapLocation enemyWithLowestHP(RobotInfo[] nearbyEnemies) {
-        RobotInfo enemyWithLowestHP = null;
-
-        for (RobotInfo enemy : nearbyEnemies) {
-            if (enemyWithLowestHP == null) enemyWithLowestHP = enemy;
-            else if (enemy.getHealth() < enemyWithLowestHP.getHealth()) enemyWithLowestHP = enemy;
+    public void farmBuildEXP() throws GameActionException {
+        MapInfo[] infos = rc.senseNearbyMapInfos(-1);
+        for (MapInfo info : infos) {
+            if (info.isWater()) {
+                if (rc.canFill(info.getMapLocation()))
+                    rc.fill(info.getMapLocation());
+            } else {
+                if (rc.canDig(info.getMapLocation()))
+                    rc.dig(info.getMapLocation());
+            }
         }
-        if (enemyWithLowestHP != null) return enemyWithLowestHP.getLocation();
-        return null;
     }
 
     /**

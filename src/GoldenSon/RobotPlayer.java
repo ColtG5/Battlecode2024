@@ -26,7 +26,6 @@ public strictfp class RobotPlayer {
     // before divider drop
     static boolean isScout = false;
     static boolean isDefender = false;
-    static boolean isBuilder = false;
 
     // after divider drop
     static boolean isBomber = false;
@@ -102,7 +101,6 @@ public strictfp class RobotPlayer {
         // either strategies
         Unspecialized unspecialized = new Unspecialized(rc, movement, util);
         Commander commander = new Commander(rc, movement, util);
-        Builder builder = new Builder(rc, movement, util);
 
         while (true) {
             turnCount += 1;  // We have now been alive for one more turn!
@@ -113,6 +111,7 @@ public strictfp class RobotPlayer {
                     util.setLocalID(localID);
                     defender.setLocalID(localID);
                     flagrunner.setLocalID(localID);
+                    scout.setLocalID(localID);
 
                     MapLocation[] spawnAreaCentersLocal = util.findCentersOfSpawnZones();
                     spawnAreaCenters = spawnAreaCentersLocal;
@@ -156,11 +155,9 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
 
                     if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 40) {
-                        isBuilder = (localID == FLAGRUNNER_BUILDER_GROUP_1_ID || localID == FLAGRUNNER_BUILDER_GROUP_2_ID || localID == FLAGRUNNER_BUILDER_GROUP_3_ID);
-                        if (!isDefender && !isBuilder) isScout = true; // set the proper scouts
+                        if (!isDefender) isScout = true; // set the proper scouts
 
                     } else if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) {
-                        isBuilder = false;
                         if (localID <= AMOUNT_OF_FLAGRUNNERS) isFlagrunner = true; // set the proper flagrunners
 //                        else if (!isDefender) isBomber = true; // set the proper bombers
 
@@ -192,17 +189,12 @@ public strictfp class RobotPlayer {
                         else if (isCommander) commander.run();  // no commanders rn
                         else if (isScout) scout.run(); // rn we make 30 scouts
                         else if (isDefender) defender.run();
-                        else if (isBuilder) builder.run(rc.getLocation());
                         else if (isFlagrunner) flagrunner.run();
                         else unspecialized.run(); // none unspecialized rn (all taken up to be scouts)
                     } else { // after divider drop strategies
                         if (isCommander) commander.run();
                         else if (isBomber) bomber.run();
                         else if (isFlagrunner) {
-//                            if (rc.getRoundNum() == 201) {
-//                                System.out.println("group leader is: " + util.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex());
-//                                System.out.println("" + localID + " flagrunner.run(), amILeader: " + util.amIAGroupLeader() + "\n");
-//                            }
                             util.handleIfGroupLeaderDied(); // switches group leaders if they died, to the bot checking
                             flagrunner.run();
                         }
@@ -217,16 +209,8 @@ public strictfp class RobotPlayer {
 //                    if (rc.getRoundNum() == 410) rc.resign();
 
                 }
-
-//                if (rc.getRoundNum() == 1 || rc.getRoundNum() == 2 || rc.getRoundNum() == 199 || rc.getRoundNum() == 200 || rc.getRoundNum() == 201) {
-//                    System.out.println("\t\t\treading the array directly: " + rc.readSharedArray(flagRunnerGroupTwoLocIndex));
-//                }
-
-                rc.setIndicatorString("MY LOCALID: " + localID);
-
                 // after every round whether spawned or not, convert your info to an int and write it to the shared array
                 util.writeMyInfoToSharedArray();
-
             } catch (GameActionException e) {
                 System.out.println("GameActionException");
                 e.printStackTrace();
