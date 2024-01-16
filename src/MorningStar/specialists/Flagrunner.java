@@ -42,7 +42,8 @@ public class Flagrunner {
     public void run() throws GameActionException {
         if (!isBuilderSet) {
             isBuilderSet = true;
-            isBuilder = localID == FLAGRUNNER_BUILDER_GROUP_1_ID || localID == FLAGRUNNER_BUILDER_GROUP_2_ID || localID == FLAGRUNNER_BUILDER_GROUP_3_ID;
+            isBuilder = util.amIABuilder();
+            if (isBuilder) System.out.println("BUILDER");
         }
 
         if (!leftySet) {
@@ -93,9 +94,9 @@ public class Flagrunner {
 //                movement.hardMove(util.getLocationOfMyGroupLeader());
 //                attackMicroWithMoveAvailable();
 //            } else { // if ur close enough, u can use ur movement in ur micro
-//                if (coolRobotInfoArray[util.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex()-1].getHasFlag()) {
-//                   useBannedMovement();
-//                }
+            if (coolRobotInfoArray[util.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex() - 1].getHasFlag()) {
+                useBannedMovement();
+            }
 //                attackMicroWithMoveAvailable();
 //            }
             if (coolRobotInfoArray[util.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex() - 1].getHasFlag()) {
