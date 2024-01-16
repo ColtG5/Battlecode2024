@@ -206,33 +206,33 @@ public class Utility {
         }
     }
 
-    public int convertFakeIDToLocalID(int fakeID) {
-        int whatGroupAmI = getMyFlagrunnerGroup();
-        if (whatGroupAmI == 1) {
-            return fakeID + 1;
-        } else if (whatGroupAmI == 2) {
-            return fakeID + FLAGRUNNERS_IN_GROUP_1 + 1;
-        } else if (whatGroupAmI == 3) {
-            return fakeID + FLAGRUNNERS_IN_GROUP_1 + FLAGRUNNERS_IN_GROUP_2 + 1;
-        } else {
-            System.out.println("\n\n\n NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO CONVERTING FAKEID TO LOCALID FAILED \n\n\n");
-            return -9000;
-        }
-    }
+//    public int convertFakeIDToLocalID(int fakeID) {
+//        int whatGroupAmI = getMyFlagrunnerGroup();
+//        if (whatGroupAmI == 1) {
+//            return fakeID + 1;
+//        } else if (whatGroupAmI == 2) {
+//            return fakeID + FLAGRUNNERS_IN_GROUP_1 + 1;
+//        } else if (whatGroupAmI == 3) {
+//            return fakeID + FLAGRUNNERS_IN_GROUP_1 + FLAGRUNNERS_IN_GROUP_2 + 1;
+//        } else {
+//            System.out.println("\n\n\n NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO CONVERTING FAKEID TO LOCALID FAILED \n\n\n");
+//            return -9000;
+//        }
+//    }
 
-    public int convertLocalIDToFakeID(int localID) {
-        int whatGroupAmI = getMyFlagrunnerGroup();
-        if (whatGroupAmI == 1) {
-            return localID - 1;
-        } else if (whatGroupAmI == 2) {
-            return localID - FLAGRUNNERS_IN_GROUP_1 - 1;
-        } else if (whatGroupAmI == 3) {
-            return localID - FLAGRUNNERS_IN_GROUP_1 - FLAGRUNNERS_IN_GROUP_2 - 1;
-        } else {
-            System.out.println("\n\n\n NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO CONVERTING LOCALID TO FAKEID FAILED \n\n\n");
-            return -9000;
-        }
-    }
+//    public int convertLocalIDToFakeID(int localID) {
+//        int whatGroupAmI = getMyFlagrunnerGroup();
+//        if (whatGroupAmI == 1) {
+//            return localID - 1;
+//        } else if (whatGroupAmI == 2) {
+//            return localID - FLAGRUNNERS_IN_GROUP_1 - 1;
+//        } else if (whatGroupAmI == 3) {
+//            return localID - FLAGRUNNERS_IN_GROUP_1 - FLAGRUNNERS_IN_GROUP_2 - 1;
+//        } else {
+//            System.out.println("\n\n\n NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO CONVERTING LOCALID TO FAKEID FAILED \n\n\n");
+//            return -9000;
+//        }
+//    }
 
     /**
      * set leader of each group as the lowest ID duck in each group
@@ -240,9 +240,9 @@ public class Utility {
      * @throws GameActionException if cannot write to shared array
      */
     public void setInitialGroupLeaders() throws GameActionException {
-        writeJustLocalIDToFlagrunnerGroupIndex(INITIAL_GROUP_1_LEADER_ID, flagRunnerGroupOneLocIndex);
-        writeJustLocalIDToFlagrunnerGroupIndex(INITIAL_GROUP_2_LEADER_ID, flagRunnerGroupTwoLocIndex);
-        writeJustLocalIDToFlagrunnerGroupIndex(INITIAL_GROUP_3_LEADER_ID, flagRunnerGroupThreeLocIndex);
+        writeJustLocalIDToFlagrunnerGroupIndex(INITIAL_GROUP_1_LEADER_ID, flagRunnerGroupOneIDIndex);
+        writeJustLocalIDToFlagrunnerGroupIndex(INITIAL_GROUP_2_LEADER_ID, flagRunnerGroupTwoIDIndex);
+        writeJustLocalIDToFlagrunnerGroupIndex(INITIAL_GROUP_3_LEADER_ID, flagRunnerGroupThreeIDIndex);
 //        System.out.println("\t\t\tAHAHAHAH reading the array directly: " + rc.readSharedArray(flagRunnerGroupTwoLocIndex));
     }
 
@@ -280,7 +280,6 @@ public class Utility {
      */
     public void handleIfGroupLeaderDied() throws GameActionException {
         int localIDOfGroupLeader = readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex();
-
         CoolRobotInfo groupLeaderInfo = coolRobotInfoArray[localIDOfGroupLeader - 1];
         if (groupLeaderInfo.getCurLocation() == NONELOCATION) {
             // if group leader is dead, make ourselves the new group leader
@@ -297,10 +296,17 @@ public class Utility {
     public void writeToFlagrunnerGroupIndex(MapLocation locationForFlagrunnerGroup) throws GameActionException {
         // high 12 bits: location
         // low 4 bits: localID of group leader, but this num is only between 1-14, as each group has exactly 14 ducks
-        int intToWrite = locationToInt(locationForFlagrunnerGroup) << 4; // loc in int form, in high 12 bits
-        intToWrite += convertLocalIDToFakeID(localID); // fakeID in lower 4 bits
-        int arrayIndexToWriteTo = flagRunnerGroupIndexingStart + getMyFlagrunnerGroup();
-        rc.writeSharedArray(arrayIndexToWriteTo, intToWrite);
+//        int intToWrite = locationToInt(locationForFlagrunnerGroup) << 4; // loc in int form, in high 12 bits
+//        intToWrite += convertLocalIDToFakeID(localID); // fakeID in lower 4 bits
+//        int arrayIndexToWriteTo = flagRunnerGroupIndexingStart + getMyFlagrunnerGroup();
+//        rc.writeSharedArray(arrayIndexToWriteTo, intToWrite);
+
+        int locToWrite = locationToInt(locationForFlagrunnerGroup);
+        int arrayIndexToWriteTo = flagRunnerGroupOneLocIndex + ((getMyFlagrunnerGroup() - 1) * 2);
+        rc.writeSharedArray(arrayIndexToWriteTo, locToWrite);
+
+        arrayIndexToWriteTo = flagRunnerGroupOneLocIndex + ((getMyFlagrunnerGroup() - 1) * 2) + 1;
+        rc.writeSharedArray(arrayIndexToWriteTo, localID);
     }
 
     /**
@@ -310,20 +316,27 @@ public class Utility {
      * @throws GameActionException if cannot write to shared array
      */
     public void writeJustLocationToFlagrunnerGroupIndex(MapLocation locationForFlagrunnerGroup, int whichFlagrunnerGroup) throws GameActionException {
-        int intToWrite = locationToInt(locationForFlagrunnerGroup) << 4; // loc in int form, in high 12 bits
-        // don't overwrite the lower 4 bits of the groupIndex in the shared array, just the higher 12
-        int arrayIndexToWriteTo = flagRunnerGroupIndexingStart + whichFlagrunnerGroup;
-        int currentFakeIDInArray = rc.readSharedArray(arrayIndexToWriteTo) & 15; // 15 is all 1's except the first 4 bits, so this will preserve the lower 4 bits
-        intToWrite += currentFakeIDInArray; // fakeID in lower 4 bits
-        rc.writeSharedArray(arrayIndexToWriteTo, intToWrite);
+//        int intToWrite = locationToInt(locationForFlagrunnerGroup) << 4; // loc in int form, in high 12 bits
+//        // don't overwrite the lower 4 bits of the groupIndex in the shared array, just the higher 12
+//        int arrayIndexToWriteTo = flagRunnerGroupIndexingStart + whichFlagrunnerGroup;
+//        int currentFakeIDInArray = rc.readSharedArray(arrayIndexToWriteTo) & 15; // 15 is all 1's except the first 4 bits, so this will preserve the lower 4 bits
+//        intToWrite += currentFakeIDInArray; // fakeID in lower 4 bits
+//        rc.writeSharedArray(arrayIndexToWriteTo, intToWrite);
+
+        int locToWrite = locationToInt(locationForFlagrunnerGroup);
+        int arrayIndexToWriteTo = flagRunnerGroupOneLocIndex + ((getMyFlagrunnerGroup() - 1) * 2);
+        rc.writeSharedArray(arrayIndexToWriteTo, locToWrite);
     }
 
     public void writeJustLocalIDToFlagrunnerGroupIndex(int localIDOfNewLeader) throws GameActionException {
-        int arrayIndexToWriteTo = flagRunnerGroupIndexingStart + getMyFlagrunnerGroup();
-        int intToWrite = rc.readSharedArray(arrayIndexToWriteTo); // this int holds location in high 12 bits, and "fake" localID in low 4 bits. we want to preserve the location, but overwrite the 4 bits of localID
-        intToWrite = intToWrite & 4080; // 4080 is all 1's except the last 4 bits, so this will preserve the location, but make the localID 0
-        intToWrite += convertLocalIDToFakeID(localIDOfNewLeader); // converting the leader localID to a "flagrunner group localID" (1-14)
-        rc.writeSharedArray(arrayIndexToWriteTo, intToWrite);
+//        int arrayIndexToWriteTo = flagRunnerGroupIndexingStart + getMyFlagrunnerGroup();
+//        int intToWrite = rc.readSharedArray(arrayIndexToWriteTo); // this int holds location in high 12 bits, and "fake" localID in low 4 bits. we want to preserve the location, but overwrite the 4 bits of localID
+//        intToWrite = intToWrite & 4080; // 4080 is all 1's except the last 4 bits, so this will preserve the location, but make the localID 0
+//        intToWrite += convertLocalIDToFakeID(localIDOfNewLeader); // converting the leader localID to a "flagrunner group localID" (1-14)
+//        rc.writeSharedArray(arrayIndexToWriteTo, intToWrite);
+
+        int arrayIndexToWriteTo = flagRunnerGroupOneLocIndex + ((getMyFlagrunnerGroup() - 1) * 2) + 1;
+        rc.writeSharedArray(arrayIndexToWriteTo, localIDOfNewLeader);
     }
 
     /**
@@ -333,22 +346,29 @@ public class Utility {
      * @throws GameActionException why????????????????????
      */
     public void writeJustLocalIDToFlagrunnerGroupIndex(int localIDOfNewLeader, int hardCodedWhatArrIndex) throws GameActionException {
-        int intToWrite = rc.readSharedArray(hardCodedWhatArrIndex); // this int holds location in high 12 bits, and "fake" localID in low 4 bits. we want to preserve the location, but overwrite the 4 bits of localID
-        intToWrite = intToWrite & 4080; // 4080 is all 1's except the last 4 bits, so this will preserve the location, but make the localID 0
-        intToWrite += convertLocalIDToFakeID(localIDOfNewLeader); // converting the leader localID to a "flagrunner group localID" (1-14)
-        rc.writeSharedArray(hardCodedWhatArrIndex, intToWrite);
+//        int intToWrite = rc.readSharedArray(hardCodedWhatArrIndex); // this int holds location in high 12 bits, and "fake" localID in low 4 bits. we want to preserve the location, but overwrite the 4 bits of localID
+//        intToWrite = intToWrite & 4080; // 4080 is all 1's except the last 4 bits, so this will preserve the location, but make the localID 0
+//        intToWrite += convertLocalIDToFakeID(localIDOfNewLeader); // converting the leader localID to a "flagrunner group localID" (1-14)
+//        rc.writeSharedArray(hardCodedWhatArrIndex, intToWrite);
+        rc.writeSharedArray(hardCodedWhatArrIndex, localIDOfNewLeader);
     }
 
     public MapLocation readLocationFromFlagrunnerGroupIndex() throws GameActionException {
-        int arrayIndexToReadFrom = flagRunnerGroupIndexingStart + getMyFlagrunnerGroup();
-        int intToRead = rc.readSharedArray(arrayIndexToReadFrom);
-        return intToLocation(intToRead >> 4);
+//        int arrayIndexToReadFrom = flagRunnerGroupIndexingStart + getMyFlagrunnerGroup();
+//        int intToRead = rc.readSharedArray(arrayIndexToReadFrom);
+//        return intToLocation(intToRead >> 4);
+
+        int arrayIndexToReadFrom = flagRunnerGroupOneLocIndex + ((getMyFlagrunnerGroup() - 1) * 2);
+        return intToLocation(rc.readSharedArray(arrayIndexToReadFrom));
     }
 
     public int readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex() throws GameActionException {
-        int arrayIndexToReadFrom = flagRunnerGroupIndexingStart + getMyFlagrunnerGroup();
-        int fakeLocalIDFromGroupIndex = rc.readSharedArray(arrayIndexToReadFrom) & 15;
-        return convertFakeIDToLocalID(fakeLocalIDFromGroupIndex);
+//        int arrayIndexToReadFrom = flagRunnerGroupIndexingStart + getMyFlagrunnerGroup();
+//        int fakeLocalIDFromGroupIndex = rc.readSharedArray(arrayIndexToReadFrom) & 15;
+//        return convertFakeIDToLocalID(fakeLocalIDFromGroupIndex);
+
+        int arrayIndexToReadFrom = flagRunnerGroupOneLocIndex + ((getMyFlagrunnerGroup() - 1) * 2) + 1;
+        return rc.readSharedArray(arrayIndexToReadFrom);
     }
 
     public void farmBuildEXP() throws GameActionException {
