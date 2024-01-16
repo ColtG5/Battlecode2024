@@ -48,7 +48,7 @@ public class Movement {
         return false;
 
     }
-    static Stack<Direction> MovementStack = new Stack<>();
+    public static Stack<Direction> MovementStack = new Stack<>();
 
     public Direction rotateOnce(boolean lefty, Direction hype) {
         if (lefty) return hype.rotateLeft();

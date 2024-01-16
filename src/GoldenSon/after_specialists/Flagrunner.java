@@ -401,20 +401,26 @@ public class Flagrunner {
             Utility.MyPair<Boolean, MapLocation> canIBeAttackedNextTurn = canEnemyAttackMeNextTurn(enemyRobots);
             if (attackableEnemyLocation != null) { // somebody can attack us! hit them and run away
                 if (rc.canAttack(attackableEnemyLocation)) rc.attack(attackableEnemyLocation);
+//                if (movement.MovementStack.empty()) moveAwayFromEnemyIJustAttacked(attackableEnemyLocation);
                 moveAwayFromEnemyIJustAttacked(attackableEnemyLocation);
             } else if (canIBeAttackedNextTurn.first()) { // someone can potentially attack us next turn if they move to us. go smack them
                 if (rc.getHealth() > 500) {
                     if (rc.isActionReady()) { // we can fight back, so go smack them
                         movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()));
+//                        if (movement.MovementStack.empty()) movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()));
                         attackableEnemyLocation = getAttackableEnemyWithLowestHealth(enemyRobots);
                         if (attackableEnemyLocation != null && rc.canAttack(attackableEnemyLocation))
                             rc.attack(attackableEnemyLocation);
                     } else { // we cannot fight back, try to run
                         movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
+//                        if (movement.MovementStack.empty()) movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
                     }
                 } else {
                     movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
+//                    if (movement.MovementStack.empty()) movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
                 }
+//                if (!movement.MovementStack.empty()) movement.hardMove(locationForFlagrunnerGroup);
+                movement.hardMove(locationForFlagrunnerGroup);
                 tryToHeal();
 
             } else { // there's an enemy, but they cant attack us next turn. save our action cooldown, and just move to our goal
