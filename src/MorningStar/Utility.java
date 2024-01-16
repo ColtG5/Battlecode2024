@@ -240,9 +240,9 @@ public class Utility {
      * @throws GameActionException if cannot write to shared array
      */
     public void setInitialGroupLeaders() throws GameActionException {
-        writeJustLocalIDToFlagrunnerGroupIndex(INITIAL_GROUP_1_LEADER_ID, flagRunnerGroupOneIDIndex);
-        writeJustLocalIDToFlagrunnerGroupIndex(INITIAL_GROUP_2_LEADER_ID, flagRunnerGroupTwoIDIndex);
-        writeJustLocalIDToFlagrunnerGroupIndex(INITIAL_GROUP_3_LEADER_ID, flagRunnerGroupThreeIDIndex);
+        writeJustLocalIDToFlagrunnerGroupIndex(1, flagRunnerGroupOneIDIndex);
+        if ((FLAGRUNNERS_IN_GROUP_1 + 1) <= 47) writeJustLocalIDToFlagrunnerGroupIndex(FLAGRUNNERS_IN_GROUP_1 + 1, flagRunnerGroupTwoIDIndex);
+        if ((FLAGRUNNERS_IN_GROUP_1 + FLAGRUNNERS_IN_GROUP_2 + 1) <= 47) writeJustLocalIDToFlagrunnerGroupIndex(FLAGRUNNERS_IN_GROUP_1 + FLAGRUNNERS_IN_GROUP_2 + 1, flagRunnerGroupThreeIDIndex);
 //        System.out.println("\t\t\tAHAHAHAH reading the array directly: " + rc.readSharedArray(flagRunnerGroupTwoLocIndex));
     }
 
@@ -254,6 +254,16 @@ public class Utility {
      */
     public boolean amIAGroupLeader() throws GameActionException {
         return localID == readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex();
+    }
+
+    public boolean amIABuilder() {
+        if (FLAGRUNNERS_IN_GROUP_1 == 47) { // only one group
+            return ((localID == 2) || (localID == 3) || (localID == 4));
+        } else if (FLAGRUNNERS_IN_GROUP_1 + FLAGRUNNERS_IN_GROUP_2 == 47) {
+            return (localID == 2) || (localID == FLAGRUNNERS_IN_GROUP_1 + 2); // rn we only make two builders for 2 groups, can change
+        } else {
+            return (localID == 2) || (localID == FLAGRUNNERS_IN_GROUP_1 + 2) || (localID == FLAGRUNNERS_IN_GROUP_1 + FLAGRUNNERS_IN_GROUP_2 + 2);
+        }
     }
 
     public int getMyFlagrunnerGroup() {

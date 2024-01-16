@@ -28,7 +28,7 @@ public class Scout {
     public void run() throws GameActionException {
         if (!isBuilderSet) {
             isBuilderSet = true;
-            isBuilder = localID == FLAGRUNNER_BUILDER_GROUP_1_ID || localID == FLAGRUNNER_BUILDER_GROUP_2_ID || localID == FLAGRUNNER_BUILDER_GROUP_3_ID;
+            isBuilder = utility.amIABuilder();
         }
 
         if (isBuilder && rc.getExperience(SkillType.BUILD) < 30) {
