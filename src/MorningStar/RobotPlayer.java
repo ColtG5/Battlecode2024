@@ -52,10 +52,13 @@ public strictfp class RobotPlayer {
     static final int breadLocOneIndex = 51;
     static final int breadLocTwoIndex = 52;
     static final int breadLocThreeIndex = 53;
-    static final int flagRunnerGroupIndexingStart = 53;
+//    static final int flagRunnerGroupIndexingStart = 53;
     static final int flagRunnerGroupOneLocIndex = 54;
-    static final int flagRunnerGroupTwoLocIndex = 55;
-    static final int flagRunnerGroupThreeLocIndex = 56;
+    static final int flagRunnerGroupOneIDIndex = 55;
+    static final int flagRunnerGroupTwoLocIndex = 56;
+    static final int flagRunnerGroupTwoIDIndex = 57;
+    static final int flagRunnerGroupThreeLocIndex = 58;
+    static final int flagRunnerGroupThreeIDIndex = 59;
 
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws Exception {
