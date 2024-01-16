@@ -99,6 +99,18 @@ public class Utility {
         return spawnAreaCenters;
     }
 
+    public MapLocation getClosetSpawnAreaCenter() {
+        int closetDistence = spawnAreaCenters[0].distanceSquaredTo(rc.getLocation());
+        MapLocation closetSpawnAreaCenter = spawnAreaCenters[0];
+        for (MapLocation spawnAreaCenter : spawnAreaCenters) {
+            if (spawnAreaCenter.distanceSquaredTo(rc.getLocation()) < closetDistence) {
+                closetDistence = spawnAreaCenter.distanceSquaredTo(rc.getLocation());
+                closetSpawnAreaCenter = spawnAreaCenter;
+            }
+        }
+        return closetSpawnAreaCenter;
+    }
+
     public void trySpawningEvenly(MapLocation[] spawnAreaCenters) throws GameActionException {
         if (rc.isSpawned()) return;
 

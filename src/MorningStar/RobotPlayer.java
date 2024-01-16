@@ -25,15 +25,15 @@ public strictfp class RobotPlayer {
     static boolean isScout = false;
     static boolean isDefender = false;
     static boolean isFlagrunner = false;
-    public static int FLAGRUNNERS_IN_GROUP_1 = 47;
+    public static int FLAGRUNNERS_IN_GROUP_1 = 16;
 //    public static final int INITIAL_GROUP_1_LEADER_ID = 1;
 //    public static final int FLAGRUNNER_BUILDER_GROUP_1_ID = INITIAL_GROUP_1_LEADER_ID + 1;
 
-    public static int FLAGRUNNERS_IN_GROUP_2 = 0;
+    public static int FLAGRUNNERS_IN_GROUP_2 = 16;
 //    public static final int INITIAL_GROUP_2_LEADER_ID = FLAGRUNNERS_IN_GROUP_1 + 1;
 //    public static final int FLAGRUNNER_BUILDER_GROUP_2_ID = INITIAL_GROUP_2_LEADER_ID + 1;
 
-    public static int FLAGRUNNERS_IN_GROUP_3 = 0;
+    public static int FLAGRUNNERS_IN_GROUP_3 = 15;
 //    public static final int INITIAL_GROUP_3_LEADER_ID = FLAGRUNNERS_IN_GROUP_1 + FLAGRUNNERS_IN_GROUP_2 + 1;
 //    public static final int FLAGRUNNER_BUILDER_GROUP_3_ID = INITIAL_GROUP_3_LEADER_ID + 1;
 

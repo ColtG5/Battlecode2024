@@ -57,6 +57,12 @@ public class Flagrunner {
                 return;
         }
 
+        if (rc.hasFlag()) {
+            util.writeToFlagrunnerGroupIndex(rc.getLocation());
+            MapLocation closetSpawnAreaCenter = util.getClosetSpawnAreaCenter();
+            movement.hardMove(closetSpawnAreaCenter);
+        }
+
         boolean isLeader = util.amIAGroupLeader();
         if (isLeader)
             locationForFlagrunnerGroup = setLocationForGroup(); // decide where the group will go (including you)
@@ -76,7 +82,7 @@ public class Flagrunner {
 
         if (rc.hasFlag()) {
             util.writeToFlagrunnerGroupIndex(rc.getLocation());
-            MapLocation closetSpawnAreaCenter = getClosetSpawnAreaCenter();
+            MapLocation closetSpawnAreaCenter = util.getClosetSpawnAreaCenter();
             movement.hardMove(closetSpawnAreaCenter);
             return;
         }
@@ -104,18 +110,6 @@ public class Flagrunner {
             }
             attackMicroWithMoveAvailable();
         }
-    }
-
-    private MapLocation getClosetSpawnAreaCenter() {
-        int closetDistence = spawnAreaCenters[0].distanceSquaredTo(rc.getLocation());
-        MapLocation closetSpawnAreaCenter = spawnAreaCenters[0];
-        for (MapLocation spawnAreaCenter : spawnAreaCenters) {
-            if (spawnAreaCenter.distanceSquaredTo(rc.getLocation()) < closetDistence) {
-                closetDistence = spawnAreaCenter.distanceSquaredTo(rc.getLocation());
-                closetSpawnAreaCenter = spawnAreaCenter;
-            }
-        }
-        return closetSpawnAreaCenter;
     }
 
     // ---------------------------------------------------------------------------------
@@ -239,7 +233,7 @@ public class Flagrunner {
             }
         }
         if (locForGroup == null)
-            locForGroup = getClosetSpawnAreaCenter(); // by my logic, this should never happen, but hey
+            locForGroup = util.getClosetSpawnAreaCenter(); // by my logic, this should never happen, but hey
 
         // write this locForGroup into the spot in the shared array for this group
         rc.setIndicatorDot(locForGroup, 0, 0, 255);
@@ -323,7 +317,7 @@ public class Flagrunner {
                 if (rc.canPickupFlag(info.getLocation()) && !isBuilder) {
                     rc.pickupFlag(info.getLocation());
                     util.writeToFlagrunnerGroupIndex(rc.getLocation());
-                    MapLocation closetSpawnAreaCenter = getClosetSpawnAreaCenter();
+                    MapLocation closetSpawnAreaCenter = util.getClosetSpawnAreaCenter();
                     movement.hardMove(closetSpawnAreaCenter);
                     return;
                 }
