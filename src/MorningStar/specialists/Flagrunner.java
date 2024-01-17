@@ -43,7 +43,6 @@ public class Flagrunner {
         if (!isBuilderSet) {
             isBuilderSet = true;
             isBuilder = util.amIABuilder();
-            if (isBuilder) System.out.println("BUILDER");
         }
 
         if (!leftySet) {
@@ -68,7 +67,7 @@ public class Flagrunner {
             locationForFlagrunnerGroup = setLocationForGroup(); // decide where the group will go (including you)
         else {
             locationForFlagrunnerGroup = util.readLocationFromFlagrunnerGroupIndex();
-            rc.setIndicatorDot(locationForFlagrunnerGroup, 0, 255, 0);
+//            rc.setIndicatorDot(locationForFlagrunnerGroup, 0, 255, 0);
         }
 
         if (isBuilder) {
@@ -236,7 +235,7 @@ public class Flagrunner {
             locForGroup = util.getClosetSpawnAreaCenter(); // by my logic, this should never happen, but hey
 
         // write this locForGroup into the spot in the shared array for this group
-        rc.setIndicatorDot(locForGroup, 0, 0, 255);
+//        rc.setIndicatorDot(locForGroup, 0, 0, 255);
         util.writeToFlagrunnerGroupIndex(locForGroup);
         return locForGroup;
     }
@@ -256,7 +255,7 @@ public class Flagrunner {
         for (RobotInfo enemyRobot : attackableEnemies) {
             if (enemyRobot.health < lowestHealthEnemy.health) lowestHealthEnemy = enemyRobot;
         }
-        rc.setIndicatorString(lowestHealthEnemy.location.toString());
+//        rc.setIndicatorString(lowestHealthEnemy.location.toString());
         return lowestHealthEnemy.location;
     }
 

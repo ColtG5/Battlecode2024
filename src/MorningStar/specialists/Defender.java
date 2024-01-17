@@ -14,6 +14,7 @@ public class Defender {
     MapLocation[] spawnAreaCenters;
     static MapLocation myBreadIDefendForMyLife = null;
     static boolean isMyBreadSet = false;
+    static boolean returnToFlag = true;
     public Defender(RobotController rc, Movement movement, Utility utility) {
         this.rc = rc;
         this.movement = movement;
@@ -34,7 +35,21 @@ public class Defender {
             myBreadIDefendForMyLife = spawnAreaCenters[whichBread-1];
             isMyBreadSet = true;
         }
-        movement.hardMove(myBreadIDefendForMyLife);
+        if (returnToFlag) movement.hardMove(myBreadIDefendForMyLife);
+
+        RobotInfo[] nearbyEnemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        for (RobotInfo enemy : nearbyEnemies) {
+            if (enemy.hasFlag()) {
+                returnToFlag = false;
+                movement.hardMove(enemy.getLocation());
+            }
+        }
+
+        FlagInfo[] flags = rc.senseNearbyFlags(-1, rc.getTeam());
+        if (flags.length == 0) returnToFlag = true;
+        for (FlagInfo flag : flags) {
+            if (flag.getLocation().equals(myBreadIDefendForMyLife)) returnToFlag = true;
+        }
 
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         if (enemies.length != 0) tryToPlaceBomb();
@@ -59,11 +74,6 @@ public class Defender {
             }
 
             MapLocation bestPlacement = locationClosestToEnemy(possiblePlacements, closestEnemy);
-
-            if (rc.getRoundNum() > 190 && rc.getRoundNum() < 210 && bestPlacement != null) {
-                rc.setIndicatorString(bestPlacement.toString());
-            }
-
 
             if (bestPlacement != null) {
                 if (rc.canBuild(TrapType.EXPLOSIVE, bestPlacement)) rc.build(TrapType.EXPLOSIVE, bestPlacement);
