@@ -34,11 +34,6 @@ public class Defender {
     }
 
     public void run() throws GameActionException {
-        if (!isMyBreadSet) {
-            int whichBread = (localID % 3) + 1;
-            myBreadIDefendForMyLife = spawnAreaCenters[whichBread-1];
-            isMyBreadSet = true;
-        }
         if (returnToFlag) movement.hardMove(myBreadIDefendForMyLife);
 
         RobotInfo[] nearbyEnemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
@@ -97,6 +92,11 @@ public class Defender {
      */
     public void tryToSpawnOnMyFlag() throws GameActionException {
         // If we can spawn on our flag loc, spawn there
+        if (!isMyBreadSet) {
+            int whichBread = (localID % 3) + 1;
+            myBreadIDefendForMyLife = spawnAreaCenters[whichBread-1];
+            isMyBreadSet = true;
+        }
         if (rc.canSpawn(myBreadIDefendForMyLife)) rc.spawn(myBreadIDefendForMyLife);
     }
 

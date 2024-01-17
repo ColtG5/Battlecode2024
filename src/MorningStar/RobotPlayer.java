@@ -5,6 +5,8 @@ import MorningStar.specialists.Flagrunner;
 import MorningStar.specialists.Scout;
 import battlecode.common.*;
 
+import java.util.Arrays;
+
 /**
  * RobotPlayer is the class that describes your main robot strategy.
  * The run() method inside this class is like your main function: this is what we'll call once your robot
@@ -121,7 +123,7 @@ public strictfp class RobotPlayer {
 
 
                 if (!rc.isSpawned()) {
-                    if (rc.getRoundNum() > 5 && isDefender) defender.tryToSpawnOnMyFlag();
+                    if (isDefender) defender.tryToSpawnOnMyFlag();
                     else if (rc.getRoundNum() > 200) {
                         utility.spawnDefend();
                         utility.trySpawningEvenly(spawnAreaCenters);
@@ -157,8 +159,8 @@ public strictfp class RobotPlayer {
 
                     if (rc.getRoundNum() <= GameConstants.SETUP_ROUNDS) { // before divider drop strategies
                         if (rc.getRoundNum() == 1) continue; // don't let bots move on the first turn (I forget why but there's prob a reason)
-                        else if (isScout) scout.run(); // rn we make 30 scouts
                         else if (isDefender) defender.run();
+                        else if (isScout) scout.run(); // rn we make 30 scouts
                         else if (isFlagrunner) flagrunner.run();
                     } else { // after divider drop strategies
                         if (isFlagrunner) {
