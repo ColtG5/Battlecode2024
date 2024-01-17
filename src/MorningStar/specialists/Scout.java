@@ -4,9 +4,6 @@ import MorningStar.Movement;
 import MorningStar.Utility;
 import battlecode.common.*;
 
-import static MorningStar.RobotPlayer.*;
-
-
 public class Scout {
     int localID;
     RobotController rc;
@@ -35,6 +32,9 @@ public class Scout {
             utility.farmBuildEXP();
         }
         scoutRandomDirection();
+
+        // after every round whether spawned or not, convert your info to an int and write it to the shared array
+        utility.writeMyInfoToSharedArray(false);
     }
 
     static MapLocation locationGoal = null;

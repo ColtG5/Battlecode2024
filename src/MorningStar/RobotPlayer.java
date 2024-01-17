@@ -5,8 +5,6 @@ import MorningStar.specialists.Flagrunner;
 import MorningStar.specialists.Scout;
 import battlecode.common.*;
 
-import java.util.Random;
-
 /**
  * RobotPlayer is the class that describes your main robot strategy.
  * The run() method inside this class is like your main function: this is what we'll call once your robot
@@ -60,18 +58,29 @@ public strictfp class RobotPlayer {
     static final int flagRunnerGroupThreeLocIndex = 58;
     static final int flagRunnerGroupThreeIDIndex = 59;
 
+    static final Direction[] directions = {
+            Direction.NORTH,
+            Direction.NORTHEAST,
+            Direction.EAST,
+            Direction.SOUTHEAST,
+            Direction.SOUTH,
+            Direction.SOUTHWEST,
+            Direction.WEST,
+            Direction.NORTHWEST,
+    };
+
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws Exception {
         // Create objects for the other files
         Movement movement = new Movement(rc, lefty);
-        Utility util = new Utility(rc);
+        Utility utility = new Utility(rc);
 
         // before strategies
-        Scout scout = new Scout(rc, movement, util);
+        Scout scout = new Scout(rc, movement, utility);
 
         // after strategies
-        Flagrunner flagrunner = new Flagrunner(rc, movement, util);
-        Defender defender = new Defender(rc, movement, util);
+        Flagrunner flagrunner = new Flagrunner(rc, movement, utility);
+        Defender defender = new Defender(rc, movement, utility);
 
         // either strategies
 
@@ -79,14 +88,14 @@ public strictfp class RobotPlayer {
             turnCount += 1;  // We have now been alive for one more turn!
             try {
                 if (rc.getRoundNum() == 1) {
-                    localID = util.makeLocalID(assigningLocalIDIndex);
+                    localID = utility.makeLocalID(assigningLocalIDIndex);
                     movement.setLefty((localID % 2) == 1);
-                    util.setLocalID(localID);
+                    utility.setLocalID(localID);
                     defender.setLocalID(localID);
                     flagrunner.setLocalID(localID);
                     scout.setLocalID(localID);
 
-                    MapLocation[] spawnAreaCentersLocal = util.findCentersOfSpawnZones();
+                    MapLocation[] spawnAreaCentersLocal = utility.findCentersOfSpawnZones();
                     spawnAreaCenters = spawnAreaCentersLocal;
                     spawnAreaCenter1 = spawnAreaCentersLocal[0];
                     spawnAreaCenter2 = spawnAreaCentersLocal[1];
@@ -98,21 +107,27 @@ public strictfp class RobotPlayer {
                 }
 
                 if (localID == 1) {
-                    if (rc.getRoundNum() == 1) util.setInitialGroupLeaders();
+                    if (rc.getRoundNum() == 1) utility.setInitialGroupLeaders();
 
                     if (rc.getRoundNum() == GameConstants.GLOBAL_UPGRADE_ROUNDS && rc.canBuyGlobal(GlobalUpgrade.ACTION)) rc.buyGlobal(GlobalUpgrade.ACTION);
                     if (rc.getRoundNum() == GameConstants.GLOBAL_UPGRADE_ROUNDS * 2 && rc.canBuyGlobal(GlobalUpgrade.HEALING)) rc.buyGlobal(GlobalUpgrade.HEALING);
                 }
 
                 // read every other robots info from the shared array, store it in coolRobotInfoArray
-                coolRobotInfoArray = util.readAllBotsInfoFromSharedArray(coolRobotInfoArray);
-                util.setCoolRobotInfoArray(coolRobotInfoArray);
-                flagrunner.coolrobotinfoarray(coolRobotInfoArray);
+                coolRobotInfoArray = utility.readAllBotsInfoFromSharedArray(coolRobotInfoArray);
+                utility.setCoolRobotInfoArray(coolRobotInfoArray);
+                flagrunner.setCoolRobotInfoArray(coolRobotInfoArray);
+                defender.setCoolRobotInfoArray(coolRobotInfoArray);
 
 
                 if (!rc.isSpawned()) {
                     if (rc.getRoundNum() > 5 && isDefender) defender.tryToSpawnOnMyFlag();
-                    else util.trySpawningEvenly(spawnAreaCenters);
+                    else if (rc.getRoundNum() > 200) {
+                        utility.spawnDefend();
+                        utility.trySpawningEvenly(spawnAreaCenters);
+                    }
+                    else utility.trySpawningEvenly(spawnAreaCenters);
+                    utility.writeMyInfoToSharedArray(false);
                 }
                 if (rc.isSpawned()) {
 
@@ -121,7 +136,7 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
 
                     // writes the first 3 bread locations into the shared array, and also checks if this bot is a defender
-                    if (rc.getRoundNum() == 1) util.didISpawnOnFlag(util);
+                    if (rc.getRoundNum() == 1) utility.didISpawnOnFlag(utility);
 
                     // ----------------------------------------
                     // logic for who will specialize to what (subject to change idrk what im doing ong no cap on 4nem)
@@ -147,7 +162,7 @@ public strictfp class RobotPlayer {
                         else if (isFlagrunner) flagrunner.run();
                     } else { // after divider drop strategies
                         if (isFlagrunner) {
-                            util.handleIfGroupLeaderDied(); // switches group leaders if they died, to the bot checking
+                            utility.handleIfGroupLeaderDied(); // switches group leaders if they died, to the bot checking
                             flagrunner.run();
                         }
                         else if (isDefender) defender.run();
@@ -160,8 +175,6 @@ public strictfp class RobotPlayer {
 //                    if (rc.getRoundNum() == 410) rc.resign();
 
                 }
-                // after every round whether spawned or not, convert your info to an int and write it to the shared array
-                util.writeMyInfoToSharedArray();
             } catch (GameActionException e) {
                 System.out.println("GameActionException");
                 e.printStackTrace();

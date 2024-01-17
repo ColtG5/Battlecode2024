@@ -10,6 +10,7 @@ public class Defender {
     RobotController rc;
     Movement movement;
     Utility utility;
+    Utility.CoolRobotInfo[] coolRobotInfoArray;
     int localID;
     MapLocation[] spawnAreaCenters;
     static MapLocation myBreadIDefendForMyLife = null;
@@ -27,6 +28,9 @@ public class Defender {
 
     public void setLocalID(int localID) {
         this.localID = localID;
+    }
+    public void setCoolRobotInfoArray(Utility.CoolRobotInfo[] coolRobotInfoArray) {
+        this.coolRobotInfoArray = coolRobotInfoArray;
     }
 
     public void run() throws GameActionException {
@@ -52,18 +56,23 @@ public class Defender {
         }
 
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        if (enemies.length != 0) tryToPlaceBomb();
+        MapLocation closestEnemy = closestEnemyToMe(enemies);
+        if (enemies.length != 0 && !returnToFlag) tryToPlaceBomb(closestEnemy);
+        if (closestEnemy != null && rc.canAttack(closestEnemy)) rc.attack(closestEnemy);
+
+        RobotInfo[] defenders = rc.senseNearbyRobots(-1, rc.getTeam());
+        boolean isUnderAttack = defenders.length - 2 <= enemies.length;
+        // after every round whether spawned or not, convert your info to an int and write it to the shared array
+        utility.writeMyInfoToSharedArray(isUnderAttack);
     }
 
     /**
      * Attempt to place a bomb at current location
      */
-    private void tryToPlaceBomb() throws GameActionException {
+    private void tryToPlaceBomb(MapLocation closestEnemy) throws GameActionException {
 
         MapInfo[] infoAround = rc.senseNearbyMapInfos(GameConstants.INTERACT_RADIUS_SQUARED);
         ArrayList<MapLocation> possiblePlacements = new ArrayList<>();
-
-        MapLocation closestEnemy = closestEnemyToMe(rc.senseNearbyRobots(-1, rc.getTeam().opponent()));
 
         for (int i = 0; i < 10; i++) {
             possiblePlacements.clear();
@@ -79,8 +88,6 @@ public class Defender {
                 if (rc.canBuild(TrapType.EXPLOSIVE, bestPlacement)) rc.build(TrapType.EXPLOSIVE, bestPlacement);
             }
         }
-
-        if (rc.canAttack(closestEnemy)) rc.attack(closestEnemy);
     }
 
 

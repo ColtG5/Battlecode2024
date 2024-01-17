@@ -42,11 +42,11 @@ public class Utility {
         return coolRobotInfoArray;
     }
 
-    public void writeMyInfoToSharedArray() throws GameActionException {
+    public void writeMyInfoToSharedArray(boolean isUnderAttack) throws GameActionException {
         MapLocation locationToStore;
         if (rc.isSpawned()) locationToStore = rc.getLocation();
         else locationToStore = NONELOCATION; // NONELOCATION (-1, -1) represents not spawned rn (no location)
-        int coolRobotInfoInt = convertRobotInfoToInt(locationToStore, rc.hasFlag());
+        int coolRobotInfoInt = convertRobotInfoToInt(locationToStore, rc.hasFlag(), isUnderAttack);
 //      if (rc.getRoundNum() == 1) System.out.println("id: " + localID + "coolRobotInfoInt: " + Integer.toBinaryString(coolRobotInfoInt));
         rc.writeSharedArray(localID, coolRobotInfoInt);
     }
@@ -143,6 +143,7 @@ public class Utility {
         int localID;
         MapLocation curLocation; // highest 12 bits
         boolean hasFlag; // 13th bit
+        boolean isUnderAttack; // 14th bit
 
         // lower 3 bits are free rn
 
@@ -152,10 +153,14 @@ public class Utility {
             curLocation = intToLocation(intOfRobotFromArray >> 4);
             // 13th bit will be if the robot has a flag, so take the 13th bit, and store it into hasFlag
             hasFlag = ((intOfRobotFromArray >> 3) & 1) == 1;
+            isUnderAttack = ((intOfRobotFromArray >> 2) & 1) == 1;
         }
 
         public boolean getHasFlag() {
             return hasFlag;
+        }
+        public boolean getIsUnderAttack() {
+            return isUnderAttack;
         }
 
         public MapLocation getCurLocation() {
@@ -170,12 +175,11 @@ public class Utility {
      * @param hasFlag     have flag
      * @return all a robots info converted to a convenient int
      */
-    public int convertRobotInfoToInt(MapLocation curLocation, boolean hasFlag) {
+    public int convertRobotInfoToInt(MapLocation curLocation, boolean hasFlag, boolean isUnderAttack) {
         int intToReturn = 0;
         intToReturn += locationToInt(curLocation) << 4;
-        if (hasFlag) {
-            intToReturn += 1 << 3;
-        }
+        if (hasFlag) intToReturn += 1 << 3;
+        if (isUnderAttack) intToReturn += 1 << 2;
         return intToReturn;
     }
 
@@ -402,6 +406,30 @@ public class Utility {
             } else {
                 if (rc.canDig(info.getMapLocation()))
                     rc.dig(info.getMapLocation());
+            }
+        }
+    }
+
+    public void spawnDefend() throws GameActionException {
+        for (int duckID = 48; duckID <= 50; duckID++) {
+            CoolRobotInfo duckDefender = coolRobotInfoArray[duckID - 1];
+            if (duckDefender.getIsUnderAttack()) {
+                MapLocation closestSpawn = spawnAreaCenters[0];
+                for (MapLocation spawn : spawnAreaCenters) {
+                    if (duckDefender.getCurLocation().distanceSquaredTo(spawn)
+                            < duckDefender.getCurLocation().distanceSquaredTo(closestSpawn))
+                        closestSpawn = spawn;
+                }
+                if (rc.canSpawn(closestSpawn)) {
+                    rc.spawn(closestSpawn);
+                    break;
+                }
+                for (Direction dir : directions) {
+                    if (rc.canSpawn(closestSpawn.add(dir))) {
+                        rc.spawn(closestSpawn.add(dir));
+                        break;
+                    }
+                }
             }
         }
     }
