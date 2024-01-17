@@ -43,8 +43,8 @@ public strictfp class RobotPlayer {
 
     /**
      * SHARED ARRAY
-     * [0,          1-50,          51,  52,  53,             54,    55,    56]
-     * id     id's of all ducks    3 bread loc's      each flagRunner group move loc
+     * [0,          1-50,          51,  52,  53,                      54, 55   56, 57   58, 59]
+     * id     id's of all ducks    3 bread loc's   flag runner group: loc,id   loc,id   loc,id
      *
      */
 
