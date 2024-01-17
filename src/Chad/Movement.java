@@ -156,7 +156,7 @@ public class Movement {
      * @throws GameActionException I dont fucking know
      */
     public boolean hardMove(MapLocation mapLocation) throws GameActionException {
-        rc.setIndicatorString("Lefty: " + lefty + "MOVEMENT STACK" + MovementStack.toString());
+//        rc.setIndicatorString("Lefty: " + lefty + "MOVEMENT STACK" + MovementStack.toString());
         rc.setIndicatorDot(mapLocation,0,0,0);
         if (!rc.isMovementReady()) return false;
 
