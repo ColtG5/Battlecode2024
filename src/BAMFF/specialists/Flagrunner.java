@@ -38,6 +38,8 @@ public class Flagrunner {
     }
 
     public void run() throws GameActionException {
+        if (rc.getID() == 13969) rc.setIndicatorDot(rc.getLocation(), 255, 255, 255);
+
         if (!isBuilderSet) {
             isBuilderSet = true;
             isBuilder = utility.amIABuilder();
@@ -48,10 +50,12 @@ public class Flagrunner {
             movement.setLefty(utility.getMyFlagrunnerGroup() % 2 == 0);
         }
 
-        MapInfo[] damStuff = rc.senseNearbyMapInfos();
-        for (MapInfo location : damStuff) {
-            if (location.isDam() && rc.getLocation().isAdjacentTo(location.getMapLocation()))
-                return;
+        if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) {
+            MapInfo[] damStuff = rc.senseNearbyMapInfos();
+            for (MapInfo location : damStuff) {
+                if (location.isDam() && rc.getLocation().isAdjacentTo(location.getMapLocation()))
+                    return;
+            }
         }
 
         if (rc.hasFlag()) {
@@ -77,13 +81,7 @@ public class Flagrunner {
             }
         }
 
-        if (rc.hasFlag()) {
-            utility.writeToFlagrunnerGroupIndex(rc.getLocation());
-            MapLocation closetSpawnAreaCenter = utility.getClosetSpawnAreaCenter();
-            movement.hardMove(closetSpawnAreaCenter);
-            utility.writeMyInfoToSharedArray(false);
-            return;
-        }
+        // see if there are any flags on the ground around you, and go and try to grab them
         senseFlagsAroundMe();
 
         if (isLeader) {
@@ -98,9 +96,6 @@ public class Flagrunner {
 //                movement.hardMove(util.getLocationOfMyGroupLeader());
 //                attackMicroWithMoveAvailable();
 //            } else { // if ur close enough, u can use ur movement in ur micro
-            if (coolRobotInfoArray[utility.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex() - 1].getHasFlag()) {
-                useBannedMovement();
-            }
 //                attackMicroWithMoveAvailable();
 //            }
             if (coolRobotInfoArray[utility.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex() - 1].getHasFlag()) {
@@ -320,11 +315,11 @@ public class Flagrunner {
                     utility.writeToFlagrunnerGroupIndex(rc.getLocation());
                     MapLocation closetSpawnAreaCenter = utility.getClosetSpawnAreaCenter();
                     movement.hardMove(closetSpawnAreaCenter);
-                    return;
+                } else {
+                    utility.writeToFlagrunnerGroupIndex(info.getLocation());
+                    movement.hardMove(info.getLocation());
+                    tryToHeal();
                 }
-                utility.writeToFlagrunnerGroupIndex(info.getLocation());
-                movement.hardMove(info.getLocation());
-                tryToHeal();
             }
         }
     }
