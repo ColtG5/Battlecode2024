@@ -113,6 +113,7 @@ public strictfp class RobotPlayer {
 
                     if (rc.getRoundNum() == GameConstants.GLOBAL_UPGRADE_ROUNDS && rc.canBuyGlobal(GlobalUpgrade.ATTACK)) rc.buyGlobal(GlobalUpgrade.ATTACK);
                     if (rc.getRoundNum() == GameConstants.GLOBAL_UPGRADE_ROUNDS * 2 && rc.canBuyGlobal(GlobalUpgrade.HEALING)) rc.buyGlobal(GlobalUpgrade.HEALING);
+                    if (rc.getRoundNum() == GameConstants.GLOBAL_UPGRADE_ROUNDS * 3 && rc.canBuyGlobal(GlobalUpgrade.CAPTURING)) rc.buyGlobal(GlobalUpgrade.CAPTURING);
                 }
 
                 // read every other robots info from the shared array, store it in coolRobotInfoArray
