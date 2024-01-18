@@ -13,22 +13,10 @@ public class BugNav {
         states = new int[W][];
     }
 
-    int bugPathIndex = 0;
-    int stateIndex = 0;
-    boolean isReady(){
-        return stateIndex >= W;
-    }
-
-    void fill(){
-        while(stateIndex < W){
-            if (Clock.getBytecodesLeft() < 1000) return;
-            states[stateIndex++] = new int[H];
-        }
-    }
-
     final int MIN_DISTANCE_RESET = 3;
     final int MAX_TURNS_MOVING_TO_OBSTACLE = 2;
     final int INFINITY = 1000000000;
+
     Direction[] directions = Direction.values();
     boolean[] canMoveArray;
     MapLocation prevTarget = null;
@@ -40,6 +28,18 @@ public class BugNav {
     Boolean shouldIRotateRight = null;
 
     int[][] states;
+    int bugPathIndex = 0;
+    int stateIndex = 0;
+    boolean isReady(){
+        return stateIndex >= W;
+    }
+
+    void fill() {
+        while(stateIndex < W) {
+            if (Clock.getBytecodesLeft() < 1000) return;
+            states[stateIndex++] = new int[H];
+        }
+    }
 
     void update() {
         if (!rc.isMovementReady()) return;
