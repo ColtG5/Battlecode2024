@@ -1,5 +1,6 @@
 package BAMFF.specialists;
 
+import BAMFF.BugNav;
 import battlecode.common.*;
 import BAMFF.Movement;
 import BAMFF.Utility;
@@ -10,6 +11,7 @@ public class Flagrunner {
     int localID;
     RobotController rc;
     Movement movement;
+    BugNav bugNav;
     Utility utility;
     MapLocation locationForFlagrunnerGroup;
     boolean isBuilder;
@@ -19,10 +21,11 @@ public class Flagrunner {
     Utility.CoolRobotInfo[] coolRobotInfoArray;
     MapLocation[] spawnAreaCenters;
 
-    public Flagrunner(RobotController rc, Movement movement, Utility utility) {
+    public Flagrunner(RobotController rc, Movement movement, Utility utility, BugNav bugNav) {
         this.rc = rc;
         this.movement = movement;
         this.utility = utility;
+        this.bugNav = bugNav;
     }
 
     public void setLocalID(int localID) {
@@ -61,7 +64,8 @@ public class Flagrunner {
         if (rc.hasFlag()) {
             utility.writeToFlagrunnerGroupIndex(rc.getLocation());
             MapLocation closetSpawnAreaCenter = utility.getClosetSpawnAreaCenter();
-            movement.hardMove(closetSpawnAreaCenter);
+//            movement.hardMove(closetSpawnAreaCenter);
+            bugNav.moveTo(closetSpawnAreaCenter);
         }
 
         boolean isLeader = utility.amIAGroupLeader();
@@ -314,10 +318,12 @@ public class Flagrunner {
                     rc.pickupFlag(info.getLocation());
                     utility.writeToFlagrunnerGroupIndex(rc.getLocation());
                     MapLocation closetSpawnAreaCenter = utility.getClosetSpawnAreaCenter();
-                    movement.hardMove(closetSpawnAreaCenter);
+//                    movement.hardMove(closetSpawnAreaCenter);
+                    bugNav.moveTo(closetSpawnAreaCenter);
                 } else {
                     utility.writeToFlagrunnerGroupIndex(info.getLocation());
-                    movement.hardMove(info.getLocation());
+//                    movement.hardMove(info.getLocation());
+                    bugNav.moveTo(info.getLocation());
                     tryToHeal();
                 }
             }
@@ -343,7 +349,8 @@ public class Flagrunner {
                 return;
             }
         }
-        movement.hardMove(location);
+//        movement.hardMove(location);
+        bugNav.moveTo(location);
     }
 
     // ---------------------------------------------------------------------------------
@@ -411,7 +418,8 @@ public class Flagrunner {
 //                    if (movement.MovementStack.empty()) movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
                 }
 //                if (!movement.MovementStack.empty()) movement.hardMove(locationForFlagrunnerGroup);
-                movement.hardMove(locationForFlagrunnerGroup);
+//                movement.hardMove(locationForFlagrunnerGroup);
+                bugNav.moveTo(locationForFlagrunnerGroup);
                 tryToHeal();
 
             } else { // there's an enemy, but they cant attack us next turn. save our action cooldown, and just move to our goal
