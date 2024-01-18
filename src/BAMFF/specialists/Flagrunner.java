@@ -294,7 +294,7 @@ public class Flagrunner {
         }
 
         if (rc.canHeal(lowestHealthFriendly.location)) rc.heal(lowestHealthFriendly.location);
-        if (rc.canHeal(rc.getLocation())) rc.heal(rc.getLocation());
+//        if (rc.canHeal(rc.getLocation())) rc.heal(rc.getLocation());
 
     }
 
