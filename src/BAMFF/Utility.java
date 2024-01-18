@@ -15,6 +15,7 @@ public class Utility {
     public void setLocalID(int localID) {
         this.localID = localID;
     }
+    Direction[] directions = Direction.values();
 
     public void setCoolRobotInfoArray(CoolRobotInfo[] coolRobotInfoArray) {
         this.coolRobotInfoArray = coolRobotInfoArray;
