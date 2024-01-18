@@ -60,28 +60,18 @@ public strictfp class RobotPlayer {
     static final int flagRunnerGroupThreeLocIndex = 58;
     static final int flagRunnerGroupThreeIDIndex = 59;
 
-    static final Direction[] directions = {
-            Direction.NORTH,
-            Direction.NORTHEAST,
-            Direction.EAST,
-            Direction.SOUTHEAST,
-            Direction.SOUTH,
-            Direction.SOUTHWEST,
-            Direction.WEST,
-            Direction.NORTHWEST,
-    };
-
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws Exception {
         // Create objects for the other files
         Movement movement = new Movement(rc, lefty);
+        BugNav bugNav = new BugNav(rc, rc.getMapHeight(), rc.getMapWidth());
         Utility utility = new Utility(rc);
 
         // before strategies
         Scout scout = new Scout(rc, movement, utility);
 
         // after strategies
-        Flagrunner flagrunner = new Flagrunner(rc, movement, utility);
+        Flagrunner flagrunner = new Flagrunner(rc, movement, utility, bugNav);
         Defender defender = new Defender(rc, movement, utility);
 
         // either strategies
@@ -174,8 +164,7 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
                     // end of turn stuff
                     // ----------------------------------------
-
-//                    if (rc.getRoundNum() == 410) rc.resign();
+                    bugNav.fill();
 
                 }
             } catch (GameActionException e) {
