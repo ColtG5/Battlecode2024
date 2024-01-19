@@ -1,9 +1,7 @@
 package BAMFF.specialists;
 
-import BAMFF.BugNav;
+import BAMFF.*;
 import battlecode.common.*;
-import BAMFF.Movement;
-import BAMFF.Utility;
 
 import java.util.ArrayList;
 
@@ -12,6 +10,7 @@ public class Flagrunner {
     RobotController rc;
     Movement movement;
     BugNav bugNav;
+    Symmetry symmetry;
     Utility utility;
     MapLocation locationForFlagrunnerGroup;
     boolean isBuilder;
@@ -21,11 +20,12 @@ public class Flagrunner {
     Utility.CoolRobotInfo[] coolRobotInfoArray;
     MapLocation[] spawnAreaCenters;
 
-    public Flagrunner(RobotController rc, Movement movement, Utility utility, BugNav bugNav) {
+    public Flagrunner(RobotController rc, Movement movement, Utility utility, BugNav bugNav, Symmetry symmetry) {
         this.rc = rc;
         this.movement = movement;
         this.utility = utility;
         this.bugNav = bugNav;
+        this.symmetry = symmetry;
     }
 
     public void setLocalID(int localID) {
@@ -203,7 +203,7 @@ public class Flagrunner {
             if (!enemyFlag.isPickedUp()) enemyFlagsNotPickedUp.add(enemyFlag);
         }
 
-        MapLocation[] allDroppedFlags = rc.senseBroadcastFlagLocations();
+        MapLocation[] possibleFlagLocations = symmetry.getPossibleFlagLocations();
 
         if (!enemyFlagsNotPickedUp.isEmpty()) { // if we can see a flag to conquer
             // get the closest flag to us
@@ -214,10 +214,10 @@ public class Flagrunner {
                 }
             }
             locForGroup = closestFlag;
-        } else if (allDroppedFlags.length != 0) { // there is still a flag left for us to conquer
+        } else if (possibleFlagLocations.length != 0) { // there is still a flag left for us to conquer
             // get the closest flag to us that is on the ground
-            MapLocation closestFlag = allDroppedFlags[0];
-            for (MapLocation droppedFlag : allDroppedFlags) {
+            MapLocation closestFlag = possibleFlagLocations[0];
+            for (MapLocation droppedFlag : possibleFlagLocations) {
                 if (rc.getLocation().distanceSquaredTo(droppedFlag) < rc.getLocation().distanceSquaredTo(closestFlag)) {
                     closestFlag = droppedFlag;
                 }

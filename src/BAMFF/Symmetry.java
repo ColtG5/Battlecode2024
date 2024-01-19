@@ -12,8 +12,8 @@ public class Symmetry {
     boolean isRotational = true;
     int W, H;
     int symX, symY;
-    MapLocation middleOfMap;
     MapLocation[] broadcastFlags;
+    MapLocation[] possibleFlagLocations;
 
 
     Symmetry(RobotController rc, Utility utility) {
@@ -21,8 +21,11 @@ public class Symmetry {
         this.utility = utility;
         H = rc.getMapHeight();
         W = rc.getMapWidth();
-        middleOfMap = new MapLocation(W / 2, H / 2);
         broadcastFlags = rc.senseBroadcastFlagLocations();
+    }
+
+    public MapLocation[] getPossibleFlagLocations() {
+        return possibleFlagLocations;
     }
 
     void checkSymmetry(MapLocation[] spawnCenters) throws GameActionException {
@@ -32,17 +35,49 @@ public class Symmetry {
             rc.writeSharedArray(62, 1);
         }
 
+        // Hardcoded below cause i was lazy to use loops
         if (isHorizontal && !isVertical && !isRotational) {
             System.out.println("HORIZONTAL SYMMETRY");
+            possibleFlagLocations = new MapLocation[3];
+            possibleFlagLocations[0] = new MapLocation(W - spawnCenters[0].x - 1, spawnCenters[0].y);
+            possibleFlagLocations[1] = new MapLocation(W - spawnCenters[1].x - 1, spawnCenters[1].y);
+            possibleFlagLocations[2] = new MapLocation(W - spawnCenters[2].x - 1, spawnCenters[2].y);
             return;
         }
         if (!isHorizontal && isVertical && !isRotational) {
             System.out.println("VERTICAL SYMMETRY");
+            possibleFlagLocations = new MapLocation[3];
+            possibleFlagLocations[0] = new MapLocation(spawnCenters[0].x, H - spawnCenters[0].y - 1);
+            possibleFlagLocations[1] = new MapLocation(spawnCenters[1].x, H - spawnCenters[1].y - 1);
+            possibleFlagLocations[2] = new MapLocation(spawnCenters[2].x, H - spawnCenters[2].y - 1);
             return;
         }
         if (!isHorizontal && !isVertical && isRotational) {
             System.out.println("ROTATIONAL SYMMETRY");
+            possibleFlagLocations = new MapLocation[3];
+            possibleFlagLocations[0] = new MapLocation(W - spawnCenters[0].x - 1, H - spawnCenters[0].y - 1);
+            possibleFlagLocations[1] = new MapLocation(W - spawnCenters[1].x - 1, H - spawnCenters[1].y - 1);
+            possibleFlagLocations[2] = new MapLocation(W - spawnCenters[2].x - 1, H - spawnCenters[2].y - 1);
             return;
+        }
+
+        if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS - 40) {
+            possibleFlagLocations = new MapLocation[6];
+
+            // Rotational will always be a possible location
+            possibleFlagLocations[0] = new MapLocation(W - spawnCenters[0].x - 1, H - spawnCenters[0].y - 1);
+            possibleFlagLocations[1] = new MapLocation(W - spawnCenters[1].x - 1, H - spawnCenters[1].y - 1);
+            possibleFlagLocations[2] = new MapLocation(W - spawnCenters[2].x - 1, H - spawnCenters[2].y - 1);
+
+            if (isHorizontal) {
+                possibleFlagLocations[3] = new MapLocation(W - spawnCenters[0].x - 1, spawnCenters[0].y);
+                possibleFlagLocations[4] = new MapLocation(W - spawnCenters[1].x - 1, spawnCenters[1].y);
+                possibleFlagLocations[5] = new MapLocation(W - spawnCenters[2].x - 1, spawnCenters[2].y);
+            } else if (isVertical) {
+                possibleFlagLocations[3] = new MapLocation(spawnCenters[0].x, H - spawnCenters[0].y - 1);
+                possibleFlagLocations[4] = new MapLocation(spawnCenters[1].x, H - spawnCenters[1].y - 1);
+                possibleFlagLocations[5] = new MapLocation(spawnCenters[2].x, H - spawnCenters[2].y - 1);
+            }
         }
 
 

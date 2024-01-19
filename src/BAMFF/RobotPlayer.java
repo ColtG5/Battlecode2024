@@ -72,7 +72,7 @@ public strictfp class RobotPlayer {
 
         // Specialists
         Scout scout = new Scout(rc, movement, utility);
-        Flagrunner flagrunner = new Flagrunner(rc, movement, utility, bugNav);
+        Flagrunner flagrunner = new Flagrunner(rc, movement, utility, bugNav, symmetry);
         Defender defender = new Defender(rc, movement, utility);
 
         // either strategies
