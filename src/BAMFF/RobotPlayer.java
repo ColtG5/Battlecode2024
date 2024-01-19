@@ -128,7 +128,7 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
                     // start of turn logic
                     // ----------------------------------------
-                    if (rc.getRoundNum() >= 10) symmetry.checkSymmetry(spawnAreaCenters);
+                    if (rc.getRoundNum() >= 10 && !symmetry.getSymmetry()) symmetry.checkSymmetry(spawnAreaCenters);
                     // writes the first 3 bread locations into the shared array, and also checks if this bot is a defender
 //                    if (rc.getRoundNum() == 1) utility.didISpawnOnFlag(utility);
 

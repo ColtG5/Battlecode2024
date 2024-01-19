@@ -3,6 +3,8 @@ package BAMFF;
 import battlecode.common.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map;
 
 public class Symmetry {
     RobotController rc;
@@ -12,8 +14,12 @@ public class Symmetry {
     boolean isRotational = true;
     int W, H;
     int symX, symY;
-    MapLocation[] broadcastFlags;
+    boolean sym = false;
     MapLocation[] possibleFlagLocations;
+    MapLocation spawn1;
+    MapLocation spawn2;
+    MapLocation spawn3;
+    MapLocation flagTryingToStealLoc;
 
 
     Symmetry(RobotController rc, Utility utility) {
@@ -21,11 +27,92 @@ public class Symmetry {
         this.utility = utility;
         H = rc.getMapHeight();
         W = rc.getMapWidth();
-        broadcastFlags = rc.senseBroadcastFlagLocations();
     }
 
+    public boolean getSymmetry() {
+        return sym;
+    }
     public MapLocation[] getPossibleFlagLocations() {
         return possibleFlagLocations;
+    }
+
+    public void updatePossibleFlagLocations(boolean iStoleFlag) throws GameActionException {
+        if (iStoleFlag) {
+            System.out.println("I STOLE: " + flagTryingToStealLoc);
+            for (int i = 51; i <= 53; i++) {
+                if (flagTryingToStealLoc.equals(utility.intToLocation(rc.readSharedArray(i)))) {
+                    rc.writeSharedArray(i, 0);
+                }
+            }
+        }
+
+        for (MapLocation flag : possibleFlagLocations) {
+            if (rc.getLocation().isAdjacentTo(flag) && rc.hasFlag()) {
+                if (flagTryingToStealLoc == null) flagTryingToStealLoc = flag;
+                System.out.println("PICKED UP AND ATTEMPTING TO STEAL: " + flagTryingToStealLoc);
+            }
+        }
+
+
+        int flagsLeft = 0;
+        for (int i = 51; i <= 53; i++) {
+            if (rc.readSharedArray(i) != 0) flagsLeft++;
+        }
+
+        if (flagsLeft == 1) {
+            possibleFlagLocations = new MapLocation[1];
+            for (int i = 51; i <= 53; i++) {
+                if (rc.readSharedArray(i) != 0)
+                    possibleFlagLocations[0] = utility.intToLocation(rc.readSharedArray(i));
+            }
+        }
+
+        if (flagsLeft == 2) {
+            possibleFlagLocations = new MapLocation[2];
+            int j = 0;
+            for (int i = 51; i <= 53; i++) {
+                if (rc.readSharedArray(i) != 0) {
+                    possibleFlagLocations[j] = utility.intToLocation(rc.readSharedArray(i));
+                    j++;
+                }
+            }
+        }
+        System.out.println(Arrays.toString(possibleFlagLocations));
+    }
+
+    void updateSymmetry() throws GameActionException {
+        if (isHorizontal && !isVertical && !isRotational) {
+            sym = true;
+            possibleFlagLocations = new MapLocation[3];
+            possibleFlagLocations[0] = new MapLocation(W - spawn1.x - 1, spawn1.y);
+            possibleFlagLocations[1] = new MapLocation(W - spawn2.x - 1, spawn2.y);
+            possibleFlagLocations[2] = new MapLocation(W - spawn3.x - 1, spawn3.y);
+            rc.writeSharedArray(51, utility.locationToInt(possibleFlagLocations[0]));
+            rc.writeSharedArray(52, utility.locationToInt(possibleFlagLocations[1]));
+            rc.writeSharedArray(53, utility.locationToInt(possibleFlagLocations[2]));
+            return;
+        }
+        if (!isHorizontal && isVertical && !isRotational) {
+            sym = true;
+            possibleFlagLocations = new MapLocation[3];
+            possibleFlagLocations[0] = new MapLocation(spawn1.x, H - spawn1.y - 1);
+            possibleFlagLocations[1] = new MapLocation(spawn2.x, H - spawn2.y - 1);
+            possibleFlagLocations[2] = new MapLocation(spawn3.x, H - spawn3.y - 1);
+            rc.writeSharedArray(51, utility.locationToInt(possibleFlagLocations[0]));
+            rc.writeSharedArray(52, utility.locationToInt(possibleFlagLocations[1]));
+            rc.writeSharedArray(53, utility.locationToInt(possibleFlagLocations[2]));
+            return;
+        }
+        if (!isHorizontal && !isVertical && isRotational) {
+            sym = true;
+            possibleFlagLocations = new MapLocation[3];
+            possibleFlagLocations[0] = new MapLocation(W - spawn1.x - 1, H - spawn1.y - 1);
+            possibleFlagLocations[1] = new MapLocation(W - spawn2.x - 1, H - spawn2.y - 1);
+            possibleFlagLocations[2] = new MapLocation(W - spawn3.x - 1, H - spawn3.y - 1);
+            rc.writeSharedArray(51, utility.locationToInt(possibleFlagLocations[0]));
+            rc.writeSharedArray(52, utility.locationToInt(possibleFlagLocations[1]));
+            rc.writeSharedArray(53, utility.locationToInt(possibleFlagLocations[2]));
+        }
     }
 
     void checkSymmetry(MapLocation[] spawnCenters) throws GameActionException {
@@ -33,61 +120,33 @@ public class Symmetry {
             rc.writeSharedArray(60, 1);
             rc.writeSharedArray(61, 1);
             rc.writeSharedArray(62, 1);
+            spawn1 = spawnCenters[0];
+            spawn2 = spawnCenters[1];
+            spawn3 = spawnCenters[2];
         }
-
-        // Hardcoded below cause i was lazy to use loops
-        if (isHorizontal && !isVertical && !isRotational) {
-            System.out.println("HORIZONTAL SYMMETRY");
-            possibleFlagLocations = new MapLocation[3];
-            possibleFlagLocations[0] = new MapLocation(W - spawnCenters[0].x - 1, spawnCenters[0].y);
-            possibleFlagLocations[1] = new MapLocation(W - spawnCenters[1].x - 1, spawnCenters[1].y);
-            possibleFlagLocations[2] = new MapLocation(W - spawnCenters[2].x - 1, spawnCenters[2].y);
-            return;
-        }
-        if (!isHorizontal && isVertical && !isRotational) {
-            System.out.println("VERTICAL SYMMETRY");
-            possibleFlagLocations = new MapLocation[3];
-            possibleFlagLocations[0] = new MapLocation(spawnCenters[0].x, H - spawnCenters[0].y - 1);
-            possibleFlagLocations[1] = new MapLocation(spawnCenters[1].x, H - spawnCenters[1].y - 1);
-            possibleFlagLocations[2] = new MapLocation(spawnCenters[2].x, H - spawnCenters[2].y - 1);
-            return;
-        }
-        if (!isHorizontal && !isVertical && isRotational) {
-            System.out.println("ROTATIONAL SYMMETRY");
-            possibleFlagLocations = new MapLocation[3];
-            possibleFlagLocations[0] = new MapLocation(W - spawnCenters[0].x - 1, H - spawnCenters[0].y - 1);
-            possibleFlagLocations[1] = new MapLocation(W - spawnCenters[1].x - 1, H - spawnCenters[1].y - 1);
-            possibleFlagLocations[2] = new MapLocation(W - spawnCenters[2].x - 1, H - spawnCenters[2].y - 1);
-            return;
-        }
-
-        if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS - 40) {
-            possibleFlagLocations = new MapLocation[6];
-
-            // Rotational will always be a possible location
-            possibleFlagLocations[0] = new MapLocation(W - spawnCenters[0].x - 1, H - spawnCenters[0].y - 1);
-            possibleFlagLocations[1] = new MapLocation(W - spawnCenters[1].x - 1, H - spawnCenters[1].y - 1);
-            possibleFlagLocations[2] = new MapLocation(W - spawnCenters[2].x - 1, H - spawnCenters[2].y - 1);
-
-            if (isHorizontal) {
-                possibleFlagLocations[3] = new MapLocation(W - spawnCenters[0].x - 1, spawnCenters[0].y);
-                possibleFlagLocations[4] = new MapLocation(W - spawnCenters[1].x - 1, spawnCenters[1].y);
-                possibleFlagLocations[5] = new MapLocation(W - spawnCenters[2].x - 1, spawnCenters[2].y);
-            } else if (isVertical) {
-                possibleFlagLocations[3] = new MapLocation(spawnCenters[0].x, H - spawnCenters[0].y - 1);
-                possibleFlagLocations[4] = new MapLocation(spawnCenters[1].x, H - spawnCenters[1].y - 1);
-                possibleFlagLocations[5] = new MapLocation(spawnCenters[2].x, H - spawnCenters[2].y - 1);
-            }
-        }
-
 
         isHorizontal = rc.readSharedArray(60) != 0;
         isVertical = rc.readSharedArray(61) != 0;
         isRotational = rc.readSharedArray(62) != 0;
 
-        rc.setIndicatorDot(broadcastFlags[0], 0, 0, 0);
-        rc.setIndicatorDot(broadcastFlags[1], 0, 0, 0);
-        rc.setIndicatorDot(broadcastFlags[2], 0, 0, 0);
+        if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS - 40) {
+            possibleFlagLocations = new MapLocation[6];
+
+            // Rotational will always be a possible location
+            possibleFlagLocations[0] = new MapLocation(W - spawn1.x - 1, H - spawn1.y - 1);
+            possibleFlagLocations[1] = new MapLocation(W - spawn2.x - 1, H - spawn2.y - 1);
+            possibleFlagLocations[2] = new MapLocation(W - spawn3.x - 1, H - spawn3.y - 1);
+
+            if (isHorizontal) {
+                possibleFlagLocations[3] = new MapLocation(W - spawn1.x - 1, spawn1.y);
+                possibleFlagLocations[4] = new MapLocation(W - spawn2.x - 1, spawn2.y);
+                possibleFlagLocations[5] = new MapLocation(W - spawn3.x - 1, spawn3.y);
+            } else if (isVertical) {
+                possibleFlagLocations[3] = new MapLocation(spawn1.x, H - spawn1.y - 1);
+                possibleFlagLocations[4] = new MapLocation(spawn2.x, H - spawn2.y - 1);
+                possibleFlagLocations[5] = new MapLocation(spawn3.x, H - spawn3.y - 1);
+            }
+        }
 
         for (MapLocation spawn : spawnCenters) {
             if (isVertical) {
@@ -103,6 +162,8 @@ public class Symmetry {
                         if (!flag.getLocation().equals(loc)) eliminateVertical();
                     }
                 }
+                updateSymmetry();
+                if (sym) return;
             }
 
             if (isHorizontal) {
@@ -118,6 +179,8 @@ public class Symmetry {
                         if (!flag.getLocation().equals(loc)) eliminateHorizontal();
                     }
                 }
+                updateSymmetry();
+                if (sym) return;
             }
 
             if (isRotational) {
@@ -133,6 +196,8 @@ public class Symmetry {
                         if (!flag.getLocation().equals(loc)) eliminateRotational();
                     }
                 }
+                updateSymmetry();
+                if (sym) return;
             }
         }
     }

@@ -4,6 +4,7 @@ import BAMFF.*;
 import battlecode.common.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Flagrunner {
     int localID;
@@ -203,7 +204,7 @@ public class Flagrunner {
             if (!enemyFlag.isPickedUp()) enemyFlagsNotPickedUp.add(enemyFlag);
         }
 
-        MapLocation[] possibleFlagLocations = symmetry.getPossibleFlagLocations();
+        MapLocation[] possibleFlagLocations = rc.senseBroadcastFlagLocations();
 
         if (!enemyFlagsNotPickedUp.isEmpty()) { // if we can see a flag to conquer
             // get the closest flag to us
@@ -338,7 +339,8 @@ public class Flagrunner {
                 bannedPlaces.add(mapInfo.getMapLocation());
             }
         }
-        movement.hardMove(utility.getLocationOfMyGroupLeader(), bannedPlaces);
+//        movement.hardMove(utility.getLocationOfMyGroupLeader(), bannedPlaces);
+        bugNav.moveTo(utility.getLocationOfMyGroupLeader(), bannedPlaces);
     }
 
     private void smartMovement(MapLocation location) throws GameActionException {
