@@ -4,12 +4,12 @@ import battlecode.common.*;
 
 public class BugNav {
     RobotController rc;
-    static int H, W;
+    int H, W;
 
-    BugNav(RobotController rc, int H, int W) {
+    BugNav(RobotController rc) {
         this.rc = rc;
-        BugNav.H = H;
-        BugNav.W = W;
+        this.H = rc.getMapHeight();
+        this.W = rc.getMapWidth();
         states = new int[W][];
     }
 
@@ -57,6 +57,11 @@ public class BugNav {
     public void moveTo(MapLocation target) throws GameActionException {
         if (!rc.isMovementReady()) return;
         if (target == null) target = rc.getLocation();
+
+        // Fill water
+        myLoc = rc.getLocation();
+        if (rc.canFill(myLoc.add(myLoc.directionTo(target))))
+            rc.fill(myLoc.add(myLoc.directionTo(target)));
 
         update();
 
@@ -179,6 +184,7 @@ public class BugNav {
 
     void move(Direction dir) throws GameActionException {
         if (dir == Direction.CENTER) return;
+
         rc.move(dir);
     }
 
