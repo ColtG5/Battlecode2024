@@ -1,11 +1,7 @@
 package BAMFF;
 
-import BAMFF.specialists.Defender;
-import BAMFF.specialists.Flagrunner;
-import BAMFF.specialists.Scout;
+import BAMFF.specialists.*;
 import battlecode.common.*;
-
-import java.util.Arrays;
 
 /**
  * RobotPlayer is the class that describes your main robot strategy.

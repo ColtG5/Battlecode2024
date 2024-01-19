@@ -2,10 +2,6 @@ package BAMFF;
 
 import battlecode.common.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
-
 public class Symmetry {
     RobotController rc;
     Utility utility;
@@ -77,7 +73,6 @@ public class Symmetry {
                 }
             }
         }
-        System.out.println(Arrays.toString(possibleFlagLocations));
     }
 
     void updateSymmetry() throws GameActionException {

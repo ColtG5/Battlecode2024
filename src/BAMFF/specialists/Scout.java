@@ -1,7 +1,6 @@
 package BAMFF.specialists;
 
-import BAMFF.Movement;
-import BAMFF.Utility;
+import BAMFF.*;
 import battlecode.common.*;
 
 public class Scout {

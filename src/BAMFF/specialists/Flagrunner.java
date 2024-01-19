@@ -4,7 +4,6 @@ import BAMFF.*;
 import battlecode.common.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Flagrunner {
     int localID;

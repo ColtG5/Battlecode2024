@@ -1,8 +1,7 @@
 package BAMFF.specialists;
 
 import battlecode.common.*;
-import BAMFF.Movement;
-import BAMFF.Utility;
+import BAMFF.*;
 
 import java.util.ArrayList;
 
