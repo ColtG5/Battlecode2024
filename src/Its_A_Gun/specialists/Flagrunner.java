@@ -1,9 +1,9 @@
-package BAMFF.specialists;
+package Its_A_Gun.specialists;
 
-import BAMFF.BugNav;
+import Its_A_Gun.BugNav;
 import battlecode.common.*;
-import BAMFF.Movement;
-import BAMFF.Utility;
+import Its_A_Gun.Movement;
+import Its_A_Gun.Utility;
 
 import java.util.ArrayList;
 
@@ -136,14 +136,14 @@ public class Flagrunner {
             possiblePlacements.clear();
 
             for (MapInfo info : infoAround) {
-                if (rc.canBuild(TrapType.EXPLOSIVE, info.getMapLocation()))
+                if (rc.canBuild(TrapType.STUN, info.getMapLocation()))
                     possiblePlacements.add(info.getMapLocation());
             }
 
             MapLocation bestPlacement = locationClosestToEnemy(possiblePlacements, closestEnemy);
 
-            if (bestPlacement != null && rc.canBuild(TrapType.EXPLOSIVE, bestPlacement))
-                rc.build(TrapType.EXPLOSIVE, bestPlacement);
+            if (bestPlacement != null && rc.canBuild(TrapType.STUN, bestPlacement))
+                rc.build(TrapType.STUN, bestPlacement);
         }
 
         if (rc.canAttack(closestEnemy)) rc.attack(closestEnemy);
