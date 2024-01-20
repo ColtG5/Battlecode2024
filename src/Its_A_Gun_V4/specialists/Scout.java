@@ -1,7 +1,7 @@
-package Its_A_Gun_V3.specialists;
+package Its_A_Gun_V4.specialists;
 
-import Its_A_Gun_V3.Movement;
-import Its_A_Gun_V3.Utility;
+import Its_A_Gun_V4.Movement;
+import Its_A_Gun_V4.Utility;
 import battlecode.common.*;
 
 public class Scout {
