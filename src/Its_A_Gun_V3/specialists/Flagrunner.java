@@ -184,6 +184,7 @@ public class Flagrunner {
                 boolean adjacentLocationContainsTrap = false;
                 for (Direction dir : Direction.allDirections()) {
                     MapLocation adjacentLocation = info.getMapLocation().add(dir);
+                    if (!rc.onTheMap(adjacentLocation)) continue;
                     if (rc.senseMapInfo(adjacentLocation).getTrapType() != TrapType.NONE) {
                         adjacentLocationContainsTrap = true;
                         break;
