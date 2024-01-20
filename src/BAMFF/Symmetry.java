@@ -10,12 +10,13 @@ public class Symmetry {
     boolean isRotational = true;
     int W, H;
     int symX, symY;
+    Integer flagStolenIndex = null;
     boolean sym = false;
     MapLocation[] possibleFlagLocations;
     MapLocation spawn1;
     MapLocation spawn2;
     MapLocation spawn3;
-    MapLocation flagTryingToStealLoc;
+    MapLocation flagStolen = null;
 
 
     Symmetry(RobotController rc, Utility utility) {
@@ -34,21 +35,13 @@ public class Symmetry {
 
     public void updatePossibleFlagLocations(boolean iStoleFlag) throws GameActionException {
         if (iStoleFlag) {
-            System.out.println("I STOLE: " + flagTryingToStealLoc);
             for (int i = 51; i <= 53; i++) {
-                if (flagTryingToStealLoc.equals(utility.intToLocation(rc.readSharedArray(i)))) {
+                if (flagStolen.equals(utility.intToLocation(rc.readSharedArray(i)))) {
                     rc.writeSharedArray(i, 0);
+                    rc.writeSharedArray(61 + flagStolenIndex, 0);
                 }
             }
         }
-
-        for (MapLocation flag : possibleFlagLocations) {
-            if (rc.getLocation().isAdjacentTo(flag) && rc.hasFlag()) {
-                if (flagTryingToStealLoc == null) flagTryingToStealLoc = flag;
-                System.out.println("PICKED UP AND ATTEMPTING TO STEAL: " + flagTryingToStealLoc);
-            }
-        }
-
 
         int flagsLeft = 0;
         for (int i = 51; i <= 53; i++) {
@@ -72,6 +65,35 @@ public class Symmetry {
                     j++;
                 }
             }
+        }
+
+        for (int i = 0; i < possibleFlagLocations.length; i++) {
+            MapLocation flag = possibleFlagLocations[i];
+
+            if (rc.canSenseLocation(flag) && rc.hasFlag()) {
+                flagStolenIndex = i;
+                flagStolen = possibleFlagLocations[flagStolenIndex];
+                break;
+            }
+
+            int combined = rc.readSharedArray(61 + i);
+            if (combined != 0 && flagStolenIndex == null) {
+                int flagDroppedLocation = combined >> 2;
+                MapLocation prevFlagLoc = utility.intToLocation(flagDroppedLocation);
+                flagStolenIndex = combined & 0b11;
+
+                if (rc.canSenseLocation(prevFlagLoc)) {
+                    flagStolen = possibleFlagLocations[flagStolenIndex];
+                    break;
+                }
+            }
+        }
+
+        if (rc.hasFlag()) {
+            int locationToInt = utility.locationToInt(rc.getLocation());
+            int combined = (locationToInt << 2) | flagStolenIndex;
+            rc.writeSharedArray(61 + flagStolenIndex, combined);
+            System.out.println("RC FLAG INDEX: " + flagStolenIndex);
         }
     }
 

@@ -4,6 +4,7 @@ import BAMFF.*;
 import battlecode.common.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Flagrunner {
     int localID;
@@ -41,8 +42,6 @@ public class Flagrunner {
     }
 
     public void run() throws GameActionException {
-        if (rc.getID() == 13969) rc.setIndicatorDot(rc.getLocation(), 255, 255, 255);
-
         if (!isBuilderSet) {
             isBuilderSet = true;
             isBuilder = utility.amIABuilder();
@@ -64,8 +63,11 @@ public class Flagrunner {
         if (rc.hasFlag()) {
             utility.writeToFlagrunnerGroupIndex(rc.getLocation());
             MapLocation closetSpawnAreaCenter = utility.getClosetSpawnAreaCenter();
-//            movement.hardMove(closetSpawnAreaCenter);
             bugNav.moveTo(closetSpawnAreaCenter);
+
+            if (rc.getLocation().isAdjacentTo(closetSpawnAreaCenter)) {
+                symmetry.updatePossibleFlagLocations(true);
+            }
         }
 
         boolean isLeader = utility.amIAGroupLeader();
@@ -203,7 +205,8 @@ public class Flagrunner {
             if (!enemyFlag.isPickedUp()) enemyFlagsNotPickedUp.add(enemyFlag);
         }
 
-        MapLocation[] possibleFlagLocations = rc.senseBroadcastFlagLocations();
+        MapLocation[] possibleFlagLocations = symmetry.getPossibleFlagLocations();
+        if (symmetry.getSymmetry()) symmetry.updatePossibleFlagLocations(false);
 
         if (!enemyFlagsNotPickedUp.isEmpty()) { // if we can see a flag to conquer
             // get the closest flag to us
