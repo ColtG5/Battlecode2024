@@ -112,17 +112,16 @@ public class Symmetry {
 
     void checkSymmetry(MapLocation[] spawnCenters) throws GameActionException {
         if (rc.getRoundNum() == 10) {
-            rc.writeSharedArray(60, 1);
-            rc.writeSharedArray(61, 1);
-            rc.writeSharedArray(62, 1);
+            int combined = ((isHorizontal ? 1 : 0) << 2 | (isVertical ? 1 : 0) << 1 | (isRotational ? 1 : 0));
+            rc.writeSharedArray(60, combined);
             spawn1 = spawnCenters[0];
             spawn2 = spawnCenters[1];
             spawn3 = spawnCenters[2];
         }
 
-        isHorizontal = rc.readSharedArray(60) != 0;
-        isVertical = rc.readSharedArray(61) != 0;
-        isRotational = rc.readSharedArray(62) != 0;
+        if (isHorizontal) isHorizontal = ((rc.readSharedArray(60) >> 2) & 1) == 1;
+        if (isVertical) isVertical = ((rc.readSharedArray(60) >> 1) & 1) == 1;
+        if (isRotational) isRotational = (rc.readSharedArray(60) & 1) == 1;
 
         if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS - 40) {
             possibleFlagLocations = new MapLocation[6];
@@ -154,7 +153,10 @@ public class Symmetry {
                     FlagInfo[] flags = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
                     if (flags.length == 0) eliminateVertical();
                     for (FlagInfo flag : flags) {
-                        if (!flag.getLocation().equals(loc)) eliminateVertical();
+                        if (flag.getLocation().equals(loc)) {
+                            eliminateHorizontal();
+                            eliminateRotational();
+                        }
                     }
                 }
                 updateSymmetry();
@@ -171,7 +173,10 @@ public class Symmetry {
                     FlagInfo[] flags = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
                     if (flags.length == 0) eliminateHorizontal();
                     for (FlagInfo flag : flags) {
-                        if (!flag.getLocation().equals(loc)) eliminateHorizontal();
+                        if (flag.getLocation().equals(loc)) {
+                            eliminateRotational();
+                            eliminateVertical();
+                        }
                     }
                 }
                 updateSymmetry();
@@ -188,7 +193,10 @@ public class Symmetry {
                     FlagInfo[] flags = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
                     if (flags.length == 0) eliminateRotational();
                     for (FlagInfo flag : flags) {
-                        if (!flag.getLocation().equals(loc)) eliminateRotational();
+                        if (flag.getLocation().equals(loc)) {
+                            eliminateVertical();
+                            eliminateHorizontal();
+                        }
                     }
                 }
                 updateSymmetry();
@@ -200,18 +208,21 @@ public class Symmetry {
     void eliminateHorizontal() throws GameActionException {
         if (!isHorizontal) return;
         isHorizontal = false;
-        rc.writeSharedArray(60, 0);
+        int combined = ((isVertical ? 1 : 0) << 1 | (isRotational ? 1 : 0));
+        rc.writeSharedArray(60, combined);
     }
 
     void eliminateVertical() throws GameActionException {
         if (!isVertical) return;
         isVertical = false;
-        rc.writeSharedArray(61, 0);
+        int combined = ((isHorizontal ? 1 : 0) << 2 | (isRotational ? 1 : 0));
+        rc.writeSharedArray(60, combined);
     }
 
     void eliminateRotational() throws GameActionException {
         if (!isRotational) return;
         isRotational = false;
-        rc.writeSharedArray(62, 0);
+        int combined = (isHorizontal ? 1 : 0) << 2 | (isVertical ? 1 : 0) << 1;
+        rc.writeSharedArray(60, combined);
     }
 }
