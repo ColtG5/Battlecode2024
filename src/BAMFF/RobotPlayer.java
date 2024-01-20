@@ -1,11 +1,7 @@
 package BAMFF;
 
-import BAMFF.specialists.Defender;
-import BAMFF.specialists.Flagrunner;
-import BAMFF.specialists.Scout;
+import BAMFF.specialists.*;
 import battlecode.common.*;
-
-import java.util.Arrays;
 
 /**
  * RobotPlayer is the class that describes your main robot strategy.
@@ -64,14 +60,15 @@ public strictfp class RobotPlayer {
     public static void run(RobotController rc) throws Exception {
         // Create objects for the other files
         Movement movement = new Movement(rc, lefty);
-        BugNav bugNav = new BugNav(rc, rc.getMapHeight(), rc.getMapWidth());
+        BugNav bugNav = new BugNav(rc);
+
+        // Utility stuff
         Utility utility = new Utility(rc);
+        Symmetry symmetry = new Symmetry(rc, utility);
 
-        // before strategies
+        // Specialists
         Scout scout = new Scout(rc, movement, utility);
-
-        // after strategies
-        Flagrunner flagrunner = new Flagrunner(rc, movement, utility, bugNav);
+        Flagrunner flagrunner = new Flagrunner(rc, movement, utility, bugNav, symmetry);
         Defender defender = new Defender(rc, movement, utility);
 
         // either strategies
@@ -127,9 +124,9 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
                     // start of turn logic
                     // ----------------------------------------
-
+                    if (rc.getRoundNum() >= 10 && !symmetry.getSymmetry()) symmetry.checkSymmetry(spawnAreaCenters);
                     // writes the first 3 bread locations into the shared array, and also checks if this bot is a defender
-                    if (rc.getRoundNum() == 1) utility.didISpawnOnFlag(utility);
+//                    if (rc.getRoundNum() == 1) utility.didISpawnOnFlag(utility);
 
                     // ----------------------------------------
                     // logic for who will specialize to what (subject to change idrk what im doing ong no cap on 4nem)
@@ -149,8 +146,8 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
 
                     if (rc.getRoundNum() <= GameConstants.SETUP_ROUNDS) { // before divider drop strategies
-                        if (rc.getRoundNum() == 1) continue; // don't let bots move on the first turn (I forget why but there's prob a reason)
-                        else if (isDefender) defender.run();
+//                        if (rc.getRoundNum() == 1) continue; // don't let bots move on the first turn (I forget why but there's prob a reason)
+                        if (isDefender) defender.run();
                         else if (isScout) scout.run(); // rn we make 30 scouts
                         else if (isFlagrunner) flagrunner.run();
                     } else { // after divider drop strategies

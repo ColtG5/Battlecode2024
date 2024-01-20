@@ -2,14 +2,16 @@ package BAMFF;
 
 import battlecode.common.*;
 
+import java.util.ArrayList;
+
 public class BugNav {
     RobotController rc;
-    static int H, W;
+    int H, W;
 
-    BugNav(RobotController rc, int H, int W) {
+    BugNav(RobotController rc) {
         this.rc = rc;
-        BugNav.H = H;
-        BugNav.W = W;
+        this.H = rc.getMapHeight();
+        this.W = rc.getMapWidth();
         states = new int[W][];
     }
 
@@ -23,6 +25,7 @@ public class BugNav {
     MapLocation lastObstacle = null;
     MapLocation minLocationToTarget = null;
     MapLocation myLoc;
+    ArrayList<MapLocation> blacklistLocs;
     int minDistToTarget = INFINITY;
     int turnsMovingToObstacle = 0;
     Boolean shouldIRotateRight = null;
@@ -52,11 +55,24 @@ public class BugNav {
         for (Direction dir : directions) {
             canMoveArray[dir.ordinal()] = rc.canMove(dir);
         }
+
+        if (blacklistLocs == null || blacklistLocs.isEmpty()) return;
+        for (MapLocation loc : blacklistLocs) {
+            Direction dir = myLoc.directionTo(loc);
+            canMoveArray[dir.ordinal()] = false;
+        }
+
+//        System.out.println("CANMOVE: " + Arrays.toString(canMoveArray));
     }
 
     public void moveTo(MapLocation target) throws GameActionException {
         if (!rc.isMovementReady()) return;
         if (target == null) target = rc.getLocation();
+
+        // Fill water
+        myLoc = rc.getLocation();
+        if (rc.canFill(myLoc.add(myLoc.directionTo(target))))
+            rc.fill(myLoc.add(myLoc.directionTo(target)));
 
         update();
 
@@ -129,6 +145,88 @@ public class BugNav {
         if (canMoveArray[dir.ordinal()]) move(dir);
     }
 
+    public void moveTo(MapLocation target, ArrayList<MapLocation> blacklist) throws GameActionException {
+        if (!rc.isMovementReady()) return;
+        if (target == null) target = rc.getLocation();
+        blacklistLocs = blacklist;
+
+        // Fill water
+        myLoc = rc.getLocation();
+        if (rc.canFill(myLoc.add(myLoc.directionTo(target))))
+            rc.fill(myLoc.add(myLoc.directionTo(target)));
+
+        update();
+
+        if (prevTarget == null) {
+            resetPathfinding();
+            shouldIRotateRight = null;
+        } else {
+            int distance = target.distanceSquaredTo(prevTarget);
+            if (distance > 0) {
+                if (distance >= MIN_DISTANCE_RESET) {
+                    shouldIRotateRight = null;
+                    resetPathfinding();
+                } else softReset(target);
+            }
+        }
+
+        prevTarget = target;
+
+        checkState();
+        myLoc = rc.getLocation();
+
+        int distance = myLoc.distanceSquaredTo(target);
+        if (distance == 0) return;
+
+        if (distance < minDistToTarget) {
+            resetPathfinding();
+            minDistToTarget = distance;
+            minLocationToTarget = myLoc;
+        }
+
+        Direction dir = myLoc.directionTo(target);
+        // If no obstacle around, just move to target
+        if (lastObstacle == null) {
+            if (tryGreedyMove()) {
+                resetPathfinding();
+                return;
+            }
+        } else dir = myLoc.directionTo(lastObstacle);
+
+        if (canMoveArray[dir.ordinal()]) {
+            move(dir);
+            if (lastObstacle != null) {
+                ++turnsMovingToObstacle;
+                lastObstacle = rc.getLocation().add(dir);
+                if (turnsMovingToObstacle >= MAX_TURNS_MOVING_TO_OBSTACLE){
+                    resetPathfinding();
+                } else if (!rc.onTheMap(lastObstacle)){
+                    resetPathfinding();
+                }
+            }
+            return;
+        } else turnsMovingToObstacle = 0;
+
+        checkRotate(dir);
+
+        int i = 16;
+        while (i-- > 0) {
+            if (canMoveArray[dir.ordinal()]) {
+                move(dir);
+                return;
+            }
+            MapLocation newLoc = myLoc.add(dir);
+            if (!rc.onTheMap(newLoc)) shouldIRotateRight = !shouldIRotateRight;
+                //If I could not go in that direction, and it was not outside the map, then this is the latest obstacle found
+            else lastObstacle = newLoc;
+            if (shouldIRotateRight) dir = dir.rotateRight();
+            else dir = dir.rotateLeft();
+        }
+
+        if (canMoveArray[dir.ordinal()]) move(dir);
+    }
+
+
     boolean tryGreedyMove() throws GameActionException{
         MapLocation myLoc = rc.getLocation();
         Direction dir = myLoc.directionTo(prevTarget);
@@ -179,6 +277,7 @@ public class BugNav {
 
     void move(Direction dir) throws GameActionException {
         if (dir == Direction.CENTER) return;
+
         rc.move(dir);
     }
 
