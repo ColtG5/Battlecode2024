@@ -1,17 +1,17 @@
-package BAMFF.specialists;
+package Its_A_Gun_V2.specialists;
 
-import BAMFF.*;
+import Its_A_Gun_V2.BugNav;
 import battlecode.common.*;
+import Its_A_Gun_V2.Movement;
+import Its_A_Gun_V2.Utility;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Flagrunner {
     int localID;
     RobotController rc;
     Movement movement;
     BugNav bugNav;
-    Symmetry symmetry;
     Utility utility;
     MapLocation locationForFlagrunnerGroup;
     boolean isBuilder;
@@ -21,12 +21,11 @@ public class Flagrunner {
     Utility.CoolRobotInfo[] coolRobotInfoArray;
     MapLocation[] spawnAreaCenters;
 
-    public Flagrunner(RobotController rc, Movement movement, Utility utility, BugNav bugNav, Symmetry symmetry) {
+    public Flagrunner(RobotController rc, Movement movement, Utility utility, BugNav bugNav) {
         this.rc = rc;
         this.movement = movement;
         this.utility = utility;
         this.bugNav = bugNav;
-        this.symmetry = symmetry;
     }
 
     public void setLocalID(int localID) {
@@ -42,6 +41,8 @@ public class Flagrunner {
     }
 
     public void run() throws GameActionException {
+        if (rc.getID() == 13969) rc.setIndicatorDot(rc.getLocation(), 255, 255, 255);
+
         if (!isBuilderSet) {
             isBuilderSet = true;
             isBuilder = utility.amIABuilder();
@@ -63,12 +64,8 @@ public class Flagrunner {
         if (rc.hasFlag()) {
             utility.writeToFlagrunnerGroupIndex(rc.getLocation());
             MapLocation closetSpawnAreaCenter = utility.getClosetSpawnAreaCenter();
-
-            bugNav.moveTo(closetSpawnAreaCenter);
-
-            if (rc.getLocation().isAdjacentTo(closetSpawnAreaCenter)) {
-                symmetry.updatePossibleFlagLocations(true);
-            }
+            movement.hardMove(closetSpawnAreaCenter);
+//            bugNav.moveTo(closetSpawnAreaCenter);
         }
 
         boolean isLeader = utility.amIAGroupLeader();
@@ -79,24 +76,27 @@ public class Flagrunner {
 //            rc.setIndicatorDot(locationForFlagrunnerGroup, 0, 255, 0);
         }
 
-        if (isBuilder) {
-            if (rc.getExperience(SkillType.BUILD) < 30) utility.farmBuildEXP();
-
-            RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-            if (enemies.length > 3 && rc.getRoundNum() > GameConstants.SETUP_ROUNDS) {
-                tryToPlaceBomb(enemies);
-            }
-        }
+//        if (isBuilder) {
+//            if (rc.getExperience(SkillType.BUILD) < 30) utility.farmBuildEXP();
+//
+//            RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+//            if (enemies.length > 3 && rc.getRoundNum() > GameConstants.SETUP_ROUNDS) {
+//                tryToPlaceBomb(enemies);
+//            }
+//        }
 
         // see if there are any flags on the ground around you, and go and try to grab them
         senseFlagsAroundMe();
+//        MapLocation maybeFlagLocation = senseFlagsAroundMe();
+//        if (maybeFlagLocation != null) locationForFlagrunnerGroup = maybeFlagLocation;
 
         if (isLeader) {
-            if (tooFewGroupMembersAround(8)) { // if leader don't got a lotta homies, maybe just sit and wait for the gang?
-                attackMicroWithMoveAvailable();
-            } else { // if u got homies, gameplan as usual.
-                attackMicroWithMoveAvailable();
-            }
+//            if (tooFewGroupMembersAround(8)) { // if leader don't got a lotta homies, maybe just sit and wait for the gang?
+//                attackMicroWithMoveAvailable();
+//            } else { // if u got homies, gameplan as usual.
+//                attackMicroWithMoveAvailable();
+//            }
+            attackMicroWithMoveAvailable();
         } else { // a follower
 //            if (isDistanceToGroupLeaderMoreThan(10)) {
 //                // if too far from group leader, use ur movement to get back to them!
@@ -105,9 +105,9 @@ public class Flagrunner {
 //            } else { // if ur close enough, u can use ur movement in ur micro
 //                attackMicroWithMoveAvailable();
 //            }
-            if (coolRobotInfoArray[utility.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex() - 1].getHasFlag()) {
-                useBannedMovement();
-            }
+//            if (coolRobotInfoArray[utility.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex() - 1].getHasFlag()) {
+//                useBannedMovement();
+//            }
             attackMicroWithMoveAvailable();
         }
 
@@ -139,19 +139,23 @@ public class Flagrunner {
             possiblePlacements.clear();
 
             for (MapInfo info : infoAround) {
-                if (rc.canBuild(TrapType.EXPLOSIVE, info.getMapLocation()))
+                if (rc.canBuild(TrapType.STUN, info.getMapLocation()))
                     possiblePlacements.add(info.getMapLocation());
             }
 
             MapLocation bestPlacement = locationClosestToEnemy(possiblePlacements, closestEnemy);
 
-            if (bestPlacement != null && rc.canBuild(TrapType.EXPLOSIVE, bestPlacement))
-                rc.build(TrapType.EXPLOSIVE, bestPlacement);
+            if (bestPlacement != null && rc.canBuild(TrapType.STUN, bestPlacement))
+                rc.build(TrapType.STUN, bestPlacement);
         }
 
         if (rc.canAttack(closestEnemy)) rc.attack(closestEnemy);
         Direction dir = rc.getLocation().directionTo(closestEnemy).opposite();
         if (rc.canMove(dir)) rc.move(dir);
+    }
+
+    private void placeModestBombsSpaced(RobotInfo[] enemies) {
+
     }
 
 
@@ -206,8 +210,7 @@ public class Flagrunner {
             if (!enemyFlag.isPickedUp()) enemyFlagsNotPickedUp.add(enemyFlag);
         }
 
-        MapLocation[] possibleFlagLocations = symmetry.getPossibleFlagLocations();
-        if (symmetry.getSymmetry()) symmetry.updatePossibleFlagLocations(false);
+        MapLocation[] allDroppedFlags = rc.senseBroadcastFlagLocations();
 
         if (!enemyFlagsNotPickedUp.isEmpty()) { // if we can see a flag to conquer
             // get the closest flag to us
@@ -218,10 +221,10 @@ public class Flagrunner {
                 }
             }
             locForGroup = closestFlag;
-        } else if (possibleFlagLocations.length != 0) { // there is still a flag left for us to conquer
+        } else if (allDroppedFlags.length != 0) { // there is still a flag left for us to conquer
             // get the closest flag to us that is on the ground
-            MapLocation closestFlag = possibleFlagLocations[0];
-            for (MapLocation droppedFlag : possibleFlagLocations) {
+            MapLocation closestFlag = allDroppedFlags[0];
+            for (MapLocation droppedFlag : allDroppedFlags) {
                 if (rc.getLocation().distanceSquaredTo(droppedFlag) < rc.getLocation().distanceSquaredTo(closestFlag)) {
                     closestFlag = droppedFlag;
                 }
@@ -318,20 +321,23 @@ public class Flagrunner {
         FlagInfo[] flagInfo = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
         for (FlagInfo info : flagInfo) {
             if (!info.isPickedUp()) {
-                if (rc.canPickupFlag(info.getLocation()) && !isBuilder) {
+//                if (rc.canPickupFlag(info.getLocation()) && !isBuilder) {
+                if (rc.canPickupFlag(info.getLocation())) {
                     rc.pickupFlag(info.getLocation());
                     utility.writeToFlagrunnerGroupIndex(rc.getLocation());
                     MapLocation closetSpawnAreaCenter = utility.getClosetSpawnAreaCenter();
                     movement.hardMove(closetSpawnAreaCenter);
+//                    return closetSpawnAreaCenter;
 //                    bugNav.moveTo(closetSpawnAreaCenter);
                 } else {
                     utility.writeToFlagrunnerGroupIndex(info.getLocation());
                     movement.hardMove(info.getLocation());
+//                    return info.getLocation();
 //                    bugNav.moveTo(info.getLocation());
-                    tryToHeal();
                 }
             }
         }
+//        return null;
     }
 
     private void useBannedMovement() throws GameActionException {
@@ -342,8 +348,7 @@ public class Flagrunner {
                 bannedPlaces.add(mapInfo.getMapLocation());
             }
         }
-//        movement.hardMove(utility.getLocationOfMyGroupLeader(), bannedPlaces);
-        bugNav.moveTo(utility.getLocationOfMyGroupLeader(), bannedPlaces);
+        movement.hardMove(utility.getLocationOfMyGroupLeader(), bannedPlaces);
     }
 
     private void smartMovement(MapLocation location) throws GameActionException {
@@ -419,13 +424,23 @@ public class Flagrunner {
 //                        if (movement.MovementStack.empty()) movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
                     }
                 } else {
-                    movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
+//                    movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
 //                    if (movement.MovementStack.empty()) movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
                 }
 //                if (!movement.MovementStack.empty()) movement.hardMove(locationForFlagrunnerGroup);
-                movement.hardMove(locationForFlagrunnerGroup);
+
+
+//                if (coolRobotInfoArray[utility.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex() - 1].getHasFlag()) {
+//                    useBannedMovement();
+//                } else {
+//                    movement.hardMove(locationForFlagrunnerGroup);
+//                }
+
+                smartMovement(locationForFlagrunnerGroup);
+
+
 //                bugNav.moveTo(locationForFlagrunnerGroup);
-                tryToHeal();
+//                tryToHeal();
 
             } else { // there's an enemy, but they cant attack us next turn. save our action cooldown, and just move to our goal
                 // two strats here: either stay put and try to heal,
@@ -433,9 +448,11 @@ public class Flagrunner {
                 // or move to the goal and don't heal
 //                movement.hardMove(locationForFlagrunnerGroup);
                 smartMovement(locationForFlagrunnerGroup);
+                tryToHeal();
             }
         } else { // zero enemies on our radar, so walk to spot we gotta go, and heal up
 //            movement.hardMove(locationForFlagrunnerGroup);
+            tryToHeal();
             smartMovement(locationForFlagrunnerGroup);
             tryToHeal();
         }
