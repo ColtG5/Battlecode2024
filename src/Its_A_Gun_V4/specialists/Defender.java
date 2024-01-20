@@ -67,7 +67,11 @@ public class Defender {
                 movement.smallMove(rc.getLocation().directionTo(closestEnemy).opposite());
             }
         }
-        if (enemies.length == 0) placeTrapsAroundBread();
+        boolean myBreadIsAtHome = false;
+        for (FlagInfo flag : flags) {
+            if (flag.getLocation().equals(myBreadIDefendForMyLife)) myBreadIsAtHome = true;
+        }
+        if (enemies.length == 0 && myBreadIsAtHome) placeTrapsAroundBread();
 
         RobotInfo[] defenders = rc.senseNearbyRobots(-1, rc.getTeam());
         boolean isUnderAttack = defenders.length - 2 <= enemies.length;
