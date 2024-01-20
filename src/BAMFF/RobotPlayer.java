@@ -112,7 +112,7 @@ public strictfp class RobotPlayer {
 
                 if (!rc.isSpawned()) {
                     if (isDefender) defender.tryToSpawnOnMyFlag();
-                    else if (rc.getRoundNum() > 200) {
+                    else if (rc.getRoundNum() > GameConstants.SETUP_ROUNDS) {
                         utility.spawnDefend();
                         utility.trySpawningEvenly(spawnAreaCenters);
                     }
@@ -124,7 +124,7 @@ public strictfp class RobotPlayer {
                     // ----------------------------------------
                     // start of turn logic
                     // ----------------------------------------
-                    if (rc.getRoundNum() >= 10 && !symmetry.getSymmetry()) symmetry.checkSymmetry(spawnAreaCenters);
+//                    if (rc.getRoundNum() >= 10 && !symmetry.getSymmetry()) symmetry.checkSymmetry(spawnAreaCenters);
                     // writes the first 3 bread locations into the shared array, and also checks if this bot is a defender
 //                    if (rc.getRoundNum() == 1) utility.didISpawnOnFlag(utility);
 
@@ -162,7 +162,6 @@ public strictfp class RobotPlayer {
                     // end of turn stuff
                     // ----------------------------------------
                     bugNav.fill();
-
                 }
             } catch (GameActionException e) {
                 System.out.println("GameActionException");

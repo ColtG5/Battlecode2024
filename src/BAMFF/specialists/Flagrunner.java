@@ -4,7 +4,6 @@ import BAMFF.*;
 import battlecode.common.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Flagrunner {
     int localID;
@@ -65,10 +64,6 @@ public class Flagrunner {
             MapLocation closetSpawnAreaCenter = utility.getClosetSpawnAreaCenter();
 
             bugNav.moveTo(closetSpawnAreaCenter);
-
-            if (rc.getLocation().isAdjacentTo(closetSpawnAreaCenter)) {
-                symmetry.updatePossibleFlagLocations(true);
-            }
         }
 
         boolean isLeader = utility.amIAGroupLeader();
@@ -206,8 +201,7 @@ public class Flagrunner {
             if (!enemyFlag.isPickedUp()) enemyFlagsNotPickedUp.add(enemyFlag);
         }
 
-        MapLocation[] possibleFlagLocations = symmetry.getPossibleFlagLocations();
-        if (symmetry.getSymmetry()) symmetry.updatePossibleFlagLocations(false);
+        MapLocation[] broadcastFlags = rc.senseBroadcastFlagLocations();
 
         if (!enemyFlagsNotPickedUp.isEmpty()) { // if we can see a flag to conquer
             // get the closest flag to us
@@ -218,10 +212,10 @@ public class Flagrunner {
                 }
             }
             locForGroup = closestFlag;
-        } else if (possibleFlagLocations.length != 0) { // there is still a flag left for us to conquer
+        } else if (broadcastFlags.length != 0) { // there is still a flag left for us to conquer
             // get the closest flag to us that is on the ground
-            MapLocation closestFlag = possibleFlagLocations[0];
-            for (MapLocation droppedFlag : possibleFlagLocations) {
+            MapLocation closestFlag = broadcastFlags[0];
+            for (MapLocation droppedFlag : broadcastFlags) {
                 if (rc.getLocation().distanceSquaredTo(droppedFlag) < rc.getLocation().distanceSquaredTo(closestFlag)) {
                     closestFlag = droppedFlag;
                 }

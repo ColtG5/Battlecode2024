@@ -12,7 +12,7 @@ public class Symmetry {
     int symX, symY;
     Integer flagStolenIndex = null;
     boolean sym = false;
-    MapLocation[] possibleFlagLocations;
+    int[] possibleFlagLocations;
     MapLocation spawn1;
     MapLocation spawn2;
     MapLocation spawn3;
@@ -29,106 +29,132 @@ public class Symmetry {
     public boolean getSymmetry() {
         return sym;
     }
-    public MapLocation[] getPossibleFlagLocations() {
+    public int[] getPossibleFlagLocations() throws GameActionException {
+        if (getSymmetry()) {
+            possibleFlagLocations = new int[3];
+            for (int i = 51; i <= 53; i++) {
+                int combined = rc.readSharedArray(i);
+                possibleFlagLocations[i - 51] = combined;
+//                MapLocation possibleFlag = utility.intToLocation(combined >> 1);
+//                boolean isStolen = (combined & 1) == 1;
+//                System.out.println("FLAG LOC: " + possibleFlag);
+//                System.out.println("IS IT STOLEN: " + isStolen);
+            }
+        }
+//        System.out.println("[");
+//        for (int combined : possibleFlagLocations) {
+//            MapLocation possibleFlag = utility.intToLocation(combined >> 1);
+//            System.out.println(possibleFlag + ", ");
+//        }
+//        System.out.println("]");
         return possibleFlagLocations;
     }
 
     public void updatePossibleFlagLocations(boolean iStoleFlag) throws GameActionException {
+        // Flag has been fully captured, so we set the boolean bit to true
         if (iStoleFlag) {
             for (int i = 51; i <= 53; i++) {
-                if (flagStolen.equals(utility.intToLocation(rc.readSharedArray(i)))) {
-                    rc.writeSharedArray(i, 0);
+                if (flagStolen.equals(utility.intToLocation(rc.readSharedArray(i) >> 1))) {
+//                    System.out.println("I FULLY CAPTURED: " + utility.intToLocation(rc.readSharedArray(i) >> 1));
+                    possibleFlagLocations[flagStolenIndex] |= 1;
+                    rc.writeSharedArray(i, possibleFlagLocations[flagStolenIndex]);
                     rc.writeSharedArray(61 + flagStolenIndex, 0);
                 }
             }
         }
 
-        int flagsLeft = 0;
-        for (int i = 51; i <= 53; i++) {
-            if (rc.readSharedArray(i) != 0) flagsLeft++;
-        }
+        if (flagStolen == null) {
+            for (int i = 0; i < possibleFlagLocations.length; i++) {
+                MapLocation flag = utility.intToLocation(possibleFlagLocations[i] >> 1);
 
-        if (flagsLeft == 1) {
-            possibleFlagLocations = new MapLocation[1];
-            for (int i = 51; i <= 53; i++) {
-                if (rc.readSharedArray(i) != 0)
-                    possibleFlagLocations[0] = utility.intToLocation(rc.readSharedArray(i));
-            }
-        }
+                int combined = rc.readSharedArray(61 + i);
+//                System.out.println("COMBINED VALUE: " + combined);
+                boolean isStolen = (possibleFlagLocations[i] & 1) == 1;
+//                System.out.println("IS THIS FLAG STOLEN: " + isStolen);
+                if (combined != 0 && !isStolen) {
+                    int flagDroppedLocation = combined >> 2;
+                    MapLocation prevFlagLoc = utility.intToLocation(flagDroppedLocation);
 
-        if (flagsLeft == 2) {
-            possibleFlagLocations = new MapLocation[2];
-            int j = 0;
-            for (int i = 51; i <= 53; i++) {
-                if (rc.readSharedArray(i) != 0) {
-                    possibleFlagLocations[j] = utility.intToLocation(rc.readSharedArray(i));
-                    j++;
+                    if (rc.canSenseLocation(prevFlagLoc)) {
+                        flagStolenIndex = combined & 0b11;
+                        flagStolen = utility.intToLocation(possibleFlagLocations[flagStolenIndex] >> 1);
+//                        System.out.println("I AM PICKING UP THE DROPPED FLAG AT: " + prevFlagLoc);
+//                        System.out.println("IT HAS THE INDEX OF: " + flagStolenIndex);
+//                        System.out.println("FLAG IS: " + flagStolen);
+                        break;
+                    }
                 }
-            }
-        }
 
-        for (int i = 0; i < possibleFlagLocations.length; i++) {
-            MapLocation flag = possibleFlagLocations[i];
-
-            if (rc.canSenseLocation(flag) && rc.hasFlag()) {
-                flagStolenIndex = i;
-                flagStolen = possibleFlagLocations[flagStolenIndex];
-                break;
-            }
-
-            int combined = rc.readSharedArray(61 + i);
-            if (combined != 0 && flagStolenIndex == null) {
-                int flagDroppedLocation = combined >> 2;
-                MapLocation prevFlagLoc = utility.intToLocation(flagDroppedLocation);
-                flagStolenIndex = combined & 0b11;
-
-                if (rc.canSenseLocation(prevFlagLoc)) {
-                    flagStolen = possibleFlagLocations[flagStolenIndex];
+                if (rc.canSenseLocation(flag) && rc.hasFlag() && !isStolen) {
+                    flagStolenIndex = i;
+                    flagStolen = flag;
                     break;
                 }
             }
         }
 
         if (rc.hasFlag()) {
+            // If a duck is carrying the flag set the boolean bit to true
+            // so ducks don't get stuck going for already stolen flags
+//            System.out.println("I AM CARRYING: " + (utility.intToLocation(possibleFlagLocations[flagStolenIndex] >> 1)));
+//            System.out.println("HAS INDEX: " + flagStolenIndex);
+            possibleFlagLocations[flagStolenIndex] |= 1;
+            if (rc.getHealth() < 750) {
+                possibleFlagLocations[flagStolenIndex] &= ~1;
+//                System.out.println("I AM PROBABLY GOING TO DIE SO STEALING: " + (utility.intToLocation(possibleFlagLocations[flagStolenIndex] >> 1)));
+            }
+            rc.writeSharedArray(51 + flagStolenIndex, possibleFlagLocations[flagStolenIndex]);
+
+
+            // Info for if the duck dies and someone else picks up the flag
+            // before it gets returned to enemy spawn
             int locationToInt = utility.locationToInt(rc.getLocation());
             int combined = (locationToInt << 2) | flagStolenIndex;
             rc.writeSharedArray(61 + flagStolenIndex, combined);
-            System.out.println("RC FLAG INDEX: " + flagStolenIndex);
         }
     }
 
     void updateSymmetry() throws GameActionException {
         if (isHorizontal && !isVertical && !isRotational) {
             sym = true;
-            possibleFlagLocations = new MapLocation[3];
-            possibleFlagLocations[0] = new MapLocation(W - spawn1.x - 1, spawn1.y);
-            possibleFlagLocations[1] = new MapLocation(W - spawn2.x - 1, spawn2.y);
-            possibleFlagLocations[2] = new MapLocation(W - spawn3.x - 1, spawn3.y);
-            rc.writeSharedArray(51, utility.locationToInt(possibleFlagLocations[0]));
-            rc.writeSharedArray(52, utility.locationToInt(possibleFlagLocations[1]));
-            rc.writeSharedArray(53, utility.locationToInt(possibleFlagLocations[2]));
+            possibleFlagLocations = new int[3];
+            int combined = (utility.locationToInt(new MapLocation(W - spawn1.x - 1, spawn1.y)) << 1);
+            int combined1 = (utility.locationToInt(new MapLocation(W - spawn2.x - 1, spawn2.y)) << 1);
+            int combined2 = (utility.locationToInt(new MapLocation(W - spawn3.x - 1, spawn3.y)) << 1);
+            possibleFlagLocations[0] = combined;
+            possibleFlagLocations[1] = combined1;
+            possibleFlagLocations[2] = combined2;
+            rc.writeSharedArray(51, combined);
+            rc.writeSharedArray(52, combined1);
+            rc.writeSharedArray(53, combined2);
             return;
         }
         if (!isHorizontal && isVertical && !isRotational) {
             sym = true;
-            possibleFlagLocations = new MapLocation[3];
-            possibleFlagLocations[0] = new MapLocation(spawn1.x, H - spawn1.y - 1);
-            possibleFlagLocations[1] = new MapLocation(spawn2.x, H - spawn2.y - 1);
-            possibleFlagLocations[2] = new MapLocation(spawn3.x, H - spawn3.y - 1);
-            rc.writeSharedArray(51, utility.locationToInt(possibleFlagLocations[0]));
-            rc.writeSharedArray(52, utility.locationToInt(possibleFlagLocations[1]));
-            rc.writeSharedArray(53, utility.locationToInt(possibleFlagLocations[2]));
+            possibleFlagLocations = new int[3];
+            int combined = (utility.locationToInt(new MapLocation(spawn1.x, H - spawn1.y - 1)) << 1);
+            int combined1 = (utility.locationToInt(new MapLocation(spawn2.x, H - spawn2.y - 1)) << 1);
+            int combined2 = (utility.locationToInt(new MapLocation(spawn3.x, H - spawn3.y - 1)) << 1);
+            possibleFlagLocations[0] = combined;
+            possibleFlagLocations[1] = combined1;
+            possibleFlagLocations[2] = combined2;
+            rc.writeSharedArray(51, combined);
+            rc.writeSharedArray(52, combined1);
+            rc.writeSharedArray(53, combined2);
             return;
         }
         if (!isHorizontal && !isVertical && isRotational) {
             sym = true;
-            possibleFlagLocations = new MapLocation[3];
-            possibleFlagLocations[0] = new MapLocation(W - spawn1.x - 1, H - spawn1.y - 1);
-            possibleFlagLocations[1] = new MapLocation(W - spawn2.x - 1, H - spawn2.y - 1);
-            possibleFlagLocations[2] = new MapLocation(W - spawn3.x - 1, H - spawn3.y - 1);
-            rc.writeSharedArray(51, utility.locationToInt(possibleFlagLocations[0]));
-            rc.writeSharedArray(52, utility.locationToInt(possibleFlagLocations[1]));
-            rc.writeSharedArray(53, utility.locationToInt(possibleFlagLocations[2]));
+            possibleFlagLocations = new int[3];
+            int combined = (utility.locationToInt(new MapLocation(W - spawn1.x - 1, H - spawn1.y - 1)) << 1);
+            int combined1 = (utility.locationToInt(new MapLocation(W - spawn2.x - 1, H - spawn2.y - 1)) << 1);
+            int combined2 = (utility.locationToInt(new MapLocation(W - spawn3.x - 1, H - spawn3.y - 1)) << 1);
+            possibleFlagLocations[0] = combined;
+            possibleFlagLocations[1] = combined1;
+            possibleFlagLocations[2] = combined2;
+            rc.writeSharedArray(51, combined);
+            rc.writeSharedArray(52, combined1);
+            rc.writeSharedArray(53, combined2);
         }
     }
 
@@ -146,21 +172,21 @@ public class Symmetry {
         if (isRotational) isRotational = (rc.readSharedArray(60) & 1) == 1;
 
         if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS - 40) {
-            possibleFlagLocations = new MapLocation[6];
+            possibleFlagLocations = new int[6];
 
             // Rotational will always be a possible location
-            possibleFlagLocations[0] = new MapLocation(W - spawn1.x - 1, H - spawn1.y - 1);
-            possibleFlagLocations[1] = new MapLocation(W - spawn2.x - 1, H - spawn2.y - 1);
-            possibleFlagLocations[2] = new MapLocation(W - spawn3.x - 1, H - spawn3.y - 1);
+            possibleFlagLocations[0] = utility.locationToInt(new MapLocation(W - spawn1.x - 1, H - spawn1.y - 1)) << 1;
+            possibleFlagLocations[1] = utility.locationToInt(new MapLocation(W - spawn2.x - 1, H - spawn2.y - 1)) << 1;
+            possibleFlagLocations[2] = utility.locationToInt(new MapLocation(W - spawn3.x - 1, H - spawn3.y - 1)) << 1;
 
             if (isHorizontal) {
-                possibleFlagLocations[3] = new MapLocation(W - spawn1.x - 1, spawn1.y);
-                possibleFlagLocations[4] = new MapLocation(W - spawn2.x - 1, spawn2.y);
-                possibleFlagLocations[5] = new MapLocation(W - spawn3.x - 1, spawn3.y);
+                possibleFlagLocations[3] = utility.locationToInt(new MapLocation(W - spawn1.x - 1, spawn1.y)) << 1;
+                possibleFlagLocations[4] = utility.locationToInt(new MapLocation(W - spawn2.x - 1, spawn2.y)) << 1;
+                possibleFlagLocations[5] = utility.locationToInt(new MapLocation(W - spawn3.x - 1, spawn3.y)) << 1;
             } else if (isVertical) {
-                possibleFlagLocations[3] = new MapLocation(spawn1.x, H - spawn1.y - 1);
-                possibleFlagLocations[4] = new MapLocation(spawn2.x, H - spawn2.y - 1);
-                possibleFlagLocations[5] = new MapLocation(spawn3.x, H - spawn3.y - 1);
+                possibleFlagLocations[3] = utility.locationToInt(new MapLocation(spawn1.x, H - spawn1.y - 1)) << 1;
+                possibleFlagLocations[4] = utility.locationToInt(new MapLocation(spawn2.x, H - spawn2.y - 1)) << 1;
+                possibleFlagLocations[5] = utility.locationToInt(new MapLocation(spawn3.x, H - spawn3.y - 1)) << 1;
             }
         }
 
