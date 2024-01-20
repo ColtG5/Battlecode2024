@@ -53,12 +53,16 @@ public class Flagrunner {
             movement.setLefty(utility.getMyFlagrunnerGroup() % 2 == 0);
         }
 
-        if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) {
+        if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 4) { // sit by dam, and trap around there if u can
             MapInfo[] damStuff = rc.senseNearbyMapInfos();
             for (MapInfo location : damStuff) {
-                if (location.isDam() && rc.getLocation().isAdjacentTo(location.getMapLocation()))
+                if (location.isDam() && rc.getLocation().isAdjacentTo(location.getMapLocation())) {
+                    utility.placeTrapNearEnemy(rc.getLocation());
                     return;
+                }
             }
+        } else if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) { // 4 rounds before divider drops, move away from dam, to try to kite into our stuns
+            bugNav.moveTo(utility.getClosetSpawnAreaCenter());
         }
 
 //        if (rc.hasFlag()) {

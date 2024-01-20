@@ -16,7 +16,8 @@ public class Defender {
     int localID;
     MapLocation[] spawnAreaCenters;
     static MapLocation myBreadIDefendForMyLife = null;
-    static MapLocation[] spawnZonesOfMyBread = new MapLocation[5];
+    static MapLocation[] cornerSpawnZones = new MapLocation[5];
+    static MapLocation[] edgeSpawnZones = new MapLocation[4];
     static boolean isMyBreadSet = false;
     static boolean returnToFlag = true;
     public Defender(RobotController rc, Movement movement, BugNav bugnav, Utility utility) {
@@ -87,31 +88,38 @@ public class Defender {
     /**
      * Attempt to place a bomb at current location
      */
-    private void tryToPlaceBomb(MapLocation closestEnemy) throws GameActionException {
-
-        MapInfo[] infoAround = rc.senseNearbyMapInfos(GameConstants.INTERACT_RADIUS_SQUARED);
-        ArrayList<MapLocation> possiblePlacements = new ArrayList<>();
-
-        for (int i = 0; i < 10; i++) {
-            possiblePlacements.clear();
-
-            for (MapInfo info : infoAround) {
-                if (rc.canBuild(TrapType.EXPLOSIVE, info.getMapLocation()))
-                    possiblePlacements.add(info.getMapLocation());
-            }
-
-            MapLocation bestPlacement = locationClosestToEnemy(possiblePlacements, closestEnemy);
-
-            if (bestPlacement != null) {
-                if (rc.canBuild(TrapType.EXPLOSIVE, bestPlacement)) rc.build(TrapType.EXPLOSIVE, bestPlacement);
-            }
-        }
-    }
+//    private void tryToPlaceBomb(MapLocation closestEnemy) throws GameActionException {
+//
+//        MapInfo[] infoAround = rc.senseNearbyMapInfos(GameConstants.INTERACT_RADIUS_SQUARED);
+//        ArrayList<MapLocation> possiblePlacements = new ArrayList<>();
+//
+//        for (int i = 0; i < 10; i++) {
+//            possiblePlacements.clear();
+//
+//            for (MapInfo info : infoAround) {
+//                if (rc.canBuild(TrapType.EXPLOSIVE, info.getMapLocation()))
+//                    possiblePlacements.add(info.getMapLocation());
+//            }
+//
+//            MapLocation bestPlacement = locationClosestToEnemy(possiblePlacements, closestEnemy);
+//
+//            if (bestPlacement != null) {
+//                if (rc.canBuild(TrapType.EXPLOSIVE, bestPlacement)) rc.build(TrapType.EXPLOSIVE, bestPlacement);
+//            }
+//        }
+//    }
 
     private void placeTrapsAroundBread() throws GameActionException {
-        for (MapLocation spawnZoneLoc : spawnZonesOfMyBread) {
+        for (MapLocation spawnZoneLoc : cornerSpawnZones) {
             if (rc.canBuild(TrapType.STUN, spawnZoneLoc)) {
                 rc.build(TrapType.STUN, spawnZoneLoc);
+            }
+        }
+        if (rc.getCrumbs() > 5000) {
+            for (MapLocation spawnZoneLoc : edgeSpawnZones) {
+                if (rc.canBuild(TrapType.EXPLOSIVE, spawnZoneLoc)) {
+                    rc.build(TrapType.EXPLOSIVE, spawnZoneLoc);
+                }
             }
         }
     }
@@ -127,14 +135,19 @@ public class Defender {
             myBreadIDefendForMyLife = spawnAreaCenters[whichBread-1];
 
 //            spawnZonesOfMyBread[0] = myBreadIDefendForMyLife.add(Direction.NORTH);
-            spawnZonesOfMyBread[0] = myBreadIDefendForMyLife.add(Direction.NORTHEAST);
+            cornerSpawnZones[0] = myBreadIDefendForMyLife.add(Direction.NORTHEAST);
 //            spawnZonesOfMyBread[2] = myBreadIDefendForMyLife.add(Direction.EAST);
-            spawnZonesOfMyBread[1] = myBreadIDefendForMyLife.add(Direction.SOUTHEAST);
+            cornerSpawnZones[1] = myBreadIDefendForMyLife.add(Direction.SOUTHEAST);
 //            spawnZonesOfMyBread[4] = myBreadIDefendForMyLife.add(Direction.SOUTH);
-            spawnZonesOfMyBread[2] = myBreadIDefendForMyLife.add(Direction.SOUTHWEST);
+            cornerSpawnZones[2] = myBreadIDefendForMyLife.add(Direction.SOUTHWEST);
 //            spawnZonesOfMyBread[6] = myBreadIDefendForMyLife.add(Direction.WEST);
-            spawnZonesOfMyBread[3] = myBreadIDefendForMyLife.add(Direction.NORTHWEST);
-            spawnZonesOfMyBread[4] = myBreadIDefendForMyLife.add(Direction.CENTER);
+            cornerSpawnZones[3] = myBreadIDefendForMyLife.add(Direction.NORTHWEST);
+            cornerSpawnZones[4] = myBreadIDefendForMyLife.add(Direction.CENTER);
+
+            edgeSpawnZones[0] = myBreadIDefendForMyLife.add(Direction.NORTH);
+            edgeSpawnZones[1] = myBreadIDefendForMyLife.add(Direction.EAST);
+            edgeSpawnZones[2] = myBreadIDefendForMyLife.add(Direction.SOUTH);
+            edgeSpawnZones[3] = myBreadIDefendForMyLife.add(Direction.WEST);
 
             isMyBreadSet = true;
         }
