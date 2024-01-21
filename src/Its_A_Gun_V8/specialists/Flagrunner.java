@@ -74,60 +74,18 @@ public class Flagrunner {
             bugNav.moveTo(utility.getClosetSpawnAreaCenter());
         }
 
-//        if (rc.hasFlag()) {
-//            utility.writeToFlagrunnerGroupIndex(rc.getLocation());
-//            MapLocation closetSpawnAreaCenter = utility.getClosetSpawnAreaCenter();
-//            movement.hardMove(closetSpawnAreaCenter);
-////            bugNav.moveTo(closetSpawnAreaCenter);
-//        }
-
-
-
         if (rc.hasFlag()) {
             utility.writeToFlagrunnerGroupIndex(rc.getLocation());
             MapLocation closetSpawnAreaCenter = utility.getClosetSpawnAreaCenter();
-//            movement.hardMove(closetSpawnAreaCenter);
             bugNav.moveTo(closetSpawnAreaCenter);
         }
 
-//        if (isBuilder) {
-//            if (rc.getExperience(SkillType.BUILD) < 30) utility.farmBuildEXP();
-//
-//            RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-//            if (enemies.length > 3 && rc.getRoundNum() > GameConstants.SETUP_ROUNDS) {
-//                tryToPlaceBomb(enemies);
-//            }
-//        }
-
-//        RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-//        if (enemies.length > 3 && rc.getRoundNum() > GameConstants.SETUP_ROUNDS) {
-//            tryToPlaceBomb(enemies);
-//        }
 
         // see if there are any flags on the ground around you, and go and try to grab them
         if (rc.getRoundNum() >= GameConstants.SETUP_ROUNDS) senseFlagsAroundMe();
-//        MapLocation maybeFlagLocation = senseFlagsAroundMe();
-//        if (maybeFlagLocation != null) locationForFlagrunnerGroup = maybeFlagLocation;
-        if (isLeader) {
-//            if (tooFewGroupMembersAround(8)) { // if leader don't got a lotta homies, maybe just sit and wait for the gang?
-//                attackMicroWithMoveAvailable();
-//            } else { // if u got homies, gameplan as usual.
-//                attackMicroWithMoveAvailable();
-//            }
-            attackMicroWithMoveAvailable();
-        } else { // a follower
-//            if (isDistanceToGroupLeaderMoreThan(10)) {
-//                // if too far from group leader, use ur movement to get back to them!
-//                movement.hardMove(util.getLocationOfMyGroupLeader());
-//                attackMicroWithMoveAvailable();
-//            } else { // if ur close enough, u can use ur movement in ur micro
-//                attackMicroWithMoveAvailable();
-//            }
-//            if (coolRobotInfoArray[utility.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex() - 1].getHasFlag()) {
-//                useBannedMovement();
-//            }
-            attackMicroWithMoveAvailable();
-        }
+
+        attackMicroWithMoveAvailable();
+
 
         // after every round whether spawned or not, convert your info to an int and write it to the shared array
         utility.writeMyInfoToSharedArray(false);
@@ -136,75 +94,6 @@ public class Flagrunner {
     // ---------------------------------------------------------------------------------
     //                               builder funcs below
     // ---------------------------------------------------------------------------------
-//    private void tryToPlaceBomb(RobotInfo[] enemies) throws GameActionException {
-//
-//        MapInfo[] infoAround = rc.senseNearbyMapInfos(10);
-//        ArrayList<MapLocation> possiblePlacements = new ArrayList<>();
-//
-//        int countNumberOfTrapsAround = 0;
-//
-//        for (MapInfo info : infoAround) {
-//            if (info.getTrapType() != TrapType.NONE) {
-//                countNumberOfTrapsAround++;
-//            }
-//        }
-//
-//        if (countNumberOfTrapsAround > 3) return;
-//
-//        MapLocation closestEnemy = closestEnemyToMe(enemies);
-//
-//        for (int i = 0; i < 2; i++) {
-//            possiblePlacements.clear();
-//
-//            for (MapInfo info : infoAround) {
-//                if (rc.canBuild(TrapType.STUN, info.getMapLocation()))
-//                    possiblePlacements.add(info.getMapLocation());
-//            }
-//
-//            MapLocation bestPlacement = locationClosestToEnemy(possiblePlacements, closestEnemy);
-//
-//            if (bestPlacement != null && rc.canBuild(TrapType.STUN, bestPlacement))
-//                rc.build(TrapType.STUN, bestPlacement);
-//        }
-//
-//        if (rc.canAttack(closestEnemy)) rc.attack(closestEnemy);
-//        Direction dir = rc.getLocation().directionTo(closestEnemy).opposite();
-//        if (rc.canMove(dir)) rc.move(dir);
-//    }
-
-    private void placeModestBombsSpaced(RobotInfo[] enemies) throws GameActionException {
-        MapInfo[] infoAround = rc.senseNearbyMapInfos(10);
-        ArrayList<MapLocation> possiblePlacements = new ArrayList<>();
-
-        MapLocation closestEnemy = closestEnemyToMe(enemies);
-
-        for (MapInfo info : infoAround) {
-            if (rc.canBuild(TrapType.STUN, info.getMapLocation())) {
-                boolean adjacentLocationContainsTrap = false;
-                for (Direction dir : Direction.allDirections()) {
-                    MapLocation adjacentLocation = info.getMapLocation().add(dir);
-                    if (!rc.onTheMap(adjacentLocation)) continue;
-                    if (rc.senseMapInfo(adjacentLocation).getTrapType() != TrapType.NONE) {
-                        adjacentLocationContainsTrap = true;
-                        break;
-                    }
-                }
-                if (!adjacentLocationContainsTrap) possiblePlacements.add(info.getMapLocation());
-            }
-        }
-
-        MapLocation bestPlacement = locationClosestToEnemy(possiblePlacements, closestEnemy);
-
-        if (bestPlacement != null && rc.canBuild(TrapType.STUN, bestPlacement))
-            rc.build(TrapType.STUN, bestPlacement);
-
-        possiblePlacements.remove(bestPlacement);
-        MapLocation secondBestPlacementAfterPlacingATrap = locationClosestToEnemy(possiblePlacements, closestEnemy);
-
-        if (secondBestPlacementAfterPlacingATrap != null && rc.canBuild(TrapType.STUN, secondBestPlacementAfterPlacingATrap))
-            rc.build(TrapType.STUN, secondBestPlacementAfterPlacingATrap);
-    }
-
 
     public MapLocation closestEnemyToMe(RobotInfo[] nearbyEnemies) {
         RobotInfo closestEnemy = null;
@@ -388,15 +277,6 @@ public class Flagrunner {
         } while (!rc.onTheMap(goScoutHere));
 
         return goScoutHere;
-
-//        MapInfo[] mapInfos = rc.senseNearbyMapInfos(-1);
-//        ArrayList<MapLocation> edgePoints = new ArrayList<>();
-//
-//        for (MapInfo info : mapInfos) {
-//            if (rc.getLocation().distanceSquaredTo(info.getMapLocation()) >= 14 && info.isPassable())
-//                edgePoints.add(info.getMapLocation());
-//        }
-//        return edgePoints.get((int) (Math.random() * edgePoints.size()));
     }
     private void senseFlagsAroundMe() throws GameActionException {
         // Get symmetry locs

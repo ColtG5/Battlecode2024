@@ -10,13 +10,11 @@ public class Symmetry {
     boolean isRotational = true;
     int W, H;
     int symX, symY;
-    Integer flagStolenIndex = null;
     boolean sym = false;
     MapLocation[] possibleFlagLocations;
     MapLocation spawn1;
     MapLocation spawn2;
     MapLocation spawn3;
-    MapLocation flagStolen = null;
 
 
     Symmetry(RobotController rc, Utility utility) {
@@ -33,80 +31,13 @@ public class Symmetry {
         return possibleFlagLocations;
     }
 
-//    public void updatePossibleFlagLocations(boolean iStoleFlag) throws GameActionException {
-//        if (iStoleFlag) {
-//            for (int i = 51; i <= 53; i++) {
-//                if (flagStolen.equals(utility.intToLocation(rc.readSharedArray(i)))) {
-//                    rc.writeSharedArray(i, 0);
-//                    rc.writeSharedArray(61 + flagStolenIndex, 0);
-//                }
-//            }
-//        }
-//
-//        int flagsLeft = 0;
-//        for (int i = 51; i <= 53; i++) {
-//            if (rc.readSharedArray(i) != 0) flagsLeft++;
-//        }
-//
-//        if (flagsLeft == 1) {
-//            possibleFlagLocations = new MapLocation[1];
-//            for (int i = 51; i <= 53; i++) {
-//                if (rc.readSharedArray(i) != 0)
-//                    possibleFlagLocations[0] = utility.intToLocation(rc.readSharedArray(i));
-//            }
-//        }
-//
-//        if (flagsLeft == 2) {
-//            possibleFlagLocations = new MapLocation[2];
-//            int j = 0;
-//            for (int i = 51; i <= 53; i++) {
-//                if (rc.readSharedArray(i) != 0) {
-//                    possibleFlagLocations[j] = utility.intToLocation(rc.readSharedArray(i));
-//                    j++;
-//                }
-//            }
-//        }
-//
-//        for (int i = 0; i < possibleFlagLocations.length; i++) {
-//            MapLocation flag = possibleFlagLocations[i];
-//
-//            if (rc.canSenseLocation(flag) && rc.hasFlag()) {
-//                flagStolenIndex = i;
-//                flagStolen = possibleFlagLocations[flagStolenIndex];
-//                break;
-//            }
-//
-//            int combined = rc.readSharedArray(61 + i);
-//            if (combined != 0 && flagStolenIndex == null) {
-//                int flagDroppedLocation = combined >> 2;
-//                MapLocation prevFlagLoc = utility.intToLocation(flagDroppedLocation);
-//                flagStolenIndex = combined & 0b11;
-//
-//                if (rc.canSenseLocation(prevFlagLoc)) {
-//                    flagStolen = possibleFlagLocations[flagStolenIndex];
-//                    break;
-//                }
-//            }
-//        }
-//
-//        if (rc.hasFlag()) {
-//            int locationToInt = utility.locationToInt(rc.getLocation());
-//            int combined = (locationToInt << 2) | flagStolenIndex;
-//            rc.writeSharedArray(61 + flagStolenIndex, combined);
-//            System.out.println("RC FLAG INDEX: " + flagStolenIndex);
-//        }
-//    }
-
-    public void updateSymmetry() throws GameActionException {
+    public void updateSymmetry() {
         if (isHorizontal && !isVertical && !isRotational) {
             sym = true;
             possibleFlagLocations = new MapLocation[3];
             possibleFlagLocations[0] = new MapLocation(W - spawn1.x - 1, spawn1.y);
             possibleFlagLocations[1] = new MapLocation(W - spawn2.x - 1, spawn2.y);
             possibleFlagLocations[2] = new MapLocation(W - spawn3.x - 1, spawn3.y);
-            rc.writeSharedArray(51, utility.locationToInt(possibleFlagLocations[0]));
-            rc.writeSharedArray(52, utility.locationToInt(possibleFlagLocations[1]));
-            rc.writeSharedArray(53, utility.locationToInt(possibleFlagLocations[2]));
             return;
         }
         if (!isHorizontal && isVertical && !isRotational) {
@@ -115,9 +46,6 @@ public class Symmetry {
             possibleFlagLocations[0] = new MapLocation(spawn1.x, H - spawn1.y - 1);
             possibleFlagLocations[1] = new MapLocation(spawn2.x, H - spawn2.y - 1);
             possibleFlagLocations[2] = new MapLocation(spawn3.x, H - spawn3.y - 1);
-            rc.writeSharedArray(51, utility.locationToInt(possibleFlagLocations[0]));
-            rc.writeSharedArray(52, utility.locationToInt(possibleFlagLocations[1]));
-            rc.writeSharedArray(53, utility.locationToInt(possibleFlagLocations[2]));
             return;
         }
         if (!isHorizontal && !isVertical && isRotational) {
@@ -126,9 +54,6 @@ public class Symmetry {
             possibleFlagLocations[0] = new MapLocation(W - spawn1.x - 1, H - spawn1.y - 1);
             possibleFlagLocations[1] = new MapLocation(W - spawn2.x - 1, H - spawn2.y - 1);
             possibleFlagLocations[2] = new MapLocation(W - spawn3.x - 1, H - spawn3.y - 1);
-            rc.writeSharedArray(51, utility.locationToInt(possibleFlagLocations[0]));
-            rc.writeSharedArray(52, utility.locationToInt(possibleFlagLocations[1]));
-            rc.writeSharedArray(53, utility.locationToInt(possibleFlagLocations[2]));
         }
     }
 
@@ -169,7 +94,6 @@ public class Symmetry {
                 symX = spawn.x;
                 symY = H - spawn.y - 1;
                 MapLocation loc = new MapLocation(symX, symY);
-                rc.setIndicatorDot(loc, 255, 0, 0);
 
                 if (rc.canSenseLocation(loc)) {
                     FlagInfo[] flags = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
@@ -189,7 +113,6 @@ public class Symmetry {
                 symX = W - spawn.x - 1;
                 symY = spawn.y;
                 MapLocation loc = new MapLocation(symX, symY);
-                rc.setIndicatorDot(loc, 0, 255, 0);
 
                 if (rc.canSenseLocation(loc)) {
                     FlagInfo[] flags = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
@@ -209,7 +132,6 @@ public class Symmetry {
                 symX = W - spawn.x - 1;
                 symY = H - spawn.y - 1;
                 MapLocation loc = new MapLocation(symX, symY);
-                rc.setIndicatorDot(loc, 0, 0, 255);
 
                 if (rc.canSenseLocation(loc)) {
                     FlagInfo[] flags = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
