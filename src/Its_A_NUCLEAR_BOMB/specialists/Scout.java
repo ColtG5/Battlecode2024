@@ -1,6 +1,6 @@
-package NodessThreesheets.specialists;
+package Its_A_NUCLEAR_BOMB.specialists;
 
-import NodessThreesheets.*;
+import Its_A_NUCLEAR_BOMB.*;
 import battlecode.common.*;
 
 public class Scout {

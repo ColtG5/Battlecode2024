@@ -1,9 +1,9 @@
-package NodessThreesheets;
+package Its_A_NUCLEAR_BOMB;
 
 import battlecode.common.*;
 
 import java.util.ArrayList;
-import static NodessThreesheets.RobotPlayer.*;
+import static Its_A_NUCLEAR_BOMB.RobotPlayer.*;
 
 
 public class Utility {

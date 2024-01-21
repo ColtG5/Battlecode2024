@@ -1,6 +1,6 @@
-package NodessThreesheets;
+package Its_A_NUCLEAR_BOMB;
 
-import NodessThreesheets.specialists.*;
+import Its_A_NUCLEAR_BOMB.specialists.*;
 import battlecode.common.*;
 
 /**

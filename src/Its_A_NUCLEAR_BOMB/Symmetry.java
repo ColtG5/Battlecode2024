@@ -1,4 +1,4 @@
-package NodessThreesheets;
+package Its_A_NUCLEAR_BOMB;
 
 import battlecode.common.*;
 
