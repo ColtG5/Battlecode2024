@@ -53,6 +53,15 @@ public class Flagrunner {
             movement.setLefty(utility.getMyFlagrunnerGroup() % 2 == 0);
         }
 
+        boolean isLeader = utility.amIAGroupLeader();
+        if (isLeader) {
+            locationForFlagrunnerGroup = setLocationForGroup(); // decide where the group will go (including you)
+        }
+        else {
+            locationForFlagrunnerGroup = utility.readLocationFromFlagrunnerGroupIndex();
+//            rc.setIndicatorDot(locationForFlagrunnerGroup, 0, 255, 0);
+        }
+
         if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 4) { // sit by dam, and trap around there if u can
             MapInfo[] damStuff = rc.senseNearbyMapInfos();
             for (MapInfo location : damStuff) {
@@ -72,15 +81,6 @@ public class Flagrunner {
 ////            bugNav.moveTo(closetSpawnAreaCenter);
 //        }
 
-
-
-        boolean isLeader = utility.amIAGroupLeader();
-        if (isLeader)
-            locationForFlagrunnerGroup = setLocationForGroup(); // decide where the group will go (including you)
-        else {
-            locationForFlagrunnerGroup = utility.readLocationFromFlagrunnerGroupIndex();
-//            rc.setIndicatorDot(locationForFlagrunnerGroup, 0, 255, 0);
-        }
 
 
         if (rc.hasFlag()) {
@@ -105,10 +105,9 @@ public class Flagrunner {
 //        }
 
         // see if there are any flags on the ground around you, and go and try to grab them
-        senseFlagsAroundMe();
+        if (rc.getRoundNum() >= GameConstants.SETUP_ROUNDS) senseFlagsAroundMe();
 //        MapLocation maybeFlagLocation = senseFlagsAroundMe();
 //        if (maybeFlagLocation != null) locationForFlagrunnerGroup = maybeFlagLocation;
-
         if (isLeader) {
 //            if (tooFewGroupMembersAround(8)) { // if leader don't got a lotta homies, maybe just sit and wait for the gang?
 //                attackMicroWithMoveAvailable();
@@ -259,9 +258,6 @@ public class Flagrunner {
         }
 
         MapLocation[] allDroppedFlags = rc.senseBroadcastFlagLocations();
-        for (MapLocation flag : allDroppedFlags) {
-            rc.setIndicatorDot(flag, 255, 255, 255);
-        }
 
         if (!enemyFlagsNotPickedUp.isEmpty()) { // if we can see a flag to conquer
             // get the closest flag to us
@@ -380,9 +376,18 @@ public class Flagrunner {
                 Direction.NORTHWEST
         };
 
-        Direction randomDir = allDirs[(int) (Math.random() * allDirs.length)];
+        MapLocation goScoutHere;
+//        Direction randomDir = allDirs[(int) (Math.random() * allDirs.length)];
+        do {
+            goScoutHere = locationForFlagrunnerGroup;
+            Direction randomDir = allDirs[(int) (Math.random() * allDirs.length)];
+            for (int i = 0; i < 6; i++) {
+                goScoutHere = goScoutHere.add(randomDir);
+                if (!rc.onTheMap(goScoutHere)) break;
+            }
+        } while (!rc.onTheMap(goScoutHere));
 
-        return locationForFlagrunnerGroup.add(randomDir).add(randomDir).add(randomDir).add(randomDir).add(randomDir).add(randomDir);
+        return goScoutHere;
 
 //        MapInfo[] mapInfos = rc.senseNearbyMapInfos(-1);
 //        ArrayList<MapLocation> edgePoints = new ArrayList<>();
