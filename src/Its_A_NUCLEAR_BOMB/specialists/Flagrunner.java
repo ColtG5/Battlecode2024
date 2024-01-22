@@ -66,45 +66,61 @@ public class Flagrunner {
 //            rc.setIndicatorDot(locationForFlagrunnerGroup, 0, 255, 0);
         }
 
-//        if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 4) { // sit by dam, and trap around there if u can
-//            MapInfo[] damStuff = rc.senseNearbyMapInfos();
-//            for (MapInfo location : damStuff) {
-//                if (location.isDam() && rc.getLocation().isAdjacentTo(location.getMapLocation())) {
-//                    utility.placeTrapNearEnemy(rc.getLocation());
-//                    return;
-//                }
-//            }
-//        } else if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) { // 4 rounds before divider drops, move away from dam, to try to kite into our stuns
+        if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 4) { // sit by dam, and trap around there if u can
+            MapInfo[] damStuff = rc.senseNearbyMapInfos();
+            for (MapInfo location : damStuff) {
+                if (location.isDam() && rc.getLocation().isAdjacentTo(location.getMapLocation())) {
+                    utility.placeTrapNearEnemy(rc.getLocation());
+                    return;
+                }
+            }
+        }
+//        else if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) { // 4 rounds before divider drops, move away from dam, to try to kite into our stuns
 //            bugNav.moveTo(utility.getClosetSpawnAreaCenter());
 //        }
 
-        /**
-         * If its the range of rounds to do the dam shenanigans, do that, otherwise do a normal flagrunner turn
-         */
-        int turnsToWait = 14;
-        if (!goBeserk && rc.getRoundNum() >= GameConstants.SETUP_ROUNDS - 3 && rc.getRoundNum() <= GameConstants.SETUP_ROUNDS + turnsToWait) {
 
-            someDamStrategy(turnsToWait);
+        // below here is an attempt at a dam strategy that (somehow) doesn't win more games sadly
 
-        } else if (goBeserk) {
+//        /**
+//         * If its the range of rounds to do the dam shenanigans, do that, otherwise do a normal flagrunner turn
+//         */
+//        int turnsToWait = 14;
+//        if (!goBeserk && rc.getRoundNum() >= GameConstants.SETUP_ROUNDS - 3 && rc.getRoundNum() <= GameConstants.SETUP_ROUNDS + turnsToWait) {
+//
+//            someDamStrategy(turnsToWait);
+//
+//        } else if (goBeserk) {
+//
+////            berserkMode();
+//            attackMicroWithMoveAvailable();
+//
+//        } else {
+//
+//            if (rc.hasFlag()) {
+//                utility.writeToFlagrunnerGroupIndex(rc.getLocation());
+//                MapLocation closetSpawnAreaCenter = utility.getClosetSpawnAreaCenter();
+//                bugNav.moveTo(closetSpawnAreaCenter);
+//            }
+//
+//            // see if there are any flags on the ground around you, and go and try to grab them
+//            if (rc.getRoundNum() >= GameConstants.SETUP_ROUNDS) senseFlagsAroundMe();
+//
+//            attackMicroWithMoveAvailable();
+//
+//        }
 
-//            berserkMode();
-            attackMicroWithMoveAvailable();
 
-        } else {
-
-            if (rc.hasFlag()) {
-                utility.writeToFlagrunnerGroupIndex(rc.getLocation());
-                MapLocation closetSpawnAreaCenter = utility.getClosetSpawnAreaCenter();
-                bugNav.moveTo(closetSpawnAreaCenter);
-            }
-
-            // see if there are any flags on the ground around you, and go and try to grab them
-            if (rc.getRoundNum() >= GameConstants.SETUP_ROUNDS) senseFlagsAroundMe();
-
-            attackMicroWithMoveAvailable();
-
+        if (rc.hasFlag()) {
+            utility.writeToFlagrunnerGroupIndex(rc.getLocation());
+            MapLocation closetSpawnAreaCenter = utility.getClosetSpawnAreaCenter();
+            bugNav.moveTo(closetSpawnAreaCenter);
         }
+
+        // see if there are any flags on the ground around you, and go and try to grab them
+        if (rc.getRoundNum() >= GameConstants.SETUP_ROUNDS) senseFlagsAroundMe();
+
+        attackMicroWithMoveAvailable();
 
 
         stunTrapsLastRound = stunTrapsNearMe();
@@ -475,7 +491,8 @@ public class Flagrunner {
 //                } else { // there are still enemies potentially tripping our traps!
                     if (!stunTrapsLastRound.isEmpty()) {
                         // check if any enemy position coincides with being adjacent to a stun trap that was placed last round. if so, we know they triggered it on their last move!!!
-                        outer: for (RobotInfo enemy : enemies) {
+                        outer:
+                        for (RobotInfo enemy : enemies) {
                             for (MapLocation stunTrap : stunTrapsLastRound) {
                                 if (enemy.getLocation().isAdjacentTo(stunTrap)) { // an enemy triggered a stun trap! GO CRAZY!!!
                                     iAmStrategicallyWaiting = false;
