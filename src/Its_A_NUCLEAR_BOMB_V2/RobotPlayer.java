@@ -39,8 +39,8 @@ public strictfp class RobotPlayer {
 
     /**
      * SHARED ARRAY
-     * [0,          1-50,          51,  52,  53,                      54, 55   56, 57   58, 59]
-     * id     id's of all ducks    3 bread loc's   flag runner group: loc,id   loc,id   loc,id
+     * [0,          1-50,          51,  52,  53,                      54, 55   56, 57   58, 59,   60]
+     * id     id's of all ducks    3 bread loc's   flag runner group: loc,id   loc,id   loc,id symmetry
      *
      */
 
@@ -49,7 +49,7 @@ public strictfp class RobotPlayer {
     static final int breadLocTwoIndex = 52;
     static final int breadLocThreeIndex = 53;
 //    static final int flagRunnerGroupIndexingStart = 53;
-    static final int flagRunnerGroupOneLocIndex = 54;
+    public static final int flagRunnerGroupOneLocIndex = 54;
     static final int flagRunnerGroupOneIDIndex = 55;
     static final int flagRunnerGroupTwoLocIndex = 56;
     static final int flagRunnerGroupTwoIDIndex = 57;

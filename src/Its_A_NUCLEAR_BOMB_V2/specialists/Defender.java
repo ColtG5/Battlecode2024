@@ -1,9 +1,12 @@
 package Its_A_NUCLEAR_BOMB_V2.specialists;
 
 import Its_A_NUCLEAR_BOMB_V2.*;
+import static Its_A_NUCLEAR_BOMB_V2.RobotPlayer.*;
 import battlecode.common.*;
 
 import java.util.ArrayList;
+
+//import static Its_A_NUCLEAR_BOMB_V2.RobotPlayer.flagRunnerGroupOneLocIndex;
 
 public class Defender {
     RobotController rc;
@@ -79,36 +82,30 @@ public class Defender {
         if (rc.getCrumbs() > 300 && enemies.length == 0 && myBreadIsAtHome && rc.getRoundNum() > GameConstants.SETUP_ROUNDS) placeTrapsAroundBread();
 
         RobotInfo[] defenders = rc.senseNearbyRobots(-1, rc.getTeam());
-        boolean isUnderAttack = defenders.length - 2 <= enemies.length;
+        boolean isUnderAttack = defenders.length < enemies.length;
 
         // after every round whether spawned or not, convert your info to an int and write it to the shared array
         utility.writeMyInfoToSharedArray(isUnderAttack);
+        coolRobotInfoArray = utility.readAllBotsInfoFromSharedArray(coolRobotInfoArray);
+
+        if (isUnderAttack) getClosestGroup();
     }
 
-    /**
-     * Attempt to place a bomb at current location
-     */
-//    private void tryToPlaceBomb(MapLocation closestEnemy) throws GameActionException {
-//
-//        MapInfo[] infoAround = rc.senseNearbyMapInfos(GameConstants.INTERACT_RADIUS_SQUARED);
-//        ArrayList<MapLocation> possiblePlacements = new ArrayList<>();
-//
-//        for (int i = 0; i < 10; i++) {
-//            possiblePlacements.clear();
-//
-//            for (MapInfo info : infoAround) {
-//                if (rc.canBuild(TrapType.EXPLOSIVE, info.getMapLocation()))
-//                    possiblePlacements.add(info.getMapLocation());
-//            }
-//
-//            MapLocation bestPlacement = locationClosestToEnemy(possiblePlacements, closestEnemy);
-//
-//            if (bestPlacement != null) {
-//                if (rc.canBuild(TrapType.EXPLOSIVE, bestPlacement)) rc.build(TrapType.EXPLOSIVE, bestPlacement);
-//            }
-//        }
-//    }
-
+    void getClosestGroup() throws GameActionException {
+        int[] localIDsOfLeaders = utility.readAllLocalIDsOfGroupLeaders();
+        MapLocation myLoc = rc.getLocation();
+        MapLocation coolLeaderLoc = coolRobotInfoArray[localIDsOfLeaders[0] - 1].getCurLocation();
+        int groupOfLeader = 1;
+        for (int i = 0; i < localIDsOfLeaders.length; i++) {
+            int idOfLeader = localIDsOfLeaders[i];
+            MapLocation otherLeaderLoc = coolRobotInfoArray[idOfLeader - 1].getCurLocation();
+            if (otherLeaderLoc.distanceSquaredTo(myLoc) < coolLeaderLoc.distanceSquaredTo(myLoc) && !utility.readAmIToDefend(groupOfLeader)) {
+                coolLeaderLoc = otherLeaderLoc;
+                groupOfLeader = i + 1;
+            }
+        }
+        utility.writeLocationToDefend(rc.getLocation(), groupOfLeader);
+    }
     private void placeTrapsAroundBread() throws GameActionException {
         for (MapLocation spawnZoneLoc : cornerSpawnZones) {
             if (rc.canBuild(TrapType.STUN, spawnZoneLoc)) {

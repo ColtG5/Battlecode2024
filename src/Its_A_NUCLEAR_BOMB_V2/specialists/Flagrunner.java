@@ -212,6 +212,12 @@ public class Flagrunner {
 
     public MapLocation setLocationForGroup() throws GameActionException {
         MapLocation locForGroup = null;
+        boolean amIToDefend = utility.readAmIToDefend();
+//        System.out.println("I AM DEFENDING: " + utility.readAmIToDefend());
+
+        if (amIToDefend) {
+            return utility.readLocationFromFlagrunnerGroupIndex();
+        }
 
         // see if we can sense any enemy flags
         FlagInfo[] enemyFlags = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
@@ -382,7 +388,7 @@ public class Flagrunner {
         }
 
         for (FlagInfo info : flagInfo) {
-            if (!info.isPickedUp()) {
+            if (!info.isPickedUp() && !utility.readAmIToDefend()) {
 //                if (rc.canPickupFlag(info.getLocation()) && !isBuilder) {
                 if (rc.canPickupFlag(info.getLocation())) {
                     rc.pickupFlag(info.getLocation());
