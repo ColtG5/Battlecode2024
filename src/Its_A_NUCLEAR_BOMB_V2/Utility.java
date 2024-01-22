@@ -296,22 +296,6 @@ public class Utility {
         }
     }
 
-    public void writeLocationToDefend(MapLocation loc, int groupOfLeader) throws GameActionException {
-        int combined = locationToInt(loc) << 4;
-        combined |= 1;
-        rc.writeSharedArray(flagRunnerGroupOneLocIndex + (groupOfLeader - 1) * 2, combined);
-    }
-
-    public boolean readAmIToDefend() throws GameActionException {
-        int combined = rc.readSharedArray(flagRunnerGroupOneLocIndex + (getMyFlagrunnerGroup() - 1) * 2);
-        return (combined & 1) == 1;
-    }
-
-    public boolean readAmIToDefend(int groupId) throws GameActionException {
-        int combined = rc.readSharedArray(flagRunnerGroupOneLocIndex + (groupId - 1) * 2);
-        return (combined & 1) == 1;
-    }
-
     public MapLocation getLocationOfMyGroupLeader() throws GameActionException {
         int LocalIDOfGroupLeader = readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex();
 
@@ -347,7 +331,7 @@ public class Utility {
 //        int arrayIndexToWriteTo = flagRunnerGroupIndexingStart + getMyFlagrunnerGroup();
 //        rc.writeSharedArray(arrayIndexToWriteTo, intToWrite);
 
-        int locToWrite = locationToInt(locationForFlagrunnerGroup) << 4;
+        int locToWrite = locationToInt(locationForFlagrunnerGroup);
         int arrayIndexToWriteTo = flagRunnerGroupOneLocIndex + ((getMyFlagrunnerGroup() - 1) * 2);
         rc.writeSharedArray(arrayIndexToWriteTo, locToWrite);
 
@@ -369,7 +353,7 @@ public class Utility {
 //        intToWrite += currentFakeIDInArray; // fakeID in lower 4 bits
 //        rc.writeSharedArray(arrayIndexToWriteTo, intToWrite);
 
-        int locToWrite = locationToInt(locationForFlagrunnerGroup) << 4;
+        int locToWrite = locationToInt(locationForFlagrunnerGroup);
         int arrayIndexToWriteTo = flagRunnerGroupOneLocIndex + ((getMyFlagrunnerGroup() - 1) * 2);
         rc.writeSharedArray(arrayIndexToWriteTo, locToWrite);
     }
@@ -405,20 +389,7 @@ public class Utility {
 //        return intToLocation(intToRead >> 4);
 
         int arrayIndexToReadFrom = flagRunnerGroupOneLocIndex + ((getMyFlagrunnerGroup() - 1) * 2);
-        return intToLocation(rc.readSharedArray(arrayIndexToReadFrom) >> 4);
-    }
-
-    public int[] readAllLocalIDsOfGroupLeaders() throws GameActionException {
-        int[] groupLeaderIDs = new int[3];
-        int group1 = 1;
-        int group2 = 2;
-        int group3 = 3;
-
-        groupLeaderIDs[0] = rc.readSharedArray(flagRunnerGroupOneLocIndex + ((group1 - 1) * 2) + 1);
-        groupLeaderIDs[1] = rc.readSharedArray(flagRunnerGroupOneLocIndex + ((group2 - 1) * 2) + 1);
-        groupLeaderIDs[2] = rc.readSharedArray(flagRunnerGroupOneLocIndex + ((group3 - 1) * 2) + 1);
-
-        return groupLeaderIDs;
+        return intToLocation(rc.readSharedArray(arrayIndexToReadFrom));
     }
 
     public int readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex() throws GameActionException {
