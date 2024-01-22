@@ -8,12 +8,14 @@ public class Scout {
     RobotController rc;
     Movement movement;
     Utility utility;
+    BugNav bugnav;
     boolean isBuilder;
     boolean isBuilderSet = false;
 
-    public Scout(RobotController rc, Movement movement, Utility utility) {
+    public Scout(RobotController rc, Movement movement, BugNav bugnav, Utility utility) {
         this.rc = rc;
         this.movement = movement;
+        this.bugnav = bugnav;
         this.utility = utility;
     }
 

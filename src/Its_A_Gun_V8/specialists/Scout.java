@@ -7,13 +7,15 @@ public class Scout {
     int localID;
     RobotController rc;
     Movement movement;
+    BugNav bugnav;
     Utility utility;
     boolean isBuilder;
     boolean isBuilderSet = false;
 
-    public Scout(RobotController rc, Movement movement, Utility utility) {
+    public Scout(RobotController rc, Movement movement, BugNav bugnav, Utility utility) {
         this.rc = rc;
         this.movement = movement;
+        this.bugnav = bugnav;
         this.utility = utility;
     }
 
@@ -75,11 +77,13 @@ public class Scout {
                 if (crumbs.length > 0) {
                     crumbLocated = true;
                     locationGoal = crumbs[0];
-                    movement.hardMove(locationGoal);
+//                    movement.hardMove(locationGoal);
+                    bugnav.moveTo(locationGoal);
                     return;
                 }
             }
-            movement.hardMove(locationGoal);
+//            movement.hardMove(locationGoal);
+            bugnav.moveTo(locationGoal);
             if (rc.getLocation().equals(locationGoal)) {
                 if (crumbLocated) crumbLocated = false;
                 locationGoal = getRandomDirection();
@@ -89,7 +93,8 @@ public class Scout {
             if (crumbs.length > 0) {
                 crumbLocated = true;
                 locationGoal = crumbs[0];
-                movement.hardMove(locationGoal);
+//                movement.hardMove(locationGoal);
+                bugnav.moveTo(locationGoal);
             } else if (mapInfos.length > 0) locationGoal = getRandomDirection();
         }
     }

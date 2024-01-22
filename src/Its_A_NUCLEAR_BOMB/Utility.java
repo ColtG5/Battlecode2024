@@ -479,6 +479,21 @@ public class Utility {
         }
     }
 
+    public void placeTrapNearEnemySingleLoc(MapLocation potentialSpotForTrap) throws GameActionException {
+        boolean noAdjacentTraps = true;
+        if (rc.canBuild(TrapType.STUN, potentialSpotForTrap)) {
+            MapInfo[] adjacentTiles = rc.senseNearbyMapInfos(potentialSpotForTrap, 2);
+            for (MapInfo adjacentTile : adjacentTiles) {
+                if (adjacentTile.getTrapType() != TrapType.NONE) {
+                    noAdjacentTraps = false;
+                    break;
+                }
+            }
+        }
+        if (!noAdjacentTraps) return;
+        rc.build(TrapType.STUN, potentialSpotForTrap);
+    }
+
     public void placeTrapNearEnemies(RobotInfo[] closestEnemiesToTrap) throws GameActionException {
         MapInfo[] possibleTrapBuildingLocs = rc.senseNearbyMapInfos(GameConstants.INTERACT_RADIUS_SQUARED);
         ArrayList<MapLocation> validPlacements = new ArrayList<>();
