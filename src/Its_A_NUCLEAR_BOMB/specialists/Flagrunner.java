@@ -52,7 +52,6 @@ public class Flagrunner {
             isBuilderSet = true;
             isBuilder = utility.amIABuilder();
         }
-
         if (!leftySet) {
             leftySet = true;
             movement.setLefty(utility.getMyFlagrunnerGroup() % 2 == 0);
@@ -116,6 +115,9 @@ public class Flagrunner {
             MapLocation closetSpawnAreaCenter = utility.getClosetSpawnAreaCenter();
             bugNav.moveTo(closetSpawnAreaCenter);
         }
+
+        // if there is an enemy carrying one of our flags, head straight to them
+        goToEnemyFlagrunners();
 
         // see if there are any flags on the ground around you, and go and try to grab them
         if (rc.getRoundNum() >= GameConstants.SETUP_ROUNDS) senseFlagsAroundMe();
@@ -370,7 +372,7 @@ public class Flagrunner {
 
         if (flagInfo.length != 0) broadcastReached = false;
         if (broadcastReached) {
-            rc.setIndicatorString("My location: " + myRandomLocation);
+//            rc.setIndicatorString("My location: " + myRandomLocation);
             bugNav.moveTo(myRandomLocation);
             if (rc.getLocation().isAdjacentTo(myRandomLocation)) broadcastReached = false;
         } else if (flagInfo.length == 0 && rc.getLocation().isAdjacentTo(locationForFlagrunnerGroup)) {
@@ -401,6 +403,16 @@ public class Flagrunner {
             }
         }
 //        return null;
+    }
+
+    private void goToEnemyFlagrunners() throws GameActionException {
+        RobotInfo[] enemyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        for (RobotInfo enemyRobot : enemyRobots) {
+            if (enemyRobot.hasFlag()) {
+                bugNav.moveTo(enemyRobot.getLocation());
+                rc.setIndicatorString("AW HELL NAH WHERE U THINK UR GOING");
+            }
+        }
     }
 
     private void useBannedMovement(MapLocation locationForFlagrunnerGroup) throws GameActionException {
