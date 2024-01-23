@@ -626,7 +626,7 @@ public class Flagrunner {
                 moveAwayFromEnemyIJustAttacked(attackableEnemyLocation);
             } else if (canIBeAttackedNextTurn.first()) { // someone can potentially attack us next turn if they move to us. go smack them
                 if (rc.getHealth() > 150) {
-                    if (rc.isActionReady()) { // we can fight back, so go smack them
+                    if (rc.getActionCooldownTurns() < GameConstants.COOLDOWN_LIMIT) { // we can fight back, so go smack them
                         movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()));
 //                        if (movement.MovementStack.empty()) movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()));
                         attackableEnemyLocation = getAttackableEnemyWithLowestHealth(enemyRobots);
