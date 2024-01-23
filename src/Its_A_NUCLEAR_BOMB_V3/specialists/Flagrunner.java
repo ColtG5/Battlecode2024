@@ -1,6 +1,6 @@
-package Its_A_NUCLEAR_BOMB_V2.specialists;
+package Its_A_NUCLEAR_BOMB_V3.specialists;
 
-import Its_A_NUCLEAR_BOMB_V2.*;
+import Its_A_NUCLEAR_BOMB_V3.*;
 import battlecode.common.*;
 
 import java.util.ArrayList;
