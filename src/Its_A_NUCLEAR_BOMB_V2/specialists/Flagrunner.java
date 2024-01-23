@@ -389,7 +389,7 @@ public class Flagrunner {
         }
 
         for (FlagInfo info : flagInfo) {
-            if (!info.isPickedUp()) {
+            if (!info.isPickedUp() && !utility.readAmIToDefend()) {
 //                if (rc.canPickupFlag(info.getLocation()) && !isBuilder) {
                 if (rc.canPickupFlag(info.getLocation())) {
                     rc.pickupFlag(info.getLocation());
