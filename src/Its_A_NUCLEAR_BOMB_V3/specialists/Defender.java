@@ -5,6 +5,8 @@ import battlecode.common.*;
 
 import java.util.ArrayList;
 
+import static Its_A_NUCLEAR_BOMB_V3.RobotPlayer.NONELOCATION;
+
 //import static Its_A_NUCLEAR_BOMB_V2.RobotPlayer.flagRunnerGroupOneLocIndex;
 
 public class Defender {
@@ -94,11 +96,21 @@ public class Defender {
     void getClosestGroup() throws GameActionException {
         int[] localIDsOfLeaders = utility.readAllLocalIDsOfGroupLeaders();
         MapLocation myLoc = rc.getLocation();
-        MapLocation coolLeaderLoc = coolRobotInfoArray[localIDsOfLeaders[0] - 1].getCurLocation();
-        int groupOfLeader = 1;
+        boolean leaderLocSet = false;
+        MapLocation coolLeaderLoc = null;
+        int groupOfLeader = 0;
         for (int i = 0; i < localIDsOfLeaders.length; i++) {
             int idOfLeader = localIDsOfLeaders[i];
             MapLocation otherLeaderLoc = coolRobotInfoArray[idOfLeader - 1].getCurLocation();
+            if (otherLeaderLoc.equals(NONELOCATION)) {
+                continue;
+            }
+            if (!leaderLocSet) {
+                coolLeaderLoc = otherLeaderLoc;
+                groupOfLeader = i + 1;
+                leaderLocSet = true;
+                continue;
+            }
             if (otherLeaderLoc.distanceSquaredTo(myLoc) < coolLeaderLoc.distanceSquaredTo(myLoc) && !utility.readAmIToDefend(groupOfLeader)) {
                 coolLeaderLoc = otherLeaderLoc;
                 groupOfLeader = i + 1;

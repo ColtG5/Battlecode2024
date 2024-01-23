@@ -10,7 +10,7 @@ import battlecode.common.*;
  */
 public strictfp class RobotPlayer {
     static int turnCount = 0;
-    static final MapLocation NONELOCATION = new MapLocation(-1, -1);
+    public static final MapLocation NONELOCATION = new MapLocation(-1, -1);
 
     static int localID;
     public static MapLocation[] spawnAreaCenters;
