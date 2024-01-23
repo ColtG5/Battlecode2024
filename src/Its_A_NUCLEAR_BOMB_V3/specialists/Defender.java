@@ -16,8 +16,9 @@ public class Defender {
     int localID;
     MapLocation[] spawnAreaCenters;
     static MapLocation myBreadIDefendForMyLife = null;
-    static MapLocation[] cornerSpawnZones = new MapLocation[5];
-    static MapLocation[] edgeSpawnZones = new MapLocation[4];
+    static MapLocation[] cornerStunsOnSpawnZones = new MapLocation[5];
+    static MapLocation[] edgeBombsOnSpawnZones = new MapLocation[4];
+    static MapLocation[] edgeBombsOutsideSpawnZones = new MapLocation[4];
     static boolean isMyBreadSet = false;
     static boolean returnToFlag = true;
     public Defender(RobotController rc, Movement movement, BugNav bugnav, Utility utility) {
@@ -78,7 +79,7 @@ public class Defender {
         for (FlagInfo flag : flags) {
             if (flag.getLocation().equals(myBreadIDefendForMyLife)) myBreadIsAtHome = true;
         }
-        if (rc.getCrumbs() > 300 && enemies.length == 0 && myBreadIsAtHome && rc.getRoundNum() > GameConstants.SETUP_ROUNDS) placeTrapsAroundBread();
+        if (rc.getCrumbs() > 300 && myBreadIsAtHome && rc.getRoundNum() > GameConstants.SETUP_ROUNDS) placeTrapsAroundBread();
 
         RobotInfo[] defenders = rc.senseNearbyRobots(-1, rc.getTeam());
         boolean isUnderAttack = defenders.length < enemies.length;
@@ -106,13 +107,13 @@ public class Defender {
         utility.writeLocationToDefend(rc.getLocation(), groupOfLeader);
     }
     private void placeTrapsAroundBread() throws GameActionException {
-        for (MapLocation spawnZoneLoc : cornerSpawnZones) {
+        for (MapLocation spawnZoneLoc : cornerStunsOnSpawnZones) {
             if (rc.canBuild(TrapType.STUN, spawnZoneLoc)) {
                 rc.build(TrapType.STUN, spawnZoneLoc);
             }
         }
-        if (rc.getCrumbs() > 5000) {
-            for (MapLocation spawnZoneLoc : edgeSpawnZones) {
+        if (rc.getCrumbs() > 2000) {
+            for (MapLocation spawnZoneLoc : edgeBombsOnSpawnZones) {
                 if (rc.canBuild(TrapType.EXPLOSIVE, spawnZoneLoc)) {
                     rc.build(TrapType.EXPLOSIVE, spawnZoneLoc);
                 }
@@ -131,19 +132,21 @@ public class Defender {
             myBreadIDefendForMyLife = spawnAreaCenters[whichBread-1];
 
 //            spawnZonesOfMyBread[0] = myBreadIDefendForMyLife.add(Direction.NORTH);
-            cornerSpawnZones[0] = myBreadIDefendForMyLife.add(Direction.NORTHEAST);
+            cornerStunsOnSpawnZones[0] = myBreadIDefendForMyLife.add(Direction.NORTHEAST);
 //            spawnZonesOfMyBread[2] = myBreadIDefendForMyLife.add(Direction.EAST);
-            cornerSpawnZones[1] = myBreadIDefendForMyLife.add(Direction.SOUTHEAST);
+            cornerStunsOnSpawnZones[1] = myBreadIDefendForMyLife.add(Direction.SOUTHEAST);
 //            spawnZonesOfMyBread[4] = myBreadIDefendForMyLife.add(Direction.SOUTH);
-            cornerSpawnZones[2] = myBreadIDefendForMyLife.add(Direction.SOUTHWEST);
+            cornerStunsOnSpawnZones[2] = myBreadIDefendForMyLife.add(Direction.SOUTHWEST);
 //            spawnZonesOfMyBread[6] = myBreadIDefendForMyLife.add(Direction.WEST);
-            cornerSpawnZones[3] = myBreadIDefendForMyLife.add(Direction.NORTHWEST);
-            cornerSpawnZones[4] = myBreadIDefendForMyLife.add(Direction.CENTER);
+            cornerStunsOnSpawnZones[3] = myBreadIDefendForMyLife.add(Direction.NORTHWEST);
+            cornerStunsOnSpawnZones[4] = myBreadIDefendForMyLife.add(Direction.CENTER);
 
-            edgeSpawnZones[0] = myBreadIDefendForMyLife.add(Direction.NORTH);
-            edgeSpawnZones[1] = myBreadIDefendForMyLife.add(Direction.EAST);
-            edgeSpawnZones[2] = myBreadIDefendForMyLife.add(Direction.SOUTH);
-            edgeSpawnZones[3] = myBreadIDefendForMyLife.add(Direction.WEST);
+            edgeBombsOnSpawnZones[0] = myBreadIDefendForMyLife.add(Direction.NORTH);
+            edgeBombsOnSpawnZones[1] = myBreadIDefendForMyLife.add(Direction.EAST);
+            edgeBombsOnSpawnZones[2] = myBreadIDefendForMyLife.add(Direction.SOUTH);
+            edgeBombsOnSpawnZones[3] = myBreadIDefendForMyLife.add(Direction.WEST);
+
+
 
             isMyBreadSet = true;
         }
