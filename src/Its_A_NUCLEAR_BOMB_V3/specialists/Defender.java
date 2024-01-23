@@ -88,8 +88,8 @@ public class Defender {
 
         // after every round whether spawned or not, convert your info to an int and write it to the shared array
         utility.writeMyInfoToSharedArray(isUnderAttack);
-        coolRobotInfoArray = utility.readAllBotsInfoFromSharedArray(coolRobotInfoArray);
 
+        coolRobotInfoArray = utility.readAllBotsInfoFromSharedArray(coolRobotInfoArray);
         if (isUnderAttack) getClosestGroup();
     }
 

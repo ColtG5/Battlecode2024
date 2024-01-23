@@ -5,6 +5,8 @@ import battlecode.common.*;
 
 import java.util.ArrayList;
 
+import static Its_A_NUCLEAR_BOMB_V3.RobotPlayer.NONELOCATION;
+
 public class Flagrunner {
     int localID;
     RobotController rc;
@@ -110,11 +112,17 @@ public class Flagrunner {
 //            attackMicroWithMoveAvailable();
 //
 //        }
-
+//        int numOfDefenders = rc.senseNearbyRobots(-1, rc.getTeam()).length;
+        int numOfEnemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent()).length;
+        boolean atLeastOneEnemy = numOfEnemies > 0;
 
         if (rc.hasFlag()) {
-            utility.writeToFlagrunnerGroupIndex(rc.getLocation());
             MapLocation closetSpawnAreaCenter = utility.getClosetSpawnAreaCenter();
+            if (rc.canSenseLocation(closetSpawnAreaCenter) && !atLeastOneEnemy) { // close enough to home, don't need defending anymore
+                utility.writeToFlagrunnerGroupIndex(NONELOCATION);
+            } else {
+                utility.writeToFlagrunnerGroupIndex(rc.getLocation());
+            }
             bugNav.moveTo(closetSpawnAreaCenter);
         }
 
