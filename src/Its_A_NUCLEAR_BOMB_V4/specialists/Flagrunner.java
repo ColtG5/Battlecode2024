@@ -15,11 +15,6 @@ public class Flagrunner {
     Utility utility;
     Symmetry symmetry;
     MapLocation locationForFlagrunnerGroup;
-    //    boolean iAmStrategicallyWaiting = false;
-//    Direction dirAwayFromDam = null;
-//    boolean goBeserk = false;
-//    int turnsToGoBeserkFor = 10;
-    int[] damages = {150, 157, 160, 165, 195, 202, 240};
     ArrayList<MapLocation> stunTrapsLastRound = null;
     boolean isBuilder;
     boolean isBuilderSet = false;
@@ -51,7 +46,6 @@ public class Flagrunner {
     }
 
     public void run() throws GameActionException {
-        sense();
         if (!isBuilderSet) {
             isBuilderSet = true;
             isBuilder = utility.amIABuilder();
@@ -66,53 +60,18 @@ public class Flagrunner {
             locationForFlagrunnerGroup = setLocationForGroup(); // decide where the group will go (including you)
         } else {
             locationForFlagrunnerGroup = utility.readLocationFromFlagrunnerGroupIndex();
-//            rc.setIndicatorDot(locationForFlagrunnerGroup, 0, 255, 0);
         }
 
         if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 4) { // sit by dam, and trap around there if u can
             MapInfo[] damStuff = rc.senseNearbyMapInfos();
             for (MapInfo location : damStuff) {
                 if (location.isDam() && rc.getLocation().isAdjacentTo(location.getMapLocation())) {
-                    utility.placeTrapNearEnemy(rc.getLocation());
+//                    utility.placeTrapNearEnemy(rc.getLocation());
                     return;
                 }
             }
         }
-//        else if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) { // 4 rounds before divider drops, move away from dam, to try to kite into our stuns
-//            bugNav.moveTo(utility.getClosetSpawnAreaCenter());
-//        }
 
-
-        // below here is an attempt at a dam strategy that (somehow) doesn't win more games sadly
-
-//        /**
-//         * If its the range of rounds to do the dam shenanigans, do that, otherwise do a normal flagrunner turn
-//         */
-//        int turnsToWait = 14;
-//        if (!goBeserk && rc.getRoundNum() >= GameConstants.SETUP_ROUNDS - 3 && rc.getRoundNum() <= GameConstants.SETUP_ROUNDS + turnsToWait) {
-//
-//            someDamStrategy(turnsToWait);
-//
-//        } else if (goBeserk) {
-//
-////            berserkMode();
-//            attackMicroWithMoveAvailable();
-//
-//        } else {
-//
-//            if (rc.hasFlag()) {
-//                utility.writeToFlagrunnerGroupIndex(rc.getLocation());
-//                MapLocation closetSpawnAreaCenter = utility.getClosetSpawnAreaCenter();
-//                bugNav.moveTo(closetSpawnAreaCenter);
-//            }
-//
-//            // see if there are any flags on the ground around you, and go and try to grab them
-//            if (rc.getRoundNum() >= GameConstants.SETUP_ROUNDS) senseFlagsAroundMe();
-//
-//            attackMicroWithMoveAvailable();
-//
-//        }
-//        int numOfDefenders = rc.senseNearbyRobots(-1, rc.getTeam()).length;
         int numOfEnemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent()).length;
         boolean atLeastOneEnemy = numOfEnemies > 0;
 
@@ -121,9 +80,10 @@ public class Flagrunner {
             if (rc.canSenseLocation(closetSpawnAreaCenter) && !atLeastOneEnemy) { // close enough to home, don't need defending anymore
                 utility.writeToFlagrunnerGroupIndex(NONELOCATION);
             } else {
-                utility.writeToFlagrunnerGroupIndex(rc.getLocation());
+//                utility.writeToFlagrunnerGroupIndex(rc.getLocation());
             }
             bugNav.moveTo(closetSpawnAreaCenter);
+            return;
         }
 
         // if there is an enemy carrying one of our flags, head straight to them
@@ -132,13 +92,21 @@ public class Flagrunner {
         // see if there are any flags on the ground around you, and go and try to grab them
         if (rc.getRoundNum() >= GameConstants.SETUP_ROUNDS) senseFlagsAroundMe();
 
-        attackMicroWithMoveAvailable();
-//        micro();
-//        macro();
+//        attackMicroWithMoveAvailable();
+        while (attack()) {}
+        if (!doMicro()) {
+            MapLocation mapTarget = locationForFlagrunnerGroup;
+            FlagInfo[] flagInfo = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
+            RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+            MapLocation target = getPriorityEnemy(robots);
+            if (target != null && flagInfo.length == 0) mapTarget = target;
 
+            useBannedMovement(mapTarget);
+        }
+        while (attack()) {}
+        tryToHeal();
 
         stunTrapsLastRound = stunTrapsNearMe();
-
 
         // after every round whether spawned or not, convert your info to an int and write it to the shared array
         utility.writeMyInfoToSharedArray(false);
@@ -224,9 +192,6 @@ public class Flagrunner {
 
     public MapLocation setLocationForGroup() throws GameActionException {
         MapLocation locForGroup = null;
-//        boolean amIToDefend = utility.readAmIToDefend();
-//
-//        if (amIToDefend) return utility.readLocationFromFlagrunnerGroupIndex();
 
         // see if we can sense any enemy flags
         FlagInfo[] enemyFlags = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
@@ -401,18 +366,12 @@ public class Flagrunner {
 //                if (rc.canPickupFlag(info.getLocation()) && !isBuilder) {
                 if (rc.canPickupFlag(info.getLocation())) {
                     rc.pickupFlag(info.getLocation());
-                    utility.writeToFlagrunnerGroupIndex(rc.getLocation());
+//                    utility.writeToFlagrunnerGroupIndex(rc.getLocation());
                     MapLocation closetSpawnAreaCenter = utility.getClosetSpawnAreaCenter();
-//                    useBannedMovement(closetSpawnAreaCenter);
-//                    movement.hardMove(closetSpawnAreaCenter);
-//                    return closetSpawnAreaCenter;
                     bugNav.moveTo(closetSpawnAreaCenter);
                 } else {
                     utility.writeToFlagrunnerGroupIndex(info.getLocation());
                     useBannedMovement(info.getLocation());
-//                    movement.hardMove(info.getLocation());
-//                    return info.getLocation();
-//                    bugNav.moveTo(info.getLocation());
                 }
                 break;
             }
@@ -691,154 +650,169 @@ public class Flagrunner {
         }
     }
 
+    MapLocation getPriorityEnemy(RobotInfo[] robots) {
+        if (robots.length == 0) return null;
+        MapLocation targetLoc = null;
+        int minDist = INF;
+        for (RobotInfo robot : robots) {
+            int dist = rc.getLocation().distanceSquaredTo(robot.location);
+            if (robot.hasFlag) return robot.location;
+            if (robot.health <= rc.getAttackDamage())
+                return robot.location;
+            if (targetLoc == null || dist < minDist) {
+                targetLoc = robot.location;
+                minDist = dist;
+            }
+        }
+        return targetLoc;
+    }
+
     /*------------------------------------------------------------------------------------------------------------*/
+    final int INF = 1000000;
+    final Direction[] dirs = Direction.values();
+    MapLocation currentLoc;
+    boolean shouldPlaySafe = false;
+    boolean alwaysInRange = false;
+    boolean canAttack;
 
-    int teamStrength = 1;
-    RobotInfo backupTarget;
-    RobotInfo mainTarget;
-    RobotInfo chaseTarget;
-    MapLocation cachedEnemyLocation;
+    boolean doMicro() throws GameActionException {
+        if (!rc.isMovementReady()) return false;
+        shouldPlaySafe = false;
+        RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        if (robots.length == 0) return false;
+        canAttack = rc.isActionReady();
 
-    void sense() throws GameActionException {
-        backupTarget = null;
-        chaseTarget = null;
-        int targetDist = Integer.MAX_VALUE;
-        for (RobotInfo robot : rc.senseNearbyRobots()) {
-            if (robot.team == rc.getTeam()) teamStrength++;
-            else {
-                int dist = rc.getLocation().distanceSquaredTo(robot.getLocation());
-                if (dist <= GameConstants.ATTACK_RADIUS_SQUARED && (backupTarget == null || dist < targetDist)) {
-                    backupTarget = robot;
-                    targetDist = dist;
-                } else if (dist > GameConstants.ATTACK_RADIUS_SQUARED && chaseTarget == null)
-                    chaseTarget = robot;
-            }
+        currentLoc = getPriorityEnemy(robots);
+        if (currentLoc != null && rc.getLocation().distanceSquaredTo(currentLoc) <= 9)
+            shouldPlaySafe = true;
+
+        if (!shouldPlaySafe) return false;
+        alwaysInRange = !canAttack;
+
+        MicroInfo[] microInfo = new MicroInfo[9];
+        for (int i = 0; i < 9; i++) microInfo[i] = new MicroInfo(dirs[i]);
+
+        for (RobotInfo robot : robots) {
+            currentLoc = robot.getLocation();
+            microInfo[0].updateEnemy();
+            microInfo[1].updateEnemy();
+            microInfo[2].updateEnemy();
+            microInfo[3].updateEnemy();
+            microInfo[4].updateEnemy();
+            microInfo[5].updateEnemy();
+            microInfo[6].updateEnemy();
+            microInfo[7].updateEnemy();
+            microInfo[8].updateEnemy();
         }
-        mainTarget = getAttackableEnemy();
+
+        robots = rc.senseNearbyRobots(-1, rc.getTeam());
+        for (RobotInfo robot : robots) {
+            currentLoc = robot.getLocation();
+            microInfo[0].updateAlly();
+            microInfo[1].updateAlly();
+            microInfo[2].updateAlly();
+            microInfo[3].updateAlly();
+            microInfo[4].updateAlly();
+            microInfo[5].updateAlly();
+            microInfo[6].updateAlly();
+            microInfo[7].updateAlly();
+            microInfo[8].updateAlly();
+        }
+
+        MicroInfo bestMicro = microInfo[8];
+        for (int i = 0; i < 8; ++i) {
+            if (microInfo[i].isBetter(bestMicro)) bestMicro = microInfo[i];
+        }
+//        robots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+//        utility.placeTrapNearEnemies(robots);
+        utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent()));
+
+        return apply(bestMicro);
     }
 
-    void macro() {}
+    boolean apply(MicroInfo bestMicro) throws GameActionException {
+        if (bestMicro.dir == Direction.CENTER) return true;
 
-    void micro() throws GameActionException {
-        RobotInfo target = mainTarget == null ? backupTarget : mainTarget;
+        if (rc.canMove(bestMicro.dir)) {
+            rc.move(bestMicro.dir);
+            return true;
+        }
+        return false;
+    }
+
+    boolean attack() throws GameActionException {
+        if (!rc.isActionReady()) return false;
+        RobotInfo[] robots = rc.senseNearbyRobots(4, rc.getTeam().opponent());
+        MapLocation target = getPriorityEnemy(robots);
         if (target != null) {
-            RobotInfo deadTarget = null;
-            if (rc.canAttack(target.location)) {
-                if (target.getHealth() <= rc.getAttackDamage())
-                    deadTarget = target;
-                rc.attack(target.location);
-            }
-            int minDist = Integer.MAX_VALUE;
-            cachedEnemyLocation = null;
-            for (RobotInfo enemy : rc.senseNearbyRobots(-1, rc.getTeam().opponent())) {
-                int dist = enemy.getLocation().distanceSquaredTo(rc.getLocation());
-                if (enemy != deadTarget && dist < minDist) {
-                    cachedEnemyLocation = enemy.getLocation();
-                    minDist = dist;
-                }
-            }
-            if (cachedEnemyLocation == null && backupTarget != null && backupTarget != deadTarget) {
-                cachedEnemyLocation = backupTarget.getLocation();
-            }
-            if (cachedEnemyLocation != null && rc.isMovementReady()) {
-                kite(cachedEnemyLocation);
-            }
+            if (rc.canAttack(target)) rc.attack(target);
+            return true;
         }
-        if (rc.isActionReady() && rc.isMovementReady()) {
-            if (chaseTarget != null) {
-                cachedEnemyLocation = chaseTarget.location;
-                if (rc.getHealth() > chaseTarget.health) {
-                    chase(chaseTarget.location);
-                } else {
-                    kite(chaseTarget.location);
-                }
-            } else if (cachedEnemyLocation != null) {
-                chase(cachedEnemyLocation);
-            }
-        }
+        return false;
     }
 
-    void chase(MapLocation location) throws GameActionException {
-        Direction forwardDir = rc.getLocation().directionTo(location);
-        Direction[] dirs = {forwardDir, forwardDir.rotateLeft(), forwardDir.rotateRight(),
-                forwardDir.rotateLeft().rotateLeft(), forwardDir.rotateRight().rotateRight()};
-        Direction bestDir = null;
-        int minCanSee = Integer.MAX_VALUE;
+    class MicroInfo {
+        Direction dir;
+        MapLocation location;
+        int minDistanceToEnemy = INF;
+        int canLandHit = 0;
+        int enemiesInAttackRange = 0;
+        int enemiesInVisionRange = 0;
+        int minDistToAlly = INF;
 
-        for (Direction dir : dirs) {
-            if (rc.canMove(dir) && rc.getLocation().add(dir).distanceSquaredTo(location) <= GameConstants.ATTACK_RADIUS_SQUARED) {
-                int canSee = 0;
-                for (RobotInfo enemy : rc.senseNearbyRobots(-1, rc.getTeam().opponent())) {
-                    int newDist = rc.getLocation().add(dir).distanceSquaredTo(enemy.getLocation());
-                    if (newDist <= GameConstants.VISION_RADIUS_SQUARED) canSee++;
-                }
-                if (minCanSee > canSee) {
-                    bestDir = dir;
-                    minCanSee = canSee;
-                }
+        MapLocation target = null;
+
+        boolean canMove = true;
+
+        public MicroInfo(Direction dir) {
+            this.dir = dir;
+            this.location = rc.getLocation().add(dir);
+            if (dir != Direction.CENTER && !rc.canMove(dir)) canMove = false;
+        }
+
+        void updateEnemy() {
+            if (!canMove) return;
+            int dist = location.distanceSquaredTo(currentLoc);
+            if (dist < minDistanceToEnemy) minDistanceToEnemy = dist;
+            if (dist <= GameConstants.ATTACK_RADIUS_SQUARED) enemiesInAttackRange++;
+            if (dist <= GameConstants.VISION_RADIUS_SQUARED) enemiesInVisionRange++;
+
+            if (dist <= GameConstants.ATTACK_RADIUS_SQUARED && canAttack) {
+                canLandHit = 1;
+                target = currentLoc;
             }
         }
-        if (bestDir != null) rc.move(bestDir);
-    }
 
-    void kite(MapLocation location) throws GameActionException {
-        Direction backDir = rc.getLocation().directionTo(location).opposite();
-        Direction[] dirs = {Direction.CENTER, backDir, backDir.rotateLeft(), backDir.rotateRight(),
-                backDir.rotateLeft().rotateLeft(), backDir.rotateRight().rotateRight()};
-        Direction bestDir = null;
-        int minCanSee = Integer.MAX_VALUE;
-
-        for (Direction dir : dirs) {
-            if (rc.canMove(dir)) {
-                int canSee = 0;
-                for (RobotInfo enemy : rc.senseNearbyRobots(-1, rc.getTeam().opponent())) {
-                    int newDist = rc.getLocation().add(dir).distanceSquaredTo(enemy.getLocation());
-                    if (newDist <= GameConstants.VISION_RADIUS_SQUARED) canSee++;
-                }
-                if (minCanSee > canSee) {
-                    bestDir = dir;
-                    minCanSee = canSee;
-                }
-            }
+        void updateAlly() {
+            if (!canMove) return;
+            int dist = location.distanceSquaredTo(currentLoc);
+            if (dist < minDistToAlly) minDistToAlly = dist;
         }
-        if (bestDir != null && bestDir != Direction.CENTER) rc.move(bestDir);
-    }
 
-    RobotInfo getAttackableEnemy() throws GameActionException {
-        RobotInfo target = null;
-        int minDist = Integer.MAX_VALUE;
-        int minHitsReqired = Integer.MAX_VALUE;
-
-        for (RobotInfo enemy : rc.senseNearbyRobots(-1, rc.getTeam().opponent())) {
-            int dist = rc.getLocation().distanceSquaredTo(enemy.getLocation());
-            if (dist > GameConstants.ATTACK_RADIUS_SQUARED) continue;
-            if (enemy.getHealth() <= rc.getAttackDamage()) return enemy;
-
-            RobotInfo[] allies = rc.senseNearbyRobots(-1, rc.getTeam());
-            int[] alliesAttackDamage = new int[allies.length];
-            for (int i = 0; i < allies.length; i++) {
-                int allyEnemyDist = allies[i].getLocation().distanceSquaredTo(enemy.getLocation());
-                if (allyEnemyDist <= GameConstants.ATTACK_RADIUS_SQUARED) {
-                    alliesAttackDamage[i] = damages[allies[i].getAttackLevel()];
-                }
-            }
-
-            int totalAttackDamage = rc.getAttackDamage();
-            for (int j : alliesAttackDamage) totalAttackDamage += j;
-
-
-            int hitsRequired = (int) Math.ceil((double) enemy.getHealth() / totalAttackDamage);
-            if (hitsRequired < minHitsReqired) {
-                minHitsReqired = hitsRequired;
-                target = enemy;
-                minDist = rc.getLocation().distanceSquaredTo(enemy.getLocation());
-            } else if (hitsRequired == minHitsReqired) {
-                if (dist < minDist) {
-                    target = enemy;
-                    minDist = dist;
-                }
-            }
+        boolean inRange() {
+            if (alwaysInRange) return true;
+            return minDistanceToEnemy <= GameConstants.ATTACK_RADIUS_SQUARED;
         }
-        return target;
+
+        boolean isBetter(MicroInfo M) {
+
+            if (canMove && !M.canMove) return true;
+            if (!canMove && M.canMove) return false;
+
+            if (enemiesInAttackRange - canLandHit < M.enemiesInAttackRange - M.canLandHit) return true;
+            if (enemiesInAttackRange - canLandHit > M.enemiesInAttackRange - M.canLandHit) return false;
+
+            if (enemiesInVisionRange - canLandHit < M.enemiesInVisionRange - M.canLandHit) return true;
+            if (enemiesInVisionRange - canLandHit > M.enemiesInVisionRange - M.canLandHit) return false;
+
+            if (canLandHit > M.canLandHit) return true;
+            if (canLandHit < M.canLandHit) return false;
+
+            if (minDistToAlly < M.minDistToAlly) return true;
+            if (minDistToAlly > M.minDistToAlly) return false;
+
+            if (inRange()) return minDistanceToEnemy >= M.minDistanceToEnemy;
+            else return minDistanceToEnemy <= M.minDistanceToEnemy;
+        }
     }
 }
