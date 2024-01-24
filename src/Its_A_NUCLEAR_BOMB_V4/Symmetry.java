@@ -70,7 +70,7 @@ public class Symmetry {
         if (isVertical) isVertical = ((rc.readSharedArray(60) >> 1) & 1) == 1;
         if (isRotational) isRotational = (rc.readSharedArray(60) & 1) == 1;
 
-        if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS - 40) {
+        if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS - 60) {
             possibleFlagLocations = new MapLocation[6];
 
             // Rotational will always be a possible location

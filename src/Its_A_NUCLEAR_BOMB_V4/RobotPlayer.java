@@ -132,7 +132,7 @@ public strictfp class RobotPlayer {
                     // logic for who will specialize to what (subject to change idrk what im doing ong no cap on 4nem)
                     // ----------------------------------------
 
-                    if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 40) {
+                    if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 60) {
                         if (!isDefender) isScout = true; // set the proper scouts
                     } else if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) {
                         if (localID <= AMOUNT_OF_FLAGRUNNERS) isFlagrunner = true; // set the proper flagrunners
