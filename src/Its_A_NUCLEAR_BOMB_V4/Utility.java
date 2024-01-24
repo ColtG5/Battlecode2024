@@ -524,6 +524,9 @@ public class Utility {
     }
 
     public void placeTrapNearEnemies(RobotInfo[] closestEnemiesToTrap) throws GameActionException {
+        if (!rc.isActionReady()) return;
+        if (closestEnemiesToTrap.length < 3) return;
+
         MapInfo[] possibleTrapBuildingLocs = rc.senseNearbyMapInfos(GameConstants.INTERACT_RADIUS_SQUARED);
         ArrayList<MapLocation> validPlacements = new ArrayList<>();
 
@@ -540,6 +543,7 @@ public class Utility {
                 }
             }
             if (noAdjacentTraps) validPlacements.add(infoLoc);
+//            validPlacements.add(infoLoc);
         }
 
 //        for (int i = 0; i < 3; i++) {
@@ -551,7 +555,6 @@ public class Utility {
                 for (MapLocation validPlacement : validPlacements) {
                     if (dirToEnemy == rc.getLocation().directionTo(validPlacement)) {
                         if (rc.canBuild(TrapType.STUN, validPlacement)) rc.build(TrapType.STUN, validPlacement);
-                        validPlacements.remove(validPlacement);
                         return;
                     }
                 }
@@ -559,12 +562,12 @@ public class Utility {
                 for (MapLocation validPlacement : validPlacements) {
                     if ((dirToEnemy.rotateRight() == rc.getLocation().directionTo(validPlacement)) || (dirToEnemy.rotateLeft() == rc.getLocation().directionTo(validPlacement))) {
                         if (rc.canBuild(TrapType.STUN, validPlacement)) rc.build(TrapType.STUN, validPlacement);
-                        validPlacements.remove(validPlacement);
                         return;
                     }
                 }
             }
 //        }
+        if (rc.canBuild(TrapType.STUN, rc.getLocation())) rc.build(TrapType.STUN, rc.getLocation());
     }
 
     /**

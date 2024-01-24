@@ -80,7 +80,7 @@ public class Flagrunner {
             if (rc.canSenseLocation(closetSpawnAreaCenter) && !atLeastOneEnemy) { // close enough to home, don't need defending anymore
                 utility.writeToFlagrunnerGroupIndex(NONELOCATION);
             } else {
-//                utility.writeToFlagrunnerGroupIndex(rc.getLocation());
+                utility.writeToFlagrunnerGroupIndex(rc.getLocation());
             }
             bugNav.moveTo(closetSpawnAreaCenter);
             return;
@@ -94,17 +94,16 @@ public class Flagrunner {
 
 //        attackMicroWithMoveAvailable();
         while (attack()) {}
+        utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent()));
         if (!doMicro()) {
             MapLocation mapTarget = locationForFlagrunnerGroup;
-            FlagInfo[] flagInfo = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
             RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
             MapLocation target = getPriorityEnemy(robots);
-            if (target != null && flagInfo.length == 0) mapTarget = target;
+            if (target != null) mapTarget = target;
 
             useBannedMovement(mapTarget);
-        }
+        } else tryToHeal();
         while (attack()) {}
-        tryToHeal();
 
         stunTrapsLastRound = stunTrapsNearMe();
 
@@ -366,7 +365,7 @@ public class Flagrunner {
 //                if (rc.canPickupFlag(info.getLocation()) && !isBuilder) {
                 if (rc.canPickupFlag(info.getLocation())) {
                     rc.pickupFlag(info.getLocation());
-//                    utility.writeToFlagrunnerGroupIndex(rc.getLocation());
+                    utility.writeToFlagrunnerGroupIndex(rc.getLocation());
                     MapLocation closetSpawnAreaCenter = utility.getClosetSpawnAreaCenter();
                     bugNav.moveTo(closetSpawnAreaCenter);
                 } else {
@@ -683,7 +682,7 @@ public class Flagrunner {
         canAttack = rc.isActionReady();
 
         currentLoc = getPriorityEnemy(robots);
-        if (currentLoc != null && rc.getLocation().distanceSquaredTo(currentLoc) <= 9)
+        if (currentLoc != null && rc.getLocation().distanceSquaredTo(currentLoc) <= GameConstants.ATTACK_RADIUS_SQUARED)
             shouldPlaySafe = true;
 
         if (!shouldPlaySafe) return false;
@@ -725,7 +724,7 @@ public class Flagrunner {
         }
 //        robots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
 //        utility.placeTrapNearEnemies(robots);
-        utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent()));
+//        utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent()));
 
         return apply(bestMicro);
     }
