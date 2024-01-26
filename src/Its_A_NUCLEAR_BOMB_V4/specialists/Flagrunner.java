@@ -66,14 +66,13 @@ public class Flagrunner {
             locationForFlagrunnerGroup = utility.readLocationFromFlagrunnerGroupIndex();
         }
 
-//        if (oppFlags == null) senseFlagsAroundMe();
-        senseFlagsAroundMe();
+        if (oppFlags == null || oppFlags.isEmpty()) senseFlagsAroundMe();
+//        senseFlagsAroundMe();
 
         if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) { // sit by dam, and trap around there if u can
             MapInfo[] damStuff = rc.senseNearbyMapInfos();
             for (MapInfo location : damStuff) {
                 if (location.isDam() && rc.getLocation().isAdjacentTo(location.getMapLocation())) {
-//                    utility.placeTrapNearEnemy(rc.getLocation());
                     return;
                 }
             }
@@ -81,6 +80,8 @@ public class Flagrunner {
 
         int numOfEnemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent()).length;
         boolean atLeastOneEnemy = numOfEnemies > 0;
+
+        tryPickUpFlag();
 
         if (rc.hasFlag()) {
             MapLocation closetSpawnAreaCenter = utility.getClosetSpawnAreaCenter();
@@ -96,7 +97,6 @@ public class Flagrunner {
         // if there is an enemy carrying one of our flags, head straight to them
         goToEnemyFlagrunners();
 
-//        attackMicroWithMoveAvailable();
         attack();
         utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent()));
         if (!doMicro()) {
@@ -104,9 +104,6 @@ public class Flagrunner {
         }
         attack();
         tryToHeal();
-        // see if there are any flags on the ground around you, and go and try to grab them
-
-//        stunTrapsLastRound = stunTrapsNearMe();
 
         // after every round whether spawned or not, convert your info to an int and write it to the shared array
         utility.writeMyInfoToSharedArray(false);
@@ -339,45 +336,10 @@ public class Flagrunner {
         return goScoutHere;
     }
 
-    private void senseFlagsAroundMe() throws GameActionException {
-        if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 60) return;
-        // Get symmetry locs
-        MapLocation[] symmetryLocs = symmetry.getPossibleFlagLocations();
-        if ((symmetry.isSymmetryValid() && symmetryLocs.length != 3)) {
-            symmetry.updateSymmetry();
-            symmetryLocs = symmetry.getPossibleFlagLocations();
-        }
-
-//        if (oppFlags == null) {
-//            oppFlags = new ArrayList<>(Arrays.asList(symmetryLocs));
-//            oppFlags.sort(Comparator.comparingInt(flag -> rc.getLocation().distanceSquaredTo(flag)));
-//            oppFlagsIndex = 0;
-//        }
-
-        // Stop searching when one of the flags gets picked up
-        for (MapLocation symmetryFlags : symmetryLocs) {
-            if (locationForFlagrunnerGroup.isAdjacentTo(symmetryFlags)) {
-                broadcastReached = false;
-                break;
-            }
-        }
-
-        FlagInfo[] flagInfo = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
-
-        if (flagInfo.length != 0) broadcastReached = false;
-        if (broadcastReached) {
-//            rc.setIndicatorString("My location: " + myRandomLocation);
-            bugNav.moveTo(myRandomLocation);
-            if (rc.getLocation().isAdjacentTo(myRandomLocation)) broadcastReached = false;
-        } else if (flagInfo.length == 0 && rc.getLocation().isAdjacentTo(locationForFlagrunnerGroup)) {
-            broadcastReached = true;
-            myRandomLocation = getRandomDirection();
-            bugNav.moveTo(myRandomLocation);
-        }
-
-        for (FlagInfo info : flagInfo) {
+    void tryPickUpFlag() throws GameActionException {
+        FlagInfo[] flags = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
+        for (FlagInfo info : flags) {
             if (!info.isPickedUp() && !utility.readAmIToDefend()) {
-//                if (rc.canPickupFlag(info.getLocation()) && !isBuilder) {
                 if (rc.canPickupFlag(info.getLocation())) {
                     rc.pickupFlag(info.getLocation());
                     utility.writeToFlagrunnerGroupIndex(rc.getLocation());
@@ -390,7 +352,43 @@ public class Flagrunner {
                 break;
             }
         }
-//        return null;
+    }
+
+    private void senseFlagsAroundMe() throws GameActionException {
+        if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 60) return;
+        // Get symmetry locs
+        MapLocation[] symmetryLocs = symmetry.getPossibleFlagLocations();
+        if ((symmetry.isSymmetryValid() && symmetryLocs.length != 3)) {
+            symmetry.updateSymmetry();
+            symmetryLocs = symmetry.getPossibleFlagLocations();
+        }
+
+        if (oppFlags == null) {
+            oppFlags = new ArrayList<>(Arrays.asList(symmetryLocs));
+            oppFlags.sort(Comparator.comparingInt(flag -> rc.getLocation().distanceSquaredTo(flag)));
+            oppFlagsIndex = 0;
+        }
+
+        // Stop searching when one of the flags gets picked up
+//        for (MapLocation symmetryFlags : symmetryLocs) {
+//            if (locationForFlagrunnerGroup.isAdjacentTo(symmetryFlags)) {
+//                broadcastReached = false;
+//                break;
+//            }
+//        }
+
+//        if (flagInfo.length != 0) broadcastReached = false;
+//        if (broadcastReached) {
+////            rc.setIndicatorString("My location: " + myRandomLocation);
+//            bugNav.moveTo(myRandomLocation);
+//            if (rc.getLocation().isAdjacentTo(myRandomLocation)) broadcastReached = false;
+//        } else if (flagInfo.length == 0 && rc.getLocation().isAdjacentTo(locationForFlagrunnerGroup)) {
+//            broadcastReached = true;
+//            myRandomLocation = getRandomDirection();
+//            bugNav.moveTo(myRandomLocation);
+//        }
+
+        tryPickUpFlag();
     }
 
     private void goToEnemyFlagrunners() throws GameActionException {
@@ -677,6 +675,20 @@ public class Flagrunner {
         return targetLoc;
     }
 
+    MapLocation getClosestEnemy(RobotInfo[] robots) {
+        if (robots.length == 0) return null;
+        MapLocation targetLoc = null;
+        int minDist = INF;
+        for (RobotInfo robot : robots) {
+            int dist = rc.getLocation().distanceSquaredTo(robot.location);
+            if (targetLoc == null || dist < minDist) {
+                targetLoc = robot.location;
+                minDist = dist;
+            }
+        }
+        return targetLoc;
+    }
+
     /*------------------------------------------------------------------------------------------------------------*/
     final int INF = 1000000;
     final Direction[] dirs = Direction.values();
@@ -692,8 +704,8 @@ public class Flagrunner {
         if (robots.length == 0) return false;
         canAttack = rc.isActionReady();
 
-        currentLoc = getPriorityEnemy(robots);
-        if (currentLoc != null && rc.getLocation().distanceSquaredTo(currentLoc) <= 7)
+        currentLoc = getClosestEnemy(robots);
+        if (currentLoc != null && rc.getLocation().distanceSquaredTo(currentLoc) <= 5)
             shouldPlaySafe = true;
 
         if (!shouldPlaySafe) return false;
@@ -753,52 +765,60 @@ public class Flagrunner {
         MapLocation target = getPriorityEnemy(robots);
         if (target != null) {
             if (rc.canAttack(target)) rc.attack(target);
-            return;
         }
-        return;
     }
 
 
     void moveToTarget() throws GameActionException {
         if (!rc.isMovementReady()) return;
+        int distToClosestFlag = INF;
+
+        if (!(oppFlags == null) && !oppFlags.isEmpty()) {
+           distToClosestFlag = rc.getLocation().distanceSquaredTo(oppFlags.get(oppFlagsIndex));
+        }
 
         RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        MapLocation target = getPriorityEnemy(robots);
-        if (target != null) {
+        MapLocation target = getClosestEnemy(robots);
+        if (target != null && distToClosestFlag > GameConstants.VISION_RADIUS_SQUARED + 8) {
             useBannedMovement(target);
             return;
         }
-//        if (tryMoveToOppFlag()) return;
+        if (tryMoveToOppFlag()) return;
 
+        // Rarely will call this
         useBannedMovement(locationForFlagrunnerGroup);
     }
 
-//    boolean tryMoveToOppFlag() throws GameActionException {
-//        if (oppFlags == null || oppFlags.isEmpty()) return false;
-//
-//        if (rc.getLocation().isAdjacentTo(oppFlags.get(oppFlagsIndex)) && !rc.canPickupFlag(oppFlags.get(oppFlagsIndex))) {
-//            oppFlags.remove(oppFlagsIndex);
-//
-//            if (oppFlags.isEmpty()) return false;
-//            oppFlagsIndex %= oppFlags.size();
-//        }
-//
-//        if (rc.canSenseLocation(oppFlags.get(oppFlagsIndex))) {
-//            oppFlagsIndex = (oppFlagsIndex + 1) % oppFlags.size();
-//        }
-//
-//        FlagInfo[] flagInfo = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
-//        for (FlagInfo flag : flagInfo) {
-//            if (!oppFlags.contains(flag.getLocation())) {
+    boolean tryMoveToOppFlag() throws GameActionException {
+        if (oppFlags == null || oppFlags.isEmpty()) return false;
+
+        if (rc.getLocation().isAdjacentTo(oppFlags.get(oppFlagsIndex)) && !rc.canPickupFlag(oppFlags.get(oppFlagsIndex))) {
+            oppFlags.remove(oppFlagsIndex);
+
+            if (oppFlags.isEmpty()) return false;
+            oppFlagsIndex %= oppFlags.size();
+        }
+
+//        tryPickUpFlag();
+
+        if (rc.canSenseLocation(oppFlags.get(oppFlagsIndex))) {
+            oppFlagsIndex = (oppFlagsIndex + 1) % oppFlags.size();
+        }
+
+        FlagInfo[] flagInfo = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
+        for (FlagInfo flag : flagInfo) {
+            if (!oppFlags.contains(flag.getLocation())) {
 //                bugNav.moveTo(flag.getLocation());
-//                if (rc.canPickupFlag(flag.getLocation())) rc.pickupFlag(flag.getLocation());
-//                return true;
-//            }
-//        }
-//
-//        bugNav.moveTo(oppFlags.get(oppFlagsIndex));
-//        return true;
-//    }
+                useBannedMovement(flag.getLocation());
+                if (rc.canPickupFlag(flag.getLocation())) rc.pickupFlag(flag.getLocation());
+                return true;
+            }
+        }
+//        tryPickUpFlag();
+
+        useBannedMovement(oppFlags.get(oppFlagsIndex));
+        return true;
+    }
 
     class MicroInfo {
         Direction dir;
