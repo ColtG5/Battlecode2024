@@ -86,11 +86,28 @@ public class Defender {
         RobotInfo[] defenders = rc.senseNearbyRobots(-1, rc.getTeam());
         boolean isUnderAttack = defenders.length < enemies.length;
 
+        tryToHeal();
+
         // after every round whether spawned or not, convert your info to an int and write it to the shared array
         utility.writeMyInfoToSharedArray(isUnderAttack);
 
         coolRobotInfoArray = utility.readAllBotsInfoFromSharedArray(coolRobotInfoArray);
         if (isUnderAttack) getClosestGroup();
+    }
+
+    public void tryToHeal() throws GameActionException {
+        if (!rc.isActionReady()) return;
+        RobotInfo[] friendliesInRangeToHeal = rc.senseNearbyRobots(GameConstants.HEAL_RADIUS_SQUARED, rc.getTeam());
+        if (friendliesInRangeToHeal.length == 0) return;
+        RobotInfo lowestHealthFriendly = friendliesInRangeToHeal[0];
+        for (RobotInfo friendly : friendliesInRangeToHeal) {
+            if (friendly.hasFlag) {
+                lowestHealthFriendly = friendly;
+                break;
+            }
+            if (friendly.health < lowestHealthFriendly.health) lowestHealthFriendly = friendly;
+        }
+        if (rc.canHeal(lowestHealthFriendly.location)) rc.heal(lowestHealthFriendly.location);
     }
 
     void getClosestGroup() throws GameActionException {

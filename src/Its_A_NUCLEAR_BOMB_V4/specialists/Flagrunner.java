@@ -66,10 +66,10 @@ public class Flagrunner {
             locationForFlagrunnerGroup = utility.readLocationFromFlagrunnerGroupIndex();
         }
 
-        if (oppFlags == null || oppFlags.isEmpty()) senseFlagsAroundMe();
+        if (oppFlags == null || oppFlags.isEmpty() || oppFlags.size() > 3) senseFlagsAroundMe();
 //        senseFlagsAroundMe();
 
-        if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS) { // sit by dam, and trap around there if u can
+        if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS && rc.getRoundNum() > GameConstants.SETUP_ROUNDS - 40) { // sit by dam, and trap around there if u can
             MapInfo[] damStuff = rc.senseNearbyMapInfos();
             for (MapInfo location : damStuff) {
                 if (location.isDam() && rc.getLocation().isAdjacentTo(location.getMapLocation())) {
@@ -95,12 +95,12 @@ public class Flagrunner {
         }
 
         // if there is an enemy carrying one of our flags, head straight to them
-        goToEnemyFlagrunners();
+//        goToEnemyFlagrunners();
 
         attack();
-        utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent()));
         if (!doMicro()) {
             moveToTarget();
+            utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent()));
         }
         attack();
         tryToHeal();
@@ -108,69 +108,6 @@ public class Flagrunner {
         // after every round whether spawned or not, convert your info to an int and write it to the shared array
         utility.writeMyInfoToSharedArray(false);
     }
-
-    // ---------------------------------------------------------------------------------
-    //                               builder funcs below
-    // ---------------------------------------------------------------------------------
-
-//    public MapLocation closestEnemyToMe(RobotInfo[] nearbyEnemies) {
-//        RobotInfo closestEnemy = null;
-//
-//        for (RobotInfo enemy : nearbyEnemies) {
-//            if (closestEnemy == null) closestEnemy = enemy;
-//            else if (rc.getLocation().distanceSquaredTo(enemy.getLocation()) < rc.getLocation().distanceSquaredTo(closestEnemy.getLocation()))
-//                closestEnemy = enemy;
-//        }
-//        if (closestEnemy != null) return closestEnemy.getLocation();
-//        return null;
-//    }
-
-//    public MapLocation locationClosestToEnemy(ArrayList<MapLocation> locations, MapLocation closestEnemy) {
-//        MapLocation closestLocation = null;
-//
-//        for (MapLocation location : locations) {
-//            if (closestLocation == null) closestLocation = location;
-//            else if (location.distanceSquaredTo(closestEnemy) < closestLocation.distanceSquaredTo(closestEnemy))
-//                closestLocation = location;
-//        }
-//
-//        return closestLocation;
-//    }
-
-//    public ArrayList<MapLocation> stunTrapsNearMe() throws GameActionException {
-//        MapInfo[] tilesAroundMe = rc.senseNearbyMapInfos(rc.getLocation(), -1);
-//        ArrayList<MapLocation> stunTraps = new ArrayList<>();
-//        for (MapInfo tile : tilesAroundMe) {
-//            if (tile.getTrapType() == TrapType.STUN) stunTraps.add(tile.getMapLocation());
-//        }
-//        return stunTraps;
-//    }
-//
-//    public MapLocation getClosestStunTrapToMe() throws GameActionException {
-//        ArrayList<MapLocation> stunTraps = stunTrapsNearMe();
-//        if (stunTraps.isEmpty()) return null;
-//        MapLocation closestStunTrap = stunTraps.get(0);
-//        for (MapLocation stunTrap : stunTraps) {
-//            if (rc.getLocation().distanceSquaredTo(stunTrap) < rc.getLocation().distanceSquaredTo(closestStunTrap)) {
-//                closestStunTrap = stunTrap;
-//            }
-//        }
-//        return closestStunTrap;
-//    }
-
-//    public MapLocation getClosestDamLoc() {
-//        MapInfo[] damStuff = rc.senseNearbyMapInfos();
-//        MapLocation closestDam = null;
-//        for (MapInfo location : damStuff) {
-//            if (location.isDam()) {
-//                if (closestDam == null) closestDam = location.getMapLocation();
-//                else if (rc.getLocation().distanceSquaredTo(location.getMapLocation()) < rc.getLocation().distanceSquaredTo(closestDam)) {
-//                    closestDam = location.getMapLocation();
-//                }
-//            }
-//        }
-//        return closestDam;
-//    }
 
     // ---------------------------------------------------------------------------------
     //                              buddy checking funcs
@@ -290,16 +227,9 @@ public class Flagrunner {
                 lowestHealthFriendly = friendly;
                 break;
             }
-            if (friendly.buildLevel > 20) {
-                lowestHealthFriendly = friendly;
-                break;
-            }
             if (friendly.health < lowestHealthFriendly.health) lowestHealthFriendly = friendly;
         }
-
         if (rc.canHeal(lowestHealthFriendly.location)) rc.heal(lowestHealthFriendly.location);
-//        if (rc.canHeal(rc.getLocation())) rc.heal(rc.getLocation());
-
     }
 
     public void moveAwayFromEnemyIJustAttacked(MapLocation enemyLocation) throws GameActionException {
@@ -363,7 +293,7 @@ public class Flagrunner {
             symmetryLocs = symmetry.getPossibleFlagLocations();
         }
 
-        if (oppFlags == null) {
+        if (oppFlags == null || oppFlags.size() > 3) {
             oppFlags = new ArrayList<>(Arrays.asList(symmetryLocs));
             oppFlags.sort(Comparator.comparingInt(flag -> rc.getLocation().distanceSquaredTo(flag)));
             oppFlagsIndex = 0;
@@ -705,7 +635,7 @@ public class Flagrunner {
         canAttack = rc.isActionReady();
 
         currentLoc = getClosestEnemy(robots);
-        if (currentLoc != null && rc.getLocation().distanceSquaredTo(currentLoc) <= 5)
+        if (currentLoc != null && rc.getLocation().distanceSquaredTo(currentLoc) <= 4)
             shouldPlaySafe = true;
 
         if (!shouldPlaySafe) return false;
@@ -799,23 +729,19 @@ public class Flagrunner {
             oppFlagsIndex %= oppFlags.size();
         }
 
-//        tryPickUpFlag();
-
         if (rc.canSenseLocation(oppFlags.get(oppFlagsIndex))) {
             oppFlagsIndex = (oppFlagsIndex + 1) % oppFlags.size();
         }
 
+        // For flags that are moved
         FlagInfo[] flagInfo = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
         for (FlagInfo flag : flagInfo) {
             if (!oppFlags.contains(flag.getLocation())) {
-//                bugNav.moveTo(flag.getLocation());
                 useBannedMovement(flag.getLocation());
                 if (rc.canPickupFlag(flag.getLocation())) rc.pickupFlag(flag.getLocation());
                 return true;
             }
         }
-//        tryPickUpFlag();
-
         useBannedMovement(oppFlags.get(oppFlagsIndex));
         return true;
     }

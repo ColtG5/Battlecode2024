@@ -525,54 +525,66 @@ public class Utility {
 
     public void placeTrapNearEnemies(RobotInfo[] closestEnemiesToTrap) throws GameActionException {
         if (!rc.isActionReady()) return;
-        if (closestEnemiesToTrap.length < 4) return;
+        if (rc.getRoundNum() <= GameConstants.SETUP_ROUNDS) return;
+        if (closestEnemiesToTrap.length < 3) return;
 
         MapInfo[] possibleTrapBuildingLocs = rc.senseNearbyMapInfos(GameConstants.INTERACT_RADIUS_SQUARED);
-        ArrayList<MapLocation> validPlacements = new ArrayList<>();
+        MapInfo[] allStunsAroundMe = rc.senseNearbyMapInfos(8);
+//        ArrayList<MapLocation> validPlacements = new ArrayList<>();
 
-        for (MapInfo info : possibleTrapBuildingLocs) {
-//            boolean noAdjacentTraps = true;
-            MapLocation infoLoc = info.getMapLocation();
-//            if (rc.canBuild(TrapType.STUN, infoLoc)) {
-//                MapInfo[] adjacentTiles = rc.senseNearbyMapInfos(infoLoc, 2);
-//                for (MapInfo adjacentTile : adjacentTiles) {
-//                    if (adjacentTile.getTrapType() != TrapType.NONE) {
-////                        noAdjacentTraps = false;
-//                        break;
+        for (MapInfo info : allStunsAroundMe) {
+            if (info.getTrapType() == TrapType.STUN) return;
+        }
+
+//        for (MapInfo info : possibleTrapBuildingLocs) {
+//            MapLocation infoLoc = info.getMapLocation();
+//            validPlacements.add(infoLoc);
+//        }
+
+        int minDist = 1000000;
+        Direction bestDir = null;
+        for (RobotInfo enemy : closestEnemiesToTrap) {
+            MapLocation enemyLoc = enemy.getLocation();
+
+            for (MapInfo info : possibleTrapBuildingLocs) {
+                MapLocation loc = info.getMapLocation();
+                Direction dir = loc.directionTo(enemyLoc);
+                boolean canBuild = rc.canBuild(TrapType.STUN, loc);
+                int dist = loc.distanceSquaredTo(enemyLoc);
+
+                if (bestDir == null || (dist < minDist && canBuild)) {
+                    bestDir = dir;
+                    minDist = dist;
+                }
+            }
+        }
+
+        if (bestDir != null && rc.canBuild(TrapType.STUN, rc.getLocation().add(bestDir))) {
+            rc.canBuild(TrapType.STUN, rc.getLocation().add(bestDir));
+        } else {
+            if (rc.canBuild(TrapType.STUN, rc.getLocation()))
+                rc.build(TrapType.STUN, rc.getLocation());
+        }
+
+
+//            for (MapLocation validPlacement : validPlacements) {
+//                if (dirToEnemy == rc.getLocation().directionTo(validPlacement)) {
+//                    if (rc.canBuild(TrapType.STUN, validPlacement)) {
+//                        rc.build(TrapType.STUN, validPlacement);
+//                        return;
 //                    }
 //                }
 //            }
-//            if (noAdjacentTraps) validPlacements.add(infoLoc);
-            validPlacements.add(infoLoc);
-        }
 
-//        for (int i = 0; i < 3; i++) {
-            for (RobotInfo enemy : closestEnemiesToTrap) {
-                if (validPlacements.isEmpty()) break;
-                MapLocation enemyLoc = enemy.getLocation();
-                Direction dirToEnemy = rc.getLocation().directionTo(enemyLoc);
-
-                for (MapLocation validPlacement : validPlacements) {
-                    if (dirToEnemy == rc.getLocation().directionTo(validPlacement)) {
-                        if (rc.canBuild(TrapType.STUN, validPlacement)) {
-                            rc.build(TrapType.STUN, validPlacement);
-                            return;
-                        }
-                    }
-                }
-
-                for (MapLocation validPlacement : validPlacements) {
-                    if ((dirToEnemy.rotateRight() == rc.getLocation().directionTo(validPlacement)) || (dirToEnemy.rotateLeft() == rc.getLocation().directionTo(validPlacement))) {
-                        if (rc.canBuild(TrapType.STUN, validPlacement)) {
-                            rc.build(TrapType.STUN, validPlacement);
-                            return;
-                        }
-                    }
-                }
-            }
+//            for (MapLocation validPlacement : validPlacements) {
+//                if ((dirToEnemy.rotateRight() == rc.getLocation().directionTo(validPlacement)) || (dirToEnemy.rotateLeft() == rc.getLocation().directionTo(validPlacement))) {
+//                    if (rc.canBuild(TrapType.STUN, validPlacement)) {
+//                        rc.build(TrapType.STUN, validPlacement);
+//                        return;
+//                    }
+//                }
+//            }
 //        }
-        // Last attempt to place
-        if (rc.canBuild(TrapType.STUN, rc.getLocation())) rc.build(TrapType.STUN, rc.getLocation());
     }
 
     /**
