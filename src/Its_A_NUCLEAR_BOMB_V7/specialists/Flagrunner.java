@@ -108,12 +108,31 @@ public class Flagrunner {
 
 
         attack();
+        RobotInfo[] enemyRobots = rc.senseNearbyRobots(10, rc.getTeam().opponent());
+        int closestEnemyDist = INF;
+        MapLocation closestEnemy = null;
+        for(RobotInfo enemyRobot : enemyRobots) {
+            if(rc.getLocation().distanceSquaredTo(enemyRobot.location) < closestEnemyDist) {
+                closestEnemyDist = rc.getLocation().distanceSquaredTo(enemyRobot.location);
+                closestEnemy = enemyRobot.location;
+            }
+        }
 //        attackLowestHealth();
         if (!doMicro()) {
             rc.setIndicatorString("No need to play it safe!! attackable enemies: " + rc.senseNearbyRobots(GameConstants.ATTACK_RADIUS_SQUARED, rc.getTeam().opponent()).length);
             moveToTarget();
+
+            if (enemyRobots.length > 4) {
+                    utility.placeTrapNearEnemy(closestEnemy);
+
+            }
+
+
         } else {
-            utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent()));
+            if(closestEnemy != null) {
+                utility.placeTrapNearEnemy(closestEnemy);
+            }
+
         }
 //        utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent()));
         attack();
