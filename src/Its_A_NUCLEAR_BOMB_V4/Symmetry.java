@@ -31,7 +31,7 @@ public class Symmetry {
         return possibleFlagLocations;
     }
 
-    public void updateSymmetry() {
+    public void updateSymmetry() throws GameActionException {
         if (isHorizontal && !isVertical && !isRotational) {
             sym = true;
             possibleFlagLocations = new MapLocation[3];

@@ -60,28 +60,16 @@ public class Scout {
 
         MapInfo[] mapInfos = rc.senseNearbyMapInfos();
         if (locationGoal != null) {
-            Direction dirToNextLocation = rc.getLocation().directionTo(locationGoal);
-            MapLocation nextLocation = rc.getLocation().add(dirToNextLocation);
-            if (rc.senseMapInfo(nextLocation).isWater()) {
-                if (rc.canFill(nextLocation)) {
-                    rc.fill(nextLocation);
-                    if (rc.canMove(dirToNextLocation)) {
-                        rc.move(dirToNextLocation);
-                        return;
-                    }
-                }
-            }
-
             if (!crumbLocated) {
                 MapLocation[] crumbs = rc.senseNearbyCrumbs(-1);
                 if (crumbs.length > 0) {
                     crumbLocated = true;
                     locationGoal = crumbs[0];
-                    movement.hardMove(locationGoal);
+                    bugnav.moveTo(locationGoal);
                     return;
                 }
             }
-            movement.hardMove(locationGoal);
+            bugnav.moveTo(locationGoal);
             if (rc.getLocation().equals(locationGoal)) {
                 if (crumbLocated) crumbLocated = false;
                 locationGoal = getRandomDirection();
@@ -91,7 +79,7 @@ public class Scout {
             if (crumbs.length > 0) {
                 crumbLocated = true;
                 locationGoal = crumbs[0];
-                movement.hardMove(locationGoal);
+                bugnav.moveTo(locationGoal);
             } else if (mapInfos.length > 0) locationGoal = getRandomDirection();
         }
     }

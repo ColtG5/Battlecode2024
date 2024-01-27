@@ -59,6 +59,8 @@ public class Flagrunner {
             movement.setLefty(utility.getMyFlagrunnerGroup() % 2 == 0);
         }
 
+        if (oppFlags == null || oppFlags.isEmpty() || oppFlags.size() > 3) senseFlagsAroundMe();
+
         boolean isLeader = utility.amIAGroupLeader();
         if (isLeader) {
             locationForFlagrunnerGroup = setLocationForGroup(); // decide where the group will go (including you)
@@ -66,10 +68,10 @@ public class Flagrunner {
             locationForFlagrunnerGroup = utility.readLocationFromFlagrunnerGroupIndex();
         }
 
-        if (oppFlags == null || oppFlags.isEmpty() || oppFlags.size() > 3) senseFlagsAroundMe();
-//        senseFlagsAroundMe();
-
-        if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS && rc.getRoundNum() > GameConstants.SETUP_ROUNDS - 40) { // sit by dam, and trap around there if u can
+        if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 10 && rc.getRoundNum() > GameConstants.SETUP_ROUNDS - 40) { // sit by dam, and trap around there if u can
+//            MapLocation mid = new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2);
+//            useBannedMovement(mid);
+//            return;
             MapInfo[] damStuff = rc.senseNearbyMapInfos();
             for (MapInfo location : damStuff) {
                 if (location.isDam() && rc.getLocation().isAdjacentTo(location.getMapLocation())) {
@@ -93,9 +95,6 @@ public class Flagrunner {
             bugNav.moveTo(closetSpawnAreaCenter);
             return;
         }
-
-        // if there is an enemy carrying one of our flags, head straight to them
-//        goToEnemyFlagrunners();
 
         attack();
         if (!doMicro()) {
@@ -274,10 +273,10 @@ public class Flagrunner {
                     rc.pickupFlag(info.getLocation());
                     utility.writeToFlagrunnerGroupIndex(rc.getLocation());
                     MapLocation closetSpawnAreaCenter = utility.getClosetSpawnAreaCenter();
-                    bugNav.moveTo(closetSpawnAreaCenter);
+                    useBannedMovement(closetSpawnAreaCenter);
                 } else {
                     utility.writeToFlagrunnerGroupIndex(info.getLocation());
-                    useBannedMovement(info.getLocation());
+//                    useBannedMovement(info.getLocation());
                 }
                 break;
             }
@@ -297,27 +296,11 @@ public class Flagrunner {
             oppFlags = new ArrayList<>(Arrays.asList(symmetryLocs));
             oppFlags.sort(Comparator.comparingInt(flag -> rc.getLocation().distanceSquaredTo(flag)));
             oppFlagsIndex = 0;
+
+//            rc.writeSharedArray(51, utility.locationToInt(oppFlags.get(0)));
+//            rc.writeSharedArray(52, utility.locationToInt(oppFlags.get(1)));
+//            rc.writeSharedArray(53, utility.locationToInt(oppFlags.get(2)));
         }
-
-        // Stop searching when one of the flags gets picked up
-//        for (MapLocation symmetryFlags : symmetryLocs) {
-//            if (locationForFlagrunnerGroup.isAdjacentTo(symmetryFlags)) {
-//                broadcastReached = false;
-//                break;
-//            }
-//        }
-
-//        if (flagInfo.length != 0) broadcastReached = false;
-//        if (broadcastReached) {
-////            rc.setIndicatorString("My location: " + myRandomLocation);
-//            bugNav.moveTo(myRandomLocation);
-//            if (rc.getLocation().isAdjacentTo(myRandomLocation)) broadcastReached = false;
-//        } else if (flagInfo.length == 0 && rc.getLocation().isAdjacentTo(locationForFlagrunnerGroup)) {
-//            broadcastReached = true;
-//            myRandomLocation = getRandomDirection();
-//            bugNav.moveTo(myRandomLocation);
-//        }
-
         tryPickUpFlag();
     }
 
@@ -532,9 +515,9 @@ public class Flagrunner {
             if (attackableEnemyLocation != null) { // somebody can attack us! hit them and run away
                 if (rc.canAttack(attackableEnemyLocation)) rc.attack(attackableEnemyLocation);
 //                if (movement.MovementStack.empty()) moveAwayFromEnemyIJustAttacked(attackableEnemyLocation);
-                moveAwayFromEnemyIJustAttacked(attackableEnemyLocation);
+                doMicro();
             } else if (canIBeAttackedNextTurn.first()) { // someone can potentially attack us next turn if they move to us. go smack them
-                if (rc.getHealth() > 150) {
+                if (rc.getHealth() >= 600) {
                     if (rc.isActionReady()) { // we can fight back, so go smack them
                         movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()));
 //                        if (movement.MovementStack.empty()) movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()));
@@ -545,6 +528,7 @@ public class Flagrunner {
                         movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
                     }
                 } else {
+                    doMicro();
 //                    movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
 //                    if (movement.MovementStack.empty()) movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
 
@@ -594,7 +578,6 @@ public class Flagrunner {
         int minDist = INF;
         for (RobotInfo robot : robots) {
             int dist = rc.getLocation().distanceSquaredTo(robot.location);
-            if (robot.hasFlag) return robot.location;
             if (robot.health <= rc.getAttackDamage())
                 return robot.location;
             if (targetLoc == null || dist < minDist) {
@@ -633,9 +616,12 @@ public class Flagrunner {
         RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         if (robots.length == 0) return false;
         canAttack = rc.isActionReady();
-
         currentLoc = getClosestEnemy(robots);
-        if (currentLoc != null && rc.getLocation().distanceSquaredTo(currentLoc) <= 4)
+
+        if (rc.getHealth() < 600 && rc.getLocation().distanceSquaredTo(currentLoc) <= 15)
+            shouldPlaySafe = true;
+
+        if (currentLoc != null && rc.getLocation().distanceSquaredTo(currentLoc) <= GameConstants.ATTACK_RADIUS_SQUARED)
             shouldPlaySafe = true;
 
         if (!shouldPlaySafe) return false;
@@ -701,15 +687,10 @@ public class Flagrunner {
 
     void moveToTarget() throws GameActionException {
         if (!rc.isMovementReady()) return;
-        int distToClosestFlag = INF;
-
-        if (!(oppFlags == null) && !oppFlags.isEmpty()) {
-           distToClosestFlag = rc.getLocation().distanceSquaredTo(oppFlags.get(oppFlagsIndex));
-        }
 
         RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         MapLocation target = getClosestEnemy(robots);
-        if (target != null && distToClosestFlag > GameConstants.VISION_RADIUS_SQUARED + 8) {
+        if (target != null) {
             useBannedMovement(target);
             return;
         }
@@ -722,19 +703,53 @@ public class Flagrunner {
     boolean tryMoveToOppFlag() throws GameActionException {
         if (oppFlags == null || oppFlags.isEmpty()) return false;
 
+        if (symmetry.isSymmetryValid()) {
+            oppFlags.clear();
+
+            if (rc.readSharedArray(51) != 0)
+                oppFlags.add(utility.intToLocation(rc.readSharedArray(51)));
+            if (rc.readSharedArray(52) != 0)
+                oppFlags.add(utility.intToLocation(rc.readSharedArray(52)));
+            if (rc.readSharedArray(53) != 0)
+                oppFlags.add(utility.intToLocation(rc.readSharedArray(53)));
+
+            if (oppFlags.isEmpty()) return false;
+        }
+
         if (rc.getLocation().isAdjacentTo(oppFlags.get(oppFlagsIndex)) && !rc.canPickupFlag(oppFlags.get(oppFlagsIndex))) {
+            if (symmetry.isSymmetryValid()) {
+                if (utility.intToLocation(rc.readSharedArray(51)).equals(oppFlags.get(oppFlagsIndex)))
+                    rc.writeSharedArray(51, 0);
+                if (utility.intToLocation(rc.readSharedArray(52)).equals(oppFlags.get(oppFlagsIndex)))
+                    rc.writeSharedArray(52, 0);
+                if (utility.intToLocation(rc.readSharedArray(53)).equals(oppFlags.get(oppFlagsIndex)))
+                    rc.writeSharedArray(53, 0);
+            }
             oppFlags.remove(oppFlagsIndex);
 
             if (oppFlags.isEmpty()) return false;
             oppFlagsIndex %= oppFlags.size();
         }
 
-        if (rc.canSenseLocation(oppFlags.get(oppFlagsIndex))) {
-            oppFlagsIndex = (oppFlagsIndex + 1) % oppFlags.size();
+        FlagInfo[] flagInfo = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
+
+        if (rc.canSenseLocation(oppFlags.get(oppFlagsIndex)) && flagInfo.length == 0) {
+            if (symmetry.isSymmetryValid()) {
+                if (utility.intToLocation(rc.readSharedArray(51)).equals(oppFlags.get(oppFlagsIndex)))
+                    rc.writeSharedArray(51, 0);
+                if (utility.intToLocation(rc.readSharedArray(52)).equals(oppFlags.get(oppFlagsIndex)))
+                    rc.writeSharedArray(52, 0);
+                if (utility.intToLocation(rc.readSharedArray(53)).equals(oppFlags.get(oppFlagsIndex)))
+                    rc.writeSharedArray(53, 0);
+            }
+
+            oppFlags.remove(oppFlagsIndex);
+
+            if (oppFlags.isEmpty()) return false;
+            oppFlagsIndex %= oppFlags.size();
         }
 
         // For flags that are moved
-        FlagInfo[] flagInfo = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
         for (FlagInfo flag : flagInfo) {
             if (!oppFlags.contains(flag.getLocation())) {
                 useBannedMovement(flag.getLocation());

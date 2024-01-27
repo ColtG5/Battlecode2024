@@ -194,7 +194,7 @@ public class BugNav {
             else break;
         }
         int distLeft = myLoc.add(dirLeft).distanceSquaredTo(prevTarget), distRight = myLoc.add(dirRight).distanceSquaredTo(prevTarget);
-        shouldIRotateRight = distRight < distLeft;
+        shouldIRotateRight = distRight <= distLeft;
     }
 
     void move(Direction dir) throws GameActionException {
