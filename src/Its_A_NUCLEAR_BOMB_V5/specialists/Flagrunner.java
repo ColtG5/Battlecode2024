@@ -572,6 +572,10 @@ public class Flagrunner {
         }
     }
 
+
+
+
+    // isn't it important to get the lowest health enemy if there are multiple close enough to attack??
     MapLocation getPriorityEnemy(RobotInfo[] robots) {
         if (robots.length == 0) return null;
         MapLocation targetLoc = null;
@@ -618,7 +622,7 @@ public class Flagrunner {
         canAttack = rc.isActionReady();
         currentLoc = getClosestEnemy(robots);
 
-        if (rc.getHealth() < 600 && rc.getLocation().distanceSquaredTo(currentLoc) <= 15)
+        if (rc.getHealth() < 600 && rc.getLocation().distanceSquaredTo(currentLoc) <= 20)
             shouldPlaySafe = true;
 
         if (currentLoc != null && rc.getLocation().distanceSquaredTo(currentLoc) <= GameConstants.ATTACK_RADIUS_SQUARED)
@@ -805,22 +809,30 @@ public class Flagrunner {
         }
 
         boolean isBetter(MicroInfo M) {
+            // M is current best micro
 
+            // if best micro cannot move and this one can, the obviously switch it
             if (canMove && !M.canMove) return true;
+            // and if best micro can move and this one can't, then duh, don't switch it
             if (!canMove && M.canMove) return false;
 
+            // FIRST CHECK: whichever micro puts u in spot with less enemies in attack range, do that one
             if (enemiesInAttackRange - canLandHit < M.enemiesInAttackRange - M.canLandHit) return true;
             if (enemiesInAttackRange - canLandHit > M.enemiesInAttackRange - M.canLandHit) return false;
 
             if (enemiesInVisionRange - canLandHit < M.enemiesInVisionRange - M.canLandHit) return true;
             if (enemiesInVisionRange - canLandHit > M.enemiesInVisionRange - M.canLandHit) return false;
 
+
+            // SECOND CHECK: if above checks say that placement in between enemies is equal, do whatever micro hits someone
             if (canLandHit > M.canLandHit) return true;
             if (canLandHit < M.canLandHit) return false;
 
+            // THIRD CHECK: if everything is god damn equal, do the one that puts you closer to more allies
             if (minDistToAlly < M.minDistToAlly) return true;
             if (minDistToAlly > M.minDistToAlly) return false;
 
+            // FOURTH CHECK: if still undecided, HUH
             if (inRange()) return minDistanceToEnemy >= M.minDistanceToEnemy;
             else return minDistanceToEnemy <= M.minDistanceToEnemy;
         }
