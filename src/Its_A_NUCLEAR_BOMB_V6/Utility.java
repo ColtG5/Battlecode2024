@@ -487,14 +487,19 @@ public class Utility {
                         break;
                     }
                 }
+                if (noAdjacentTraps) validPlacements.add(infoLoc);
             }
-            if (noAdjacentTraps) validPlacements.add(infoLoc);
+        }
+
+        if (rc.getRoundNum() == 141) {
+            System.out.println("validPlacements: " + validPlacements);
         }
 
         Direction dirToEnemy = rc.getLocation().directionTo(closestEnemy);
 
         for (MapLocation validPlacement : validPlacements) {
             if (dirToEnemy == rc.getLocation().directionTo(validPlacement)) {
+                if (rc.getRoundNum() == 141) System.out.println("TRYNA BUILD HEREEEE straight " + validPlacement);
                 if (rc.canBuild(TrapType.STUN, validPlacement)) rc.build(TrapType.STUN, validPlacement);
                 return;
             }
@@ -502,10 +507,27 @@ public class Utility {
 
         for (MapLocation validPlacement : validPlacements) {
             if ((dirToEnemy.rotateRight() == rc.getLocation().directionTo(validPlacement)) || (dirToEnemy.rotateLeft() == rc.getLocation().directionTo(validPlacement)) ) {
+                if (rc.getRoundNum() == 141) System.out.println("TRYNA BUILD HEREEEE rotate once " + validPlacement);
                 if (rc.canBuild(TrapType.STUN, validPlacement)) rc.build(TrapType.STUN, validPlacement);
                 return;
             }
         }
+
+        boolean isMyLocAValidPlacement = validPlacements.contains(rc.getLocation());
+        if (isMyLocAValidPlacement) {
+            if (rc.getRoundNum() == 141) System.out.println("TRYNA BUILD HEREEEE me " + rc.getLocation());
+            if (rc.canBuild(TrapType.STUN, rc.getLocation())) rc.build(TrapType.STUN, rc.getLocation());
+            return;
+        }
+
+        for (MapLocation validPlacement : validPlacements) {
+            if ((dirToEnemy.rotateRight().rotateRight() == rc.getLocation().directionTo(validPlacement)) || (dirToEnemy.rotateLeft().rotateLeft() == rc.getLocation().directionTo(validPlacement)) ) {
+                if (rc.getRoundNum() == 141) System.out.println("TRYNA BUILD HEREEEE rotate twice " + validPlacement);
+                if (rc.canBuild(TrapType.STUN, validPlacement)) rc.build(TrapType.STUN, validPlacement);
+                return;
+            }
+        }
+
     }
 
     public void placeTrapNearEnemySingleLoc(MapLocation potentialSpotForTrap) throws GameActionException {

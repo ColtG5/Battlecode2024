@@ -65,11 +65,13 @@ public class Scout {
                 if (crumbs.length > 0) {
                     crumbLocated = true;
                     locationGoal = crumbs[0];
-                    bugnav.moveTo(locationGoal);
+//                      bugnav.moveTo(locationGoal);
+                    movement.hardMove(locationGoal);
                     return;
                 }
             }
-            bugnav.moveTo(locationGoal);
+//                bugnav.moveTo(locationGoal);
+            movement.hardMove(locationGoal);
             if (rc.getLocation().equals(locationGoal)) {
                 if (crumbLocated) crumbLocated = false;
                 locationGoal = getRandomDirection();
@@ -79,7 +81,8 @@ public class Scout {
             if (crumbs.length > 0) {
                 crumbLocated = true;
                 locationGoal = crumbs[0];
-                bugnav.moveTo(locationGoal);
+//                bugnav.moveTo(locationGoal);
+                movement.hardMove(locationGoal);
             } else if (mapInfos.length > 0) locationGoal = getRandomDirection();
         }
     }
