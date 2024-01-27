@@ -80,6 +80,16 @@ public class Flagrunner {
             }
         }
 
+        if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 4) { // sit by dam, and trap around there if u can
+            MapInfo[] damStuff = rc.senseNearbyMapInfos();
+            for (MapInfo location : damStuff) {
+                if (location.isDam() && rc.getLocation().isAdjacentTo(location.getMapLocation())) {
+                    utility.placeTrapNearEnemy(rc.getLocation());
+                    return;
+                }
+            }
+        }
+
         int numOfEnemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent()).length;
         boolean atLeastOneEnemy = numOfEnemies > 0;
 
@@ -96,12 +106,18 @@ public class Flagrunner {
             return;
         }
 
+
         attack();
+//        attackLowestHealth();
         if (!doMicro()) {
+            rc.setIndicatorString("No need to play it safe!! attackable enemies: " + rc.senseNearbyRobots(GameConstants.ATTACK_RADIUS_SQUARED, rc.getTeam().opponent()).length);
             moveToTarget();
+        } else {
             utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent()));
         }
+//        utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent()));
         attack();
+//        attackLowestHealth();
         tryToHeal();
 
         // after every round whether spawned or not, convert your info to an int and write it to the shared array
@@ -622,11 +638,23 @@ public class Flagrunner {
         canAttack = rc.isActionReady();
         currentLoc = getClosestEnemy(robots);
 
-        if (rc.getHealth() < 600 && rc.getLocation().distanceSquaredTo(currentLoc) <= 20)
-            shouldPlaySafe = true;
+//        shouldPlaySafe = true;
 
-        if (currentLoc != null && rc.getLocation().distanceSquaredTo(currentLoc) <= GameConstants.ATTACK_RADIUS_SQUARED)
+
+        if (rc.getHealth() < 600 && rc.getLocation().distanceSquaredTo(currentLoc) <= 15) {
+            rc.setIndicatorString("we are low health and someone is in vision radius, play safe!!! (doMicro)");
             shouldPlaySafe = true;
+        }
+
+        if (currentLoc != null && rc.getLocation().distanceSquaredTo(currentLoc) <= GameConstants.ATTACK_RADIUS_SQUARED) {
+            rc.setIndicatorString("someone is in attack range, play safe!!! (doMicro)");
+            shouldPlaySafe = true;
+        }
+//
+//        if (rc.getLocation().distanceSquaredTo(currentLoc) <= 15) {
+//            rc.setIndicatorString("we are low health and someone is in vision radius, play safe!!! (doMicro)");
+//            shouldPlaySafe = true;
+//        }
 
         if (!shouldPlaySafe) return false;
         alwaysInRange = !canAttack;
@@ -664,6 +692,7 @@ public class Flagrunner {
         MicroInfo bestMicro = microInfo[8];
         for (int i = 0; i < 8; ++i) {
             if (microInfo[i].isBetter(bestMicro)) bestMicro = microInfo[i];
+            if (rc.getRoundNum() == 243 && rc.getID() == 10087)System.out.println();
         }
 
         return apply(bestMicro);
@@ -671,6 +700,8 @@ public class Flagrunner {
 
     boolean apply(MicroInfo bestMicro) throws GameActionException {
         if (bestMicro.dir == Direction.CENTER) return true;
+
+        rc.setIndicatorDot(rc.getLocation().add(bestMicro.dir), 0, 255, 0);
 
         if (rc.canMove(bestMicro.dir)) {
             rc.move(bestMicro.dir);
@@ -683,6 +714,20 @@ public class Flagrunner {
         if (!rc.isActionReady()) return;
         RobotInfo[] robots = rc.senseNearbyRobots(GameConstants.ATTACK_RADIUS_SQUARED, rc.getTeam().opponent());
         MapLocation target = getPriorityEnemy(robots);
+        if (target != null) {
+            if (rc.canAttack(target)) rc.attack(target);
+        }
+    }
+
+    void attackLowestHealth() throws GameActionException {
+        if (!rc.isActionReady()) return;
+        RobotInfo[] robots = rc.senseNearbyRobots(GameConstants.ATTACK_RADIUS_SQUARED, rc.getTeam().opponent());
+        MapLocation target = null;
+        for (RobotInfo enemy : robots) {
+            if (target == null || enemy.health < rc.senseRobotAtLocation(target).health) {
+                target = enemy.location;
+            }
+        }
         if (target != null) {
             if (rc.canAttack(target)) rc.attack(target);
         }
@@ -811,26 +856,43 @@ public class Flagrunner {
         boolean isBetter(MicroInfo M) {
             // M is current best micro
 
-            // if best micro cannot move and this one can, the obviously switch it
+            if (rc.getRoundNum() == 243 && rc.getID() == 10087) System.out.println("best micro: " + M.dir + " | micro we are checking: " + dir);
+
+
+            // if best micro cannot move and this one can, then switch it
             if (canMove && !M.canMove) return true;
-            // and if best micro can move and this one can't, then duh, don't switch it
+            // and if best micro can move and this one can't, don't switch it
             if (!canMove && M.canMove) return false;
+
+            if (rc.getRoundNum() == 243 && rc.getID() == 10087) {
+                System.out.println("enemies in attack range: " + enemiesInAttackRange + " best micro enemies in attack range: " + M.enemiesInAttackRange);
+            }
 
             // FIRST CHECK: whichever micro puts u in spot with less enemies in attack range, do that one
             if (enemiesInAttackRange - canLandHit < M.enemiesInAttackRange - M.canLandHit) return true;
             if (enemiesInAttackRange - canLandHit > M.enemiesInAttackRange - M.canLandHit) return false;
 
-            if (enemiesInVisionRange - canLandHit < M.enemiesInVisionRange - M.canLandHit) return true;
-            if (enemiesInVisionRange - canLandHit > M.enemiesInVisionRange - M.canLandHit) return false;
+//            if (rc.getRoundNum() == 243 && rc.getID() == 10087) System.out.println("enemies in vision range: " + enemiesInVisionRange + " best micro enemies in vision range: " + M.enemiesInVisionRange);
+//
+//
+//            if (enemiesInVisionRange - canLandHit < M.enemiesInVisionRange - M.canLandHit) return true;
+//            if (enemiesInVisionRange - canLandHit > M.enemiesInVisionRange - M.canLandHit) return false;
 
+            if (rc.getRoundNum() == 243 && rc.getID() == 10087) System.out.println("can land hit: " + canLandHit + " best micro can land hit: " + M.canLandHit);
 
             // SECOND CHECK: if above checks say that placement in between enemies is equal, do whatever micro hits someone
             if (canLandHit > M.canLandHit) return true;
             if (canLandHit < M.canLandHit) return false;
 
+            if (rc.getRoundNum() == 243 && rc.getID() == 10087) System.out.println("min dist to ally: " + minDistToAlly + " best micro min dist to ally: " + M.minDistToAlly);
+
             // THIRD CHECK: if everything is god damn equal, do the one that puts you closer to more allies
             if (minDistToAlly < M.minDistToAlly) return true;
             if (minDistToAlly > M.minDistToAlly) return false;
+
+//            System.out.println("HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
+
+            if (rc.getRoundNum() == 243 && rc.getID() == 10087) System.out.println("min dist to enemy: " + minDistanceToEnemy + " best micro min dist to enemy: " + M.minDistanceToEnemy);
 
             // FOURTH CHECK: if still undecided, HUH
             if (inRange()) return minDistanceToEnemy >= M.minDistanceToEnemy;

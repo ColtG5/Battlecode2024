@@ -11,6 +11,7 @@ public class Symmetry {
     int W, H;
     int symX, symY;
     boolean sym = false;
+    boolean hasBeenCalled = false;
     MapLocation[] possibleFlagLocations;
     MapLocation spawn1;
     MapLocation spawn2;
@@ -58,12 +59,13 @@ public class Symmetry {
     }
 
     void checkSymmetry(MapLocation[] spawnCenters) throws GameActionException {
-        if (rc.getRoundNum() == 10) {
+        if (!hasBeenCalled) {
             int combined = ((isHorizontal ? 1 : 0) << 2 | (isVertical ? 1 : 0) << 1 | (isRotational ? 1 : 0));
             rc.writeSharedArray(60, combined);
             spawn1 = spawnCenters[0];
             spawn2 = spawnCenters[1];
             spawn3 = spawnCenters[2];
+            hasBeenCalled = true;
         }
 
         if (isHorizontal) isHorizontal = ((rc.readSharedArray(60) >> 2) & 1) == 1;

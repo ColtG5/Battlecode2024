@@ -566,6 +566,8 @@ public class Utility {
                 rc.build(TrapType.STUN, rc.getLocation());
         }
 
+        // maybe try rotating left or right before building on own loc?
+
 
 //            for (MapLocation validPlacement : validPlacements) {
 //                if (dirToEnemy == rc.getLocation().directionTo(validPlacement)) {

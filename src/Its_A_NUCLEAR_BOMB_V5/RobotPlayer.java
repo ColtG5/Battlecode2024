@@ -78,6 +78,9 @@ public strictfp class RobotPlayer {
             try {
                 if (rc.getRoundNum() == 1) {
                     localID = utility.makeLocalID(assigningLocalIDIndex);
+                    if (localID == 1) {
+                        System.out.println("LocalID duck 1 is :" + rc.getID());
+                    }
                     movement.setLefty((localID % 2) == 1);
                     utility.setLocalID(localID);
                     defender.setLocalID(localID);
