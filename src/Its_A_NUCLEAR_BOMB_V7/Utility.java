@@ -506,6 +506,7 @@ public class Utility {
                 return;
             }
         }
+        if(rc.canBuild(TrapType.STUN, rc.getLocation())) rc.build(TrapType.STUN, rc.getLocation());
     }
 
     public void placeTrapNearEnemySingleLoc(MapLocation potentialSpotForTrap) throws GameActionException {
