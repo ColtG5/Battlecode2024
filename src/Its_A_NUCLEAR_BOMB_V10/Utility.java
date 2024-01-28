@@ -1,5 +1,6 @@
 package Its_A_NUCLEAR_BOMB_V10;
 
+import Its_A_NUCLEAR_BOMB_V10.specialists.Flagrunner;
 import battlecode.common.*;
 
 import java.util.ArrayList;
@@ -543,6 +544,66 @@ public class Utility {
         }
         if (!noAdjacentTraps) return;
         rc.build(TrapType.STUN, potentialSpotForTrap);
+    }
+
+    Direction[] dirs = Direction.values();
+    MapLocation currentLoc = null;
+    public void placeBestTrap(RobotInfo[] enemies) throws GameActionException {
+        if (!rc.isActionReady()) return;
+        if (rc.getRoundNum() <= GameConstants.SETUP_ROUNDS) return;
+        if (enemies.length < 3) return;
+
+        MapInfo[] allStunsAroundMe = rc.senseNearbyMapInfos(8);
+
+        for (MapInfo info : allStunsAroundMe) {
+            if (info.getTrapType() == TrapType.STUN) return;
+        }
+
+        TrapInfo[] trapInfo = new TrapInfo[9];
+        for (int i = 0; i < 9; i++) trapInfo[i] = new TrapInfo(dirs[i]);
+        RobotInfo[] enemies1 = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        for (RobotInfo robot : enemies1) {
+            currentLoc = robot.location;
+            trapInfo[0].update();
+            trapInfo[1].update();
+            trapInfo[2].update();
+            trapInfo[3].update();
+            trapInfo[4].update();
+            trapInfo[5].update();
+            trapInfo[6].update();
+            trapInfo[7].update();
+            trapInfo[8].update();
+        }
+
+        TrapInfo bestTrap = trapInfo[8];
+        for (int i = 0; i < 8; ++i) {
+            if (trapInfo[i].isBetter(bestTrap)) bestTrap = trapInfo[i];
+//            if (rc.getRoundNum() == 243 && rc.getID() == 10087)System.out.println();
+        }
+
+        if (rc.canBuild(TrapType.STUN, bestTrap.location))
+            rc.build(TrapType.STUN, bestTrap.location);
+    }
+
+    class TrapInfo {
+        Direction dir;
+        MapLocation location;
+        int enemiesInRange = 0;
+
+        public TrapInfo(Direction dir) {
+            this.dir = dir;
+            this.location = rc.getLocation().add(dir);
+        }
+
+        void update() {
+            if (!rc.canBuild(TrapType.STUN, location)) return;
+            int dist = location.distanceSquaredTo(currentLoc);
+            if (dist <= 13) enemiesInRange++;
+        }
+
+        boolean isBetter(TrapInfo T) {
+            return enemiesInRange > T.enemiesInRange;
+        }
     }
 
     public void placeTrapNearEnemies(RobotInfo[] closestEnemiesToTrap) throws GameActionException {

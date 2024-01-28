@@ -151,9 +151,9 @@ public class Flagrunner {
         if (!crumbsAroundImmaGoForThose(atLeastOneEnemy)) { // if we did not go for visible crumbs, do a normal turn
             if (!doMicro(healthForMicro)) {
                 moveToTarget();
-                utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent())); // subject to change
+                utility.placeBestTrap(rc.senseNearbyRobots(10, rc.getTeam().opponent())); // subject to change
             } else {
-                utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent())); // subject to change
+                utility.placeBestTrap(rc.senseNearbyRobots(10, rc.getTeam().opponent())); // subject to change
             }
             attack();
 
@@ -482,7 +482,7 @@ public class Flagrunner {
             symmetryLocs = symmetry.getPossibleFlagLocations();
         }
 
-        if (oppFlags == null || oppFlags.size() > 3) {
+        if (oppFlags == null || oppFlags.isEmpty() ||  oppFlags.size() > 3) {
             oppFlags = new ArrayList<>(Arrays.asList(symmetryLocs));
             oppFlags.sort(Comparator.comparingInt(flag -> rc.getLocation().distanceSquaredTo(flag)));
             oppFlagsIndex = 0;
@@ -1052,7 +1052,7 @@ public class Flagrunner {
     boolean apply(MicroInfo bestMicro) throws GameActionException {
         if (bestMicro.dir == Direction.CENTER) return true;
 
-        rc.setIndicatorDot(rc.getLocation().add(bestMicro.dir), 0, 255, 0);
+//        rc.setIndicatorDot(rc.getLocation().add(bestMicro.dir), 0, 255, 0);
 
         if (rc.canMove(bestMicro.dir)) {
             rc.move(bestMicro.dir);
