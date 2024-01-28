@@ -3,6 +3,7 @@ package Its_A_NUCLEAR_BOMB_V7;
 import battlecode.common.*;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class BugNav {
     RobotController rc;
@@ -68,9 +69,13 @@ public class BugNav {
         if (target == null) target = rc.getLocation();
 
         // Fill water
-        myLoc = rc.getLocation();
-        if (rc.canFill(myLoc.add(myLoc.directionTo(target))))
-            rc.fill(myLoc.add(myLoc.directionTo(target)));
+        MapInfo[] mapInfo = rc.senseNearbyMapInfos(GameConstants.INTERACT_RADIUS_SQUARED);
+        for (MapInfo info : mapInfo) {
+            MapLocation loc = info.getMapLocation();
+            if ((loc.x + loc.y) % 2 != 0 && info.isWater()) {
+                if (rc.canFill(loc)) rc.fill(loc);
+            }
+        }
 
         update();
 
