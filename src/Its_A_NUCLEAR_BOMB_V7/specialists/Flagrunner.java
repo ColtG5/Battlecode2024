@@ -80,15 +80,15 @@ public class Flagrunner {
             }
         }
 
-        if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 4) { // sit by dam, and trap around there if u can
-            MapInfo[] damStuff = rc.senseNearbyMapInfos();
-            for (MapInfo location : damStuff) {
-                if (location.isDam() && rc.getLocation().isAdjacentTo(location.getMapLocation())) {
-                    utility.placeTrapNearEnemy(rc.getLocation());
-                    return;
-                }
-            }
-        }
+//        if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 4) { // sit by dam, and trap around there if u can
+//            MapInfo[] damStuff = rc.senseNearbyMapInfos();
+//            for (MapInfo location : damStuff) {
+//                if (location.isDam() && rc.getLocation().isAdjacentTo(location.getMapLocation())) {
+//                    utility.placeTrapNearEnemy(rc.getLocation());
+//                    return;
+//                }
+//            }
+//        }
 
         int numOfEnemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent()).length;
         boolean atLeastOneEnemy = numOfEnemies > 0;
