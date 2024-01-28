@@ -141,10 +141,11 @@ public class Flagrunner {
             return;
         }
 
+        int healthForMicro = 600;
 
         attack();
 //        attackLowestHealth();
-        if (!doMicro()) {
+        if (!doMicro(healthForMicro)) {
 //            rc.setIndicatorString("No need to play it safe!! attackable enemies: " + rc.senseNearbyRobots(GameConstants.ATTACK_RADIUS_SQUARED, rc.getTeam().opponent()).length);
             moveToTarget();
             utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent()));
@@ -153,8 +154,16 @@ public class Flagrunner {
         }
 //        utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent()));
         attack();
-//        attackLowestHealth();
-        tryToHeal();
+        attackLowestHealth();
+        if (rc.getHealth() > healthForMicro) {
+            RobotInfo[] nearishEnemies = rc.senseNearbyRobots(10, rc.getTeam().opponent());
+            if (nearishEnemies.length == 0) tryToHeal(); // if strong for attack, only heal when no enemies around, to not waste ur attack
+        } else {
+            tryToHeal();
+        }
+
+//        tryToHeal();
+
 
 
         stunTrapsLastRound = stunTrapsNearMe();
@@ -556,77 +565,77 @@ public class Flagrunner {
 //        }
 //    }
 
-    /**
-     * Use this attacking/healing micro when you DO want to move in the micro! (for most cases. Essentially make your
-     * journey longer in exchange for being able to move during your attack/healing micro)
-     *
-     * @throws GameActionException if we cant move, attack, or heal I think???
-     */
-    public void attackMicroWithMoveAvailable() throws GameActionException {
-        RobotInfo[] enemyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-
-        if (enemyRobots.length != 0) {
-            MapLocation attackableEnemyLocation = getAttackableEnemyWithLowestHealth(enemyRobots);
-            Utility.MyPair<Boolean, MapLocation> canIBeAttackedNextTurn = canEnemyAttackMeNextTurn(enemyRobots);
-            if (attackableEnemyLocation != null) { // somebody can attack us! hit them and run away
-                if (rc.canAttack(attackableEnemyLocation)) rc.attack(attackableEnemyLocation);
-//                if (movement.MovementStack.empty()) moveAwayFromEnemyIJustAttacked(attackableEnemyLocation);
-                doMicro();
-            } else if (canIBeAttackedNextTurn.first()) { // someone can potentially attack us next turn if they move to us. go smack them
-                if (rc.getHealth() >= 600) {
-                    if (rc.isActionReady()) { // we can fight back, so go smack them
-                        movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()));
-//                        if (movement.MovementStack.empty()) movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()));
-                        attackableEnemyLocation = getAttackableEnemyWithLowestHealth(enemyRobots);
-                        if (attackableEnemyLocation != null && rc.canAttack(attackableEnemyLocation))
-                            rc.attack(attackableEnemyLocation);
-                    } else { // we cannot fight back, try to run
-                        movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
-                    }
-                } else {
-                    doMicro();
-//                    movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
-//                    if (movement.MovementStack.empty()) movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
-
-//                    movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
-//                    placeModestBombsSpaced(enemyRobots);
-//                    utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent()));
-
-                }
-//                if (!movement.MovementStack.empty()) movement.hardMove(locationForFlagrunnerGroup);
-
-
-//                if (coolRobotInfoArray[utility.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex() - 1].getHasFlag()) {
-//                    useBannedMovement();
+//    /**
+//     * Use this attacking/healing micro when you DO want to move in the micro! (for most cases. Essentially make your
+//     * journey longer in exchange for being able to move during your attack/healing micro)
+//     *
+//     * @throws GameActionException if we cant move, attack, or heal I think???
+//     */
+//    public void attackMicroWithMoveAvailable() throws GameActionException {
+//        RobotInfo[] enemyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+//
+//        if (enemyRobots.length != 0) {
+//            MapLocation attackableEnemyLocation = getAttackableEnemyWithLowestHealth(enemyRobots);
+//            Utility.MyPair<Boolean, MapLocation> canIBeAttackedNextTurn = canEnemyAttackMeNextTurn(enemyRobots);
+//            if (attackableEnemyLocation != null) { // somebody can attack us! hit them and run away
+//                if (rc.canAttack(attackableEnemyLocation)) rc.attack(attackableEnemyLocation);
+////                if (movement.MovementStack.empty()) moveAwayFromEnemyIJustAttacked(attackableEnemyLocation);
+//                doMicro();
+//            } else if (canIBeAttackedNextTurn.first()) { // someone can potentially attack us next turn if they move to us. go smack them
+//                if (rc.getHealth() >= 600) {
+//                    if (rc.isActionReady()) { // we can fight back, so go smack them
+//                        movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()));
+////                        if (movement.MovementStack.empty()) movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()));
+//                        attackableEnemyLocation = getAttackableEnemyWithLowestHealth(enemyRobots);
+//                        if (attackableEnemyLocation != null && rc.canAttack(attackableEnemyLocation))
+//                            rc.attack(attackableEnemyLocation);
+//                    } else { // we cannot fight back, try to run
+//                        movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
+//                    }
 //                } else {
-//                    movement.hardMove(locationForFlagrunnerGroup);
+//                    doMicro();
+////                    movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
+////                    if (movement.MovementStack.empty()) movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
+//
+////                    movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
+////                    placeModestBombsSpaced(enemyRobots);
+////                    utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent()));
+//
 //                }
-
-//                smartMovement(locationForFlagrunnerGroup);
-                useBannedMovement(locationForFlagrunnerGroup);
-
-                utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent()));
-
-//                bugNav.moveTo(locationForFlagrunnerGroup);
+////                if (!movement.MovementStack.empty()) movement.hardMove(locationForFlagrunnerGroup);
+//
+//
+////                if (coolRobotInfoArray[utility.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex() - 1].getHasFlag()) {
+////                    useBannedMovement();
+////                } else {
+////                    movement.hardMove(locationForFlagrunnerGroup);
+////                }
+//
+////                smartMovement(locationForFlagrunnerGroup);
+//                useBannedMovement(locationForFlagrunnerGroup);
+//
+//                utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent()));
+//
+////                bugNav.moveTo(locationForFlagrunnerGroup);
+////                tryToHeal();
+//
+//            } else { // there's an enemy, but they cant attack us next turn. save our action cooldown, and just move to our goal
+//                // two strats here: either stay put and try to heal,
 //                tryToHeal();
-
-            } else { // there's an enemy, but they cant attack us next turn. save our action cooldown, and just move to our goal
-                // two strats here: either stay put and try to heal,
-                tryToHeal();
-                // or move to the goal and don't heal
-//                movement.hardMove(locationForFlagrunnerGroup);
-//                smartMovement(locationForFlagrunnerGroup);
-                useBannedMovement(locationForFlagrunnerGroup);
-                tryToHeal();
-            }
-        } else { // zero enemies on our radar, so walk to spot we gotta go, and heal up
-//            movement.hardMove(locationForFlagrunnerGroup);
-            tryToHeal();
-//            smartMovement(locationForFlagrunnerGroup);
-            useBannedMovement(locationForFlagrunnerGroup);
-            tryToHeal();
-        }
-    }
+//                // or move to the goal and don't heal
+////                movement.hardMove(locationForFlagrunnerGroup);
+////                smartMovement(locationForFlagrunnerGroup);
+//                useBannedMovement(locationForFlagrunnerGroup);
+//                tryToHeal();
+//            }
+//        } else { // zero enemies on our radar, so walk to spot we gotta go, and heal up
+////            movement.hardMove(locationForFlagrunnerGroup);
+//            tryToHeal();
+////            smartMovement(locationForFlagrunnerGroup);
+//            useBannedMovement(locationForFlagrunnerGroup);
+//            tryToHeal();
+//        }
+//    }
 
 
     public void someDamStrategy(int turnsToWait) throws GameActionException {
@@ -847,7 +856,7 @@ public class Flagrunner {
     boolean alwaysInRange = false;
     boolean canAttack;
 
-    boolean doMicro() throws GameActionException {
+    boolean doMicro(int healthForMicro) throws GameActionException {
         if (!rc.isMovementReady()) return false;
         shouldPlaySafe = false;
         RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
@@ -858,7 +867,7 @@ public class Flagrunner {
 //        shouldPlaySafe = true;
 
 
-        if (rc.getHealth() < 600 && rc.getLocation().distanceSquaredTo(currentLoc) <= 15) {
+        if (rc.getHealth() < healthForMicro && rc.getLocation().distanceSquaredTo(currentLoc) <= 15) {
 //            rc.setIndicatorString("we are low health and someone is in vision radius, play safe!!! (doMicro)");
             shouldPlaySafe = true;
         }
