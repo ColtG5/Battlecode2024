@@ -166,7 +166,7 @@ public class Flagrunner {
                 tryToHeal();
             }
         } else {
-            utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent())); // subject to change
+            utility.placeBestTrap(rc.senseNearbyRobots(10, rc.getTeam().opponent())); // subject to change
             attack();
         }
 
