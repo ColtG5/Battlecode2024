@@ -68,9 +68,13 @@ public class BugNav {
         if (target == null) target = rc.getLocation();
 
         // Fill water
-        myLoc = rc.getLocation();
-        if (rc.canFill(myLoc.add(myLoc.directionTo(target))))
-            rc.fill(myLoc.add(myLoc.directionTo(target)));
+        MapInfo[] mapInfo = rc.senseNearbyMapInfos(GameConstants.INTERACT_RADIUS_SQUARED);
+        for (MapInfo info : mapInfo) {
+            MapLocation loc = info.getMapLocation();
+            if ((loc.x + loc.y) % 2 != 0 && info.isWater()) {
+                if (rc.canFill(loc)) rc.fill(loc);
+            }
+        }
 
         update();
 
