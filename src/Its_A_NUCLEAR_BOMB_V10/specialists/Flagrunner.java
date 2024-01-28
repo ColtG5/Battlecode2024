@@ -148,7 +148,7 @@ public class Flagrunner {
 
 
         attack();
-        if (!crumbsAroundImmaGoForThose(atLeastOneEnemy)) { // if we did not go for visible crumbs, do a normal turn
+        if (!crumbsAroundImmaGoForThose(numOfEnemies)) { // if we did not go for visible crumbs, do a normal turn
             if (!doMicro(healthForMicro)) {
                 moveToTarget();
                 utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent())); // subject to change
@@ -159,7 +159,7 @@ public class Flagrunner {
 
 
             if (rc.getHealth() > healthForMicro) {
-                RobotInfo[] nearishEnemies = rc.senseNearbyRobots(10, rc.getTeam().opponent());
+                RobotInfo[] nearishEnemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
                 if (nearishEnemies.length == 0)
                     tryToHeal(); // if strong for attack, only heal when no enemies around, to not waste ur attack
             } else {
@@ -179,12 +179,13 @@ public class Flagrunner {
     //                              buddy checking funcs
     // ---------------------------------------------------------------------------------
 
-    boolean crumbsAroundImmaGoForThose(boolean atLeastOneEnemy) throws GameActionException {
+    boolean crumbsAroundImmaGoForThose(int numOfEnemies) throws GameActionException {
         MapLocation possibleInaccessibleCrumb = readInaccessibleCrumbFromArray();
         if (possibleInaccessibleCrumb != null) inaccessibleCrumbs.add(possibleInaccessibleCrumb);
 
         MapLocation[] crumbsAround = rc.senseNearbyCrumbs(-1);
-        if (atLeastOneEnemy) return false;
+//        if (atLeastOneEnemy) return false;
+        if (numOfEnemies > 3) return false;
         if (crumbsAround.length == 0) return false;
 
 //        MapLocation closestCrumb = crumbsAround[0];

@@ -117,8 +117,8 @@ public strictfp class RobotPlayer {
                 if (!rc.isSpawned()) {
                     if (isDefender) defender.tryToSpawnOnMyFlag();
                     else if (rc.getRoundNum() > 200) {
-                        utility.spawnDefend();
-                        utility.trySpawningEvenly(spawnAreaCenters);
+                        boolean didISpawn = utility.spawnDefend();
+                        if (!didISpawn) utility.trySpawningEvenly(spawnAreaCenters);
                     }
                     else utility.trySpawningEvenly(spawnAreaCenters);
                     utility.writeMyInfoToSharedArray(false);
