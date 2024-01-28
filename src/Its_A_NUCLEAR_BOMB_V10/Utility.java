@@ -444,7 +444,7 @@ public class Utility {
         }
     }
 
-    public void spawnDefend() throws GameActionException {
+    public boolean spawnDefend() throws GameActionException {
         for (int duckID = 48; duckID <= 50; duckID++) {
             CoolRobotInfo duckDefender = coolRobotInfoArray[duckID - 1];
             if (duckDefender.getIsUnderAttack()) {
@@ -455,17 +455,20 @@ public class Utility {
                         closestSpawn = spawn;
                 }
                 if (rc.canSpawn(closestSpawn)) {
+                    System.out.println("SPAWNING TO DEFEND DUCK " + duckID + " AT " + closestSpawn);
                     rc.spawn(closestSpawn);
-                    break;
+                    return true;
                 }
                 for (Direction dir : directions) {
                     if (rc.canSpawn(closestSpawn.add(dir))) {
+                        System.out.println("SPAWNING TO DEFEND DUCK " + duckID + " AT " + closestSpawn);
                         rc.spawn(closestSpawn.add(dir));
-                        break;
+                        return true;
                     }
                 }
             }
         }
+        return false;
     }
 
     /**
