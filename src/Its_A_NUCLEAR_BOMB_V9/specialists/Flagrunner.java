@@ -29,6 +29,12 @@ public class Flagrunner {
     boolean leftySet = false;
     boolean broadcastReached = false;
 
+    ArrayList<MapLocation> inaccessibleCrumbs = new ArrayList<>();
+    int giveUpOnGettingToTheCrumbAfterThisManyRounds = 6;
+    int roundsSpentGettingToCrumb = 0;
+    MapLocation currentCrumbLoc = null;
+    int becameUninterestedInCrumbsCounter = 3;
+
     Utility.CoolRobotInfo[] coolRobotInfoArray;
     MapLocation[] spawnAreaCenters;
     MapLocation myRandomLocation;
@@ -71,8 +77,6 @@ public class Flagrunner {
         } else {
             locationForFlagrunnerGroup = utility.readLocationFromFlagrunnerGroupIndex();
         }
-
-        if (rc.getID() == 13974) System.out.println(locationForFlagrunnerGroup);
 
 //        if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 10 && rc.getRoundNum() > GameConstants.SETUP_ROUNDS - 40) { // sit by dam, and trap around there if u can
 ////            MapLocation mid = new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2);
@@ -142,8 +146,8 @@ public class Flagrunner {
         int healthForMicro = 600;
 
 
-        attack();
 
+        attack();
         if (!crumbsAroundImmaGoForThose(atLeastOneEnemy)) { // if we did not go for visible crumbs, do a normal turn
             if (!doMicro(healthForMicro)) {
                 moveToTarget();
@@ -176,19 +180,125 @@ public class Flagrunner {
     // ---------------------------------------------------------------------------------
 
     boolean crumbsAroundImmaGoForThose(boolean atLeastOneEnemy) throws GameActionException {
+        MapLocation possibleInaccessibleCrumb = readInaccessibleCrumbFromArray();
+        if (possibleInaccessibleCrumb != null) inaccessibleCrumbs.add(possibleInaccessibleCrumb);
+
         MapLocation[] crumbsAround = rc.senseNearbyCrumbs(-1);
         if (atLeastOneEnemy) return false;
         if (crumbsAround.length == 0) return false;
 
-        MapLocation closestCrumb = crumbsAround[0];
+//        MapLocation closestCrumb = crumbsAround[0];
+//        if (currentCrumbLoc == null) {
+//            for (MapLocation crumb : crumbsAround) {
+//                if (inaccessibleCrumbs.contains(crumb)) continue;
+//                if (rc.getLocation().distanceSquaredTo(crumb) < rc.getLocation().distanceSquaredTo(closestCrumb)) {
+//                    closestCrumb = crumb;
+//                }
+//            }
+//        } else {
+//            closestCrumb = currentCrumbLoc;
+//        }
+//        if (currentCrumbLoc == null) currentCrumbLoc = closestCrumb;
+//        // if we are going to a crumb, and it is the same crumb as the last 10 rounds, then it is inaccessible. add it to the list of inaccessible crumbs, and choose a new crumb to go for, and reset the counter
+//        if (currentCrumbLoc.equals(closestCrumb)) {
+//            roundsSpentGettingToCrumb++;
+//            rc.setIndicatorString("Going for crumb: " + currentCrumbLoc + " for " + roundsSpentGettingToCrumb + " rounds");
+//            if (roundsSpentGettingToCrumb >= giveUpOnGettingToTheCrumbAfterThisManyRounds) {
+//                rc.setIndicatorString("Giving up on crumb: " + currentCrumbLoc);
+//                inaccessibleCrumbs.add(currentCrumbLoc);
+//                currentCrumbLoc = null;
+//                roundsSpentGettingToCrumb = 0;
+//            }
+//        } else {
+//            rc.setIndicatorString("Now going for crumb: " + closestCrumb);
+//            currentCrumbLoc = closestCrumb;
+//            roundsSpentGettingToCrumb = 0;
+//        }
+
+        MapLocation closestCrumb = null;
         for (MapLocation crumb : crumbsAround) {
-            if (rc.getLocation().distanceSquaredTo(crumb) < rc.getLocation().distanceSquaredTo(closestCrumb)) {
+            if (inaccessibleCrumbs.contains(crumb)) {
+//                if (rc.getID() == 11852) System.out.println("crumb is inaccessible " + crumb);
+                continue;
+            }
+            if (closestCrumb == null || rc.getLocation().distanceSquaredTo(crumb) < rc.getLocation().distanceSquaredTo(closestCrumb)) {
                 closestCrumb = crumb;
             }
         }
+
+//        if (rc.getID() == 13926) System.out.println(closestCrumb);
+//        if (currentCrumbLoc == null) currentCrumbLoc = closestCrumb;
+//
+//        if (currentCrumbLoc == null) return false;
+//
+//        if (currentCrumbLoc != null) System.out.println(closestCrumb);
+
+//        if (currentCrumbLoc == null) currentCrumbLoc = closestCrumb;
+//
+//        if (currentCrumbLoc.equals(closestCrumb)) {
+//            roundsSpentGettingToCrumb++;
+//            rc.setIndicatorString("Going for crumb: " + currentCrumbLoc + " for " + roundsSpentGettingToCrumb + " rounds");
+//            if (roundsSpentGettingToCrumb >= giveUpOnGettingToTheCrumbAfterThisManyRounds) {
+//                rc.setIndicatorString("Giving up on crumb: " + currentCrumbLoc);
+//                inaccessibleCrumbs.add(currentCrumbLoc);
+//                if (rc.getID() == 11852) System.out.println(inaccessibleCrumbs);
+//                currentCrumbLoc = null;
+//                roundsSpentGettingToCrumb = 0;
+//            }
+//        } else {
+//            rc.setIndicatorString("Now going for crumb: " + closestCrumb);
+//            currentCrumbLoc = closestCrumb;
+//            roundsSpentGettingToCrumb = 0;
+//        }
+
+        if (closestCrumb != null) {
+            roundsSpentGettingToCrumb++;
+//            rc.setIndicatorString("Going for crumb: " + closestCrumb + " for " + roundsSpentGettingToCrumb + " rounds");
+            if (roundsSpentGettingToCrumb >= giveUpOnGettingToTheCrumbAfterThisManyRounds) {
+//                rc.setIndicatorString("Giving up on crumb: " + closestCrumb);
+                if (!inaccessibleCrumbs.contains(closestCrumb)) {
+                    inaccessibleCrumbs.add(closestCrumb);
+                    writeInaccessibleCrumbToArray(closestCrumb);
+                }
+//                if (rc.getID() == 11852) System.out.println(inaccessibleCrumbs);
+                closestCrumb = null;
+                roundsSpentGettingToCrumb = 0;
+            }
+        } else {
+//            rc.setIndicatorString("no crumbs nearby man!!");
+            roundsSpentGettingToCrumb = 0;
+            return false;
+        }
+
+
+
+
         bugNav.moveTo(closestCrumb);
         return true;
     }
+
+    void writeInaccessibleCrumbToArray(MapLocation myInaccessibleCrumbLocIWantToWrite) throws GameActionException {
+        MapLocation currentInaccessibleCrumb = utility.intToLocation(rc.readSharedArray(62));
+        int localIDOfDuckThatWroteTheInaccessibleCrumbLoc = rc.readSharedArray(63);
+        if (currentInaccessibleCrumb.equals(NONELOCATION)) { // free real estate !!!
+            rc.writeSharedArray(62, utility.locationToInt(myInaccessibleCrumbLocIWantToWrite));
+            rc.writeSharedArray(63, localID);
+        }
+    }
+
+    MapLocation readInaccessibleCrumbFromArray() throws GameActionException {
+        MapLocation currentInaccessibleCrumb = utility.intToLocation(rc.readSharedArray(62));
+        int localIDOfDuckThatWroteTheInaccessibleCrumbLoc = rc.readSharedArray(63);
+        if (localIDOfDuckThatWroteTheInaccessibleCrumbLoc == localID) {
+            rc.writeSharedArray(62, utility.locationToInt(NONELOCATION));
+            rc.writeSharedArray(63, 0);
+            return null;
+        }
+        if (currentInaccessibleCrumb.equals(NONELOCATION)) return null;
+        else return currentInaccessibleCrumb;
+    }
+
+
 
     public boolean tooFewGroupMembersAround(int lessThanThis) throws GameActionException {
         RobotInfo[] robotInfos = rc.senseNearbyRobots(-1, rc.getTeam());
@@ -245,7 +355,7 @@ public class Flagrunner {
                 }
             }
         }
-        if (rc.getRoundNum() == 140) System.out.println("locForGroup: " + locForGroup);
+//        if (rc.getRoundNum() == 140) System.out.println("locForGroup: " + locForGroup);
         if (locForGroup == null)
             locForGroup = utility.getClosetSpawnAreaCenter(); // by my logic, this should never happen, but hey
 
@@ -668,7 +778,7 @@ public class Flagrunner {
                 MapLocation closestEnemy = closestEnemyToMe(someEnemies);
 //                if (rc.canBuild(TrapType.STUN, rc.getLocation()))
 //                    utility.placeTrapNearEnemySingleLoc(rc.getLocation());
-                System.out.println("tryna place trap");
+//                System.out.println("tryna place trap");
                 utility.placeTrapNearEnemy(closestEnemy);
             }
 
@@ -682,7 +792,7 @@ public class Flagrunner {
 ////                }
 //            }
             iAmStrategicallyWaiting = true;
-            rc.setIndicatorString("I will be waiting.");
+//            rc.setIndicatorString("I will be waiting.");
         }
         if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS - 1) { // see all the traps that have been laid down
             stunTrapsLastRound = stunTrapsNearMe();
@@ -933,7 +1043,7 @@ public class Flagrunner {
         MicroInfo bestMicro = microInfo[8];
         for (int i = 0; i < 8; ++i) {
             if (microInfo[i].isBetter(bestMicro)) bestMicro = microInfo[i];
-            if (rc.getRoundNum() == 243 && rc.getID() == 10087)System.out.println();
+//            if (rc.getRoundNum() == 243 && rc.getID() == 10087)System.out.println();
         }
 
         return apply(bestMicro);
