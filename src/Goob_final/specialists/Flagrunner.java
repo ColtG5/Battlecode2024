@@ -1,13 +1,13 @@
-package Its_A_NUCLEAR_BOMB_V10.specialists;
+package Goob_final.specialists;
 
-import Its_A_NUCLEAR_BOMB_V10.*;
+import Goob_final.*;
 import battlecode.common.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 
-import static Its_A_NUCLEAR_BOMB_V10.RobotPlayer.NONELOCATION;
+import static Goob_final.RobotPlayer.NONELOCATION;
 
 public class Flagrunner {
     int localID;
