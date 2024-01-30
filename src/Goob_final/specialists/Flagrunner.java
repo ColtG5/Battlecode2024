@@ -24,16 +24,12 @@ public class Flagrunner {
     ArrayList<MapLocation> stunTrapsLastRound = null;
     ArrayList<MapLocation> oppFlags = null;
     int oppFlagsIndex;
-    boolean isBuilder;
-    boolean isBuilderSet = false;
     boolean leftySet = false;
     boolean broadcastReached = false;
 
     ArrayList<MapLocation> inaccessibleCrumbs = new ArrayList<>();
     int giveUpOnGettingToTheCrumbAfterThisManyRounds = 6;
     int roundsSpentGettingToCrumb = 0;
-    MapLocation currentCrumbLoc = null;
-    int becameUninterestedInCrumbsCounter = 3;
 
     Utility.CoolRobotInfo[] coolRobotInfoArray;
     MapLocation[] spawnAreaCenters;
@@ -60,10 +56,6 @@ public class Flagrunner {
     }
 
     public void run() throws GameActionException {
-//        if (!isBuilderSet) {
-//            isBuilderSet = true;
-//            isBuilder = utility.amIABuilder();
-//        }
         if (!leftySet) {
             leftySet = true;
             movement.setLefty(utility.getMyFlagrunnerGroup() % 2 == 0);
@@ -77,52 +69,6 @@ public class Flagrunner {
         } else {
             locationForFlagrunnerGroup = utility.readLocationFromFlagrunnerGroupIndex();
         }
-
-//        if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 10 && rc.getRoundNum() > GameConstants.SETUP_ROUNDS - 40) { // sit by dam, and trap around there if u can
-////            MapLocation mid = new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2);
-////            useBannedMovement(mid);
-////            return;
-//            MapInfo[] damStuff = rc.senseNearbyMapInfos();
-//            for (MapInfo location : damStuff) {
-//                if (location.isDam() && rc.getLocation().isAdjacentTo(location.getMapLocation())) {
-//                    return;
-//                }
-//            }
-//        }
-//
-//        if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 4) { // sit by dam, and trap around there if u can
-//            MapInfo[] damStuff = rc.senseNearbyMapInfos();
-//            for (MapInfo location : damStuff) {
-//                if (location.isDam() && rc.getLocation().isAdjacentTo(location.getMapLocation())) {
-//                    utility.placeTrapNearEnemy(rc.getLocation());
-//                    return;
-//                }
-//            }
-//        }
-
-//        if (rc.getRoundNum() < GameConstants.SETUP_ROUNDS - 4) { // sit by dam, and trap around there if u can
-//            MapInfo[] damStuff = rc.senseNearbyMapInfos();
-//            for (MapInfo location : damStuff) {
-//                RobotInfo[] someEnemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-//                boolean anyEnemyCloseEnoughToWarrantPlacingATrap = someEnemies.length > 0;
-//                if (location.isDam() && rc.getLocation().isAdjacentTo(location.getMapLocation()) && anyEnemyCloseEnoughToWarrantPlacingATrap) {
-//                    MapLocation closestEnemy = closestEnemyToMe(someEnemies);
-//                    System.out.println("tryna place trap");
-//                    utility.placeTrapNearEnemy(closestEnemy);
-//                    break;
-//                }
-//            }
-//        }
-//
-//        /*
-//         * If its the range of rounds to do the dam shenanigans, do that, otherwise do a normal flagrunner turn
-//         */
-//        int turnsToWait = 14;
-//        if (!goBeserk && rc.getRoundNum() >= GameConstants.SETUP_ROUNDS - 3 && rc.getRoundNum() <= GameConstants.SETUP_ROUNDS + turnsToWait) {
-//
-//            someDamStrategy(turnsToWait);
-//
-//        }
 
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         int numOfEnemies = enemies.length;
@@ -145,8 +91,6 @@ public class Flagrunner {
 
         int healthForMicro = 600;
 
-
-
         attack();
         if (!crumbsAroundImmaGoForThose(numOfEnemies)) { // if we did not go for visible crumbs, do a normal turn
             if (!doMicro(healthForMicro)) {
@@ -156,7 +100,6 @@ public class Flagrunner {
                 utility.placeBestTrap(rc.senseNearbyRobots(10, rc.getTeam().opponent())); // subject to change
             }
             attack();
-
 
             if (rc.getHealth() > healthForMicro) {
                 RobotInfo[] nearishEnemies = rc.senseNearbyRobots(10, rc.getTeam().opponent());
@@ -188,91 +131,28 @@ public class Flagrunner {
         if (numOfEnemies > 1) return false;
         if (crumbsAround.length == 0) return false;
 
-//        MapLocation closestCrumb = crumbsAround[0];
-//        if (currentCrumbLoc == null) {
-//            for (MapLocation crumb : crumbsAround) {
-//                if (inaccessibleCrumbs.contains(crumb)) continue;
-//                if (rc.getLocation().distanceSquaredTo(crumb) < rc.getLocation().distanceSquaredTo(closestCrumb)) {
-//                    closestCrumb = crumb;
-//                }
-//            }
-//        } else {
-//            closestCrumb = currentCrumbLoc;
-//        }
-//        if (currentCrumbLoc == null) currentCrumbLoc = closestCrumb;
-//        // if we are going to a crumb, and it is the same crumb as the last 10 rounds, then it is inaccessible. add it to the list of inaccessible crumbs, and choose a new crumb to go for, and reset the counter
-//        if (currentCrumbLoc.equals(closestCrumb)) {
-//            roundsSpentGettingToCrumb++;
-//            rc.setIndicatorString("Going for crumb: " + currentCrumbLoc + " for " + roundsSpentGettingToCrumb + " rounds");
-//            if (roundsSpentGettingToCrumb >= giveUpOnGettingToTheCrumbAfterThisManyRounds) {
-//                rc.setIndicatorString("Giving up on crumb: " + currentCrumbLoc);
-//                inaccessibleCrumbs.add(currentCrumbLoc);
-//                currentCrumbLoc = null;
-//                roundsSpentGettingToCrumb = 0;
-//            }
-//        } else {
-//            rc.setIndicatorString("Now going for crumb: " + closestCrumb);
-//            currentCrumbLoc = closestCrumb;
-//            roundsSpentGettingToCrumb = 0;
-//        }
-
         MapLocation closestCrumb = null;
         for (MapLocation crumb : crumbsAround) {
-            if (inaccessibleCrumbs.contains(crumb)) {
-//                if (rc.getID() == 11852) System.out.println("crumb is inaccessible " + crumb);
-                continue;
-            }
+            if (inaccessibleCrumbs.contains(crumb)) continue;
             if (closestCrumb == null || rc.getLocation().distanceSquaredTo(crumb) < rc.getLocation().distanceSquaredTo(closestCrumb)) {
                 closestCrumb = crumb;
             }
         }
 
-//        if (rc.getID() == 13926) System.out.println(closestCrumb);
-//        if (currentCrumbLoc == null) currentCrumbLoc = closestCrumb;
-//
-//        if (currentCrumbLoc == null) return false;
-//
-//        if (currentCrumbLoc != null) System.out.println(closestCrumb);
-
-//        if (currentCrumbLoc == null) currentCrumbLoc = closestCrumb;
-//
-//        if (currentCrumbLoc.equals(closestCrumb)) {
-//            roundsSpentGettingToCrumb++;
-//            rc.setIndicatorString("Going for crumb: " + currentCrumbLoc + " for " + roundsSpentGettingToCrumb + " rounds");
-//            if (roundsSpentGettingToCrumb >= giveUpOnGettingToTheCrumbAfterThisManyRounds) {
-//                rc.setIndicatorString("Giving up on crumb: " + currentCrumbLoc);
-//                inaccessibleCrumbs.add(currentCrumbLoc);
-//                if (rc.getID() == 11852) System.out.println(inaccessibleCrumbs);
-//                currentCrumbLoc = null;
-//                roundsSpentGettingToCrumb = 0;
-//            }
-//        } else {
-//            rc.setIndicatorString("Now going for crumb: " + closestCrumb);
-//            currentCrumbLoc = closestCrumb;
-//            roundsSpentGettingToCrumb = 0;
-//        }
-
         if (closestCrumb != null) {
             roundsSpentGettingToCrumb++;
-//            rc.setIndicatorString("Going for crumb: " + closestCrumb + " for " + roundsSpentGettingToCrumb + " rounds");
             if (roundsSpentGettingToCrumb >= giveUpOnGettingToTheCrumbAfterThisManyRounds) {
-//                rc.setIndicatorString("Giving up on crumb: " + closestCrumb);
                 if (!inaccessibleCrumbs.contains(closestCrumb)) {
                     inaccessibleCrumbs.add(closestCrumb);
                     writeInaccessibleCrumbToArray(closestCrumb);
                 }
-//                if (rc.getID() == 11852) System.out.println(inaccessibleCrumbs);
                 closestCrumb = null;
                 roundsSpentGettingToCrumb = 0;
             }
         } else {
-//            rc.setIndicatorString("no crumbs nearby man!!");
             roundsSpentGettingToCrumb = 0;
             return false;
         }
-
-
-
 
         bugNav.moveTo(closestCrumb);
         return true;
@@ -280,7 +160,6 @@ public class Flagrunner {
 
     void writeInaccessibleCrumbToArray(MapLocation myInaccessibleCrumbLocIWantToWrite) throws GameActionException {
         MapLocation currentInaccessibleCrumb = utility.intToLocation(rc.readSharedArray(62));
-        int localIDOfDuckThatWroteTheInaccessibleCrumbLoc = rc.readSharedArray(63);
         if (currentInaccessibleCrumb.equals(NONELOCATION)) { // free real estate !!!
             rc.writeSharedArray(62, utility.locationToInt(myInaccessibleCrumbLocIWantToWrite));
             rc.writeSharedArray(63, localID);
@@ -299,8 +178,6 @@ public class Flagrunner {
         else return currentInaccessibleCrumb;
     }
 
-
-
     public boolean tooFewGroupMembersAround(int lessThanThis) throws GameActionException {
         RobotInfo[] robotInfos = rc.senseNearbyRobots(-1, rc.getTeam());
         return robotInfos.length < lessThanThis;
@@ -314,9 +191,6 @@ public class Flagrunner {
 
     public MapLocation setLocationForGroup() throws GameActionException {
         MapLocation locForGroup = null;
-
-//        MapLocation target = getPriorityEnemy(rc.senseNearbyRobots(-1, rc.getTeam().opponent()));
-//        if (target != null) return target;
 
         // see if we can sense any enemy flags
         FlagInfo[] enemyFlags = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
@@ -356,12 +230,10 @@ public class Flagrunner {
                 }
             }
         }
-//        if (rc.getRoundNum() == 140) System.out.println("locForGroup: " + locForGroup);
         if (locForGroup == null)
             locForGroup = utility.getClosetSpawnAreaCenter(); // by my logic, this should never happen, but hey
 
         // write this locForGroup into the spot in the shared array for this group
-//        rc.setIndicatorDot(locForGroup, 0, 0, 255);
         utility.writeToFlagrunnerGroupIndex(locForGroup);
         return locForGroup;
     }
@@ -381,7 +253,6 @@ public class Flagrunner {
         for (RobotInfo enemyRobot : attackableEnemies) {
             if (enemyRobot.health < lowestHealthEnemy.health) lowestHealthEnemy = enemyRobot;
         }
-//        rc.setIndicatorString(lowestHealthEnemy.location.toString());
         return lowestHealthEnemy.location;
     }
 
@@ -488,30 +359,17 @@ public class Flagrunner {
             oppFlags.sort(Comparator.comparingInt(flag -> rc.getLocation().distanceSquaredTo(flag)));
             oppFlagsIndex = 0;
 
-//            rc.writeSharedArray(51, utility.locationToInt(oppFlags.get(0)));
-//            rc.writeSharedArray(52, utility.locationToInt(oppFlags.get(1)));
-//            rc.writeSharedArray(53, utility.locationToInt(oppFlags.get(2)));
+            rc.writeSharedArray(51, utility.locationToInt(oppFlags.get(0)));
+            rc.writeSharedArray(52, utility.locationToInt(oppFlags.get(1)));
+            rc.writeSharedArray(53, utility.locationToInt(oppFlags.get(2)));
         }
         tryPickUpFlag();
-    }
-
-    private void goToEnemyFlagrunners() throws GameActionException {
-        RobotInfo[] enemyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        for (RobotInfo enemyRobot : enemyRobots) {
-            if (enemyRobot.hasFlag()) {
-                bugNav.moveTo(enemyRobot.getLocation());
-                rc.setIndicatorString("AW HELL NAH WHERE U THINK UR GOING");
-            }
-        }
     }
 
     private void useBannedMovement(MapLocation locationForFlagrunnerGroup) throws GameActionException {
         RobotInfo[] friendlies = rc.senseNearbyRobots(-1, rc.getTeam());
         ArrayList<MapLocation> bannedPlaces = new ArrayList<>();
         for (RobotInfo robot : friendlies) {
-//            if (mapInfo.getMapLocation().isAdjacentTo(utility.getLocationOfMyGroupLeader())) {
-//                bannedPlaces.add(mapInfo.getMapLocation());
-//            }
             if (robot.hasFlag()) {
                 bannedPlaces.add(robot.getLocation());
 
@@ -522,247 +380,14 @@ public class Flagrunner {
                 }
             }
         }
-//        movement.hardMove(utility.getLocationOfMyGroupLeader(), bannedPlaces);
-//        movement.hardMove(locationForFlagrunnerGroup, bannedPlaces);
 
         if (bannedPlaces.isEmpty()) bugNav.moveTo(locationForFlagrunnerGroup);
         else movement.hardMove(locationForFlagrunnerGroup, bannedPlaces);
     }
 
-//    private void smartMovement(MapLocation location) throws GameActionException {
-////        if (rc.canSenseLocation(location)) {
-////            RobotInfo flagCarrier = rc.senseRobotAtLocation(location);
-////            if (flagCarrier != null && flagCarrier.hasFlag() && flagCarrier.getTeam() == rc.getTeam()) {
-////                useBannedMovement();
-////                return;
-////            }
-////        }
-////        if (coolRobotInfoArray[utility.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex() - 1].getHasFlag()) {
-////            useBannedMovement();
-////        }
-//        RobotInfo[] friendlies = rc.senseNearbyRobots(-1, rc.getTeam());
-//
-//
-//        movement.hardMove(location);
-////        bugNav.moveTo(location);
-//    }
-
     // ---------------------------------------------------------------------------------
     //                            attacking/healing micro
     // ---------------------------------------------------------------------------------
-
-//    public void someDamStrategy(int turnsToWait) throws GameActionException {
-//        if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS - 3 || rc.getRoundNum() == GameConstants.SETUP_ROUNDS - 2) {
-//            MapInfo[] damStuff = rc.senseNearbyMapInfos();
-//            boolean byDam = false;
-//            for (MapInfo location : damStuff) {
-//                if (location.isDam() && rc.getLocation().isAdjacentTo(location.getMapLocation())) {
-//                    byDam = true;
-//                }
-//            }
-//            if (byDam && rc.canBuild(TrapType.STUN, rc.getLocation()))
-//                utility.placeTrapNearEnemySingleLoc(rc.getLocation());
-//
-////            RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-////            if (enemies.length > 0) {
-////                iAmStrategicallyWaiting = true; // if we can sense an enemy over the dam
-////                rc.setIndicatorString("I will be waiting.");
-////                MapLocation closestEnemy = closestEnemyToMe(enemies);
-//////                if (rc.canMove(rc.getLocation().directionTo(closestEnemy).opposite())) {
-//////                    movement.smallMove(rc.getLocation().directionTo(closestEnemy).opposite());
-//////                }
-////            }
-//            iAmStrategicallyWaiting = true;
-//            rc.setIndicatorString("I will be waiting.");
-//        }
-//        if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS - 1) { // see all the traps that have been laid down
-//            stunTrapsLastRound = stunTrapsNearMe();
-//            // get the absolute closest dam location around me
-//            MapLocation closestDamLoc = getClosestDamLoc();
-//            if (closestDamLoc != null) dirAwayFromDam = rc.getLocation().directionTo(closestDamLoc).opposite();
-//            else dirAwayFromDam = rc.getLocation().directionTo(utility.getClosetSpawnAreaCenter());
-//        }
-//        ArrayList<MapLocation> stunTrapsNearMe = stunTrapsNearMe();
-//        if (iAmStrategicallyWaiting) {
-//            if (!stunTrapsNearMe.isEmpty()) { // if we are waiting for the enemy behind our stun traps
-//                if (rc.getRoundNum() >= GameConstants.SETUP_ROUNDS && rc.getRoundNum() <= GameConstants.SETUP_ROUNDS + turnsToWait) { // wait for the enemy for 8(?) turns
-//                    RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-////                if (enemies.length == 0) {
-////                    rc.setIndicatorString("No enemies neaby man!!");
-////                    iAmStrategicallyWaiting = false; // where'd they go??? nobody to wait for anymore so give up waiting
-////                } else { // there are still enemies potentially tripping our traps!
-//                    if (!stunTrapsLastRound.isEmpty()) {
-//                        // check if any enemy position coincides with being adjacent to a stun trap that was placed last round. if so, we know they triggered it on their last move!!!
-//                        outer:
-//                        for (RobotInfo enemy : enemies) {
-//                            for (MapLocation stunTrap : stunTrapsLastRound) {
-//                                if (enemy.getLocation().isAdjacentTo(stunTrap)) { // an enemy triggered a stun trap! GO CRAZY!!!
-//                                    iAmStrategicallyWaiting = false;
-//                                    goBeserk = true;
-//                                    rc.setIndicatorString("THEY TRIPPED A STUN RAHHHHHHH");
-//                                    break outer; // break from the nested loop
-//                                }
-//                            }
-//                        }
-//                    }
-//                    // make sure you have a stun trap in between you and the closest enemy
-//                    MapLocation closestEnemy = closestEnemyToMe(enemies);
-//                    // get the maplocation of the spot behind the closest stuntrap to us, where behind means that being in thgat spot places the stun trap in between us and the enemy
-//                    MapLocation closestStunTrap = getClosestStunTrapToMe();
-//
-//                    // go sit behind the closest stun trap so you are safe from the closest enemy
-////                    MapLocation spotBehindClosestStunTrap = closestStunTrap.add(closestEnemy.directionTo(closestStunTrap)); // hopefully this works man
-////                    rc.setIndicatorString("This is my safe place: " + spotBehindClosestStunTrap.toString());
-////                    if (!rc.getLocation().isAdjacentTo(spotBehindClosestStunTrap)) movement.smallMove(rc.getLocation().directionTo(spotBehindClosestStunTrap));
-//
-////                    MapLocation spotToWait = getClosestDamLoc().add(dirAwayFromDam);
-////                    rc.setIndicatorString("This is my safe place: " + spotToWait.toString());
-////                    if (!rc.getLocation().equals(spotToWait)) movement.smallMove(rc.getLocation().directionTo(spotToWait));
-//
-//                    MapLocation spotToWait = closestStunTrap.add(dirAwayFromDam).add(dirAwayFromDam);
-////                rc.setIndicatorString("This is my safe place: " + spotToWait.toString());
-//                    if (!rc.getLocation().equals(spotToWait))
-//                        movement.smallMove(rc.getLocation().directionTo(spotToWait));
-//
-////                }
-//                }
-//            } else {
-//                attackMicroWithMoveAvailable();
-//            }
-//            if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS + turnsToWait + 1) { // if we waited for the enemy for 8 turns, and they didn't come, go back to normal
-//                iAmStrategicallyWaiting = false;
-//            }
-//        }
-//    }
-//
-//    public void berserkMode() throws GameActionException {
-//        RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-//        MapLocation closestAttackableEnemy = getAttackableEnemyWithLowestHealth(enemies);
-//        if (closestAttackableEnemy != null) {
-//            if (rc.canAttack(closestAttackableEnemy)) rc.attack(closestAttackableEnemy);
-//            movement.smallMove(rc.getLocation().directionTo(closestAttackableEnemy).opposite());
-//        }
-//        if (rc.isActionReady()) {
-//            MapLocation closestEnemy = closestEnemyToMe(enemies);
-//            if (closestEnemy != null) {
-//                if (rc.canMove(rc.getLocation().directionTo(closestEnemy))) {
-//                    movement.smallMove(rc.getLocation().directionTo(closestEnemy));
-//                    closestAttackableEnemy = getAttackableEnemyWithLowestHealth(enemies);
-//                    if (closestAttackableEnemy != null && rc.canAttack(closestAttackableEnemy)) rc.attack(closestEnemy);
-//                }
-//            } else {
-//                tryToHeal();
-//            }
-//        }
-//
-//        if (turnsToGoBeserkFor == 0) {
-//            goBeserk = false;
-//            turnsToGoBeserkFor = 10;
-//        } else {
-//            turnsToGoBeserkFor--;
-//        }
-//    }
-
-    /**
-     * Use this attacking/healing micro when you do NOT want to move in the micro! (you want to beeline to a location and
-     * not waste your movement in the micro (getting to the place is super urgent!!!!!)
-     *
-     * @throws GameActionException could not attack or heal smthn we tried to I think
-     */
-//    public void attackMicroWithNoMoveAvailable() throws GameActionException {
-//        // find the closest enemy to me. if I can attack it, attack it. if it is one movement away from being
-//        // able to attack me, do nothing (save attack for next turn when they are maybe closer). else (the enemy is
-//        // too far to care about), heal yourself, or others
-//        RobotInfo[] enemyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-//
-//        if (enemyRobots.length != 0) {
-//            MapLocation attackableEnemyLocation = getAttackableEnemyWithLowestHealth(enemyRobots);
-//            Utility.MyPair<Boolean, MapLocation> canIBeAttackedNextTurn = canEnemyAttackMeNextTurn(enemyRobots);
-//            if (attackableEnemyLocation != null) { // if there's an opp I can attack, best believe we running his fade
-//                if (rc.canAttack(attackableEnemyLocation)) rc.attack(attackableEnemyLocation);
-//            } else if (canIBeAttackedNextTurn.first()) { // if we can be attacked next turn, not much we can really do
-//                // without a movement, so just save attack cooldown for next turn to attack them maybe
-//                // do nothing
-//            } else { // if we can't be attacked next turn, heal up the brothas
-//                tryToHeal();
-//            }
-//        } else { // no worries in the world, just heal up the gang
-//            tryToHeal();
-//        }
-//    }
-
-//    /**
-//     * Use this attacking/healing micro when you DO want to move in the micro! (for most cases. Essentially make your
-//     * journey longer in exchange for being able to move during your attack/healing micro)
-//     *
-//     * @throws GameActionException if we cant move, attack, or heal I think???
-//     */
-//    public void attackMicroWithMoveAvailable() throws GameActionException {
-//        RobotInfo[] enemyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-//
-//        if (enemyRobots.length != 0) {
-//            MapLocation attackableEnemyLocation = getAttackableEnemyWithLowestHealth(enemyRobots);
-//            Utility.MyPair<Boolean, MapLocation> canIBeAttackedNextTurn = canEnemyAttackMeNextTurn(enemyRobots);
-//            if (attackableEnemyLocation != null) { // somebody can attack us! hit them and run away
-//                if (rc.canAttack(attackableEnemyLocation)) rc.attack(attackableEnemyLocation);
-////                if (movement.MovementStack.empty()) moveAwayFromEnemyIJustAttacked(attackableEnemyLocation);
-//                doMicro();
-//            } else if (canIBeAttackedNextTurn.first()) { // someone can potentially attack us next turn if they move to us. go smack them
-//                if (rc.getHealth() >= 600) {
-//                    if (rc.isActionReady()) { // we can fight back, so go smack them
-//                        movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()));
-////                        if (movement.MovementStack.empty()) movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()));
-//                        attackableEnemyLocation = getAttackableEnemyWithLowestHealth(enemyRobots);
-//                        if (attackableEnemyLocation != null && rc.canAttack(attackableEnemyLocation))
-//                            rc.attack(attackableEnemyLocation);
-//                    } else { // we cannot fight back, try to run
-//                        movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
-//                    }
-//                } else {
-//                    doMicro();
-////                    movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
-////                    if (movement.MovementStack.empty()) movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
-//
-////                    movement.smallMove(rc.getLocation().directionTo(canIBeAttackedNextTurn.second()).opposite());
-////                    placeModestBombsSpaced(enemyRobots);
-////                    utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent()));
-//
-//                }
-////                if (!movement.MovementStack.empty()) movement.hardMove(locationForFlagrunnerGroup);
-//
-//
-////                if (coolRobotInfoArray[utility.readLocalIDOfGroupLeaderFromFlagrunnerGroupIndex() - 1].getHasFlag()) {
-////                    useBannedMovement();
-////                } else {
-////                    movement.hardMove(locationForFlagrunnerGroup);
-////                }
-//
-////                smartMovement(locationForFlagrunnerGroup);
-//                useBannedMovement(locationForFlagrunnerGroup);
-//
-//                utility.placeTrapNearEnemies(rc.senseNearbyRobots(10, rc.getTeam().opponent()));
-//
-////                bugNav.moveTo(locationForFlagrunnerGroup);
-////                tryToHeal();
-//
-//            } else { // there's an enemy, but they cant attack us next turn. save our action cooldown, and just move to our goal
-//                // two strats here: either stay put and try to heal,
-//                tryToHeal();
-//                // or move to the goal and don't heal
-////                movement.hardMove(locationForFlagrunnerGroup);
-////                smartMovement(locationForFlagrunnerGroup);
-//                useBannedMovement(locationForFlagrunnerGroup);
-//                tryToHeal();
-//            }
-//        } else { // zero enemies on our radar, so walk to spot we gotta go, and heal up
-////            movement.hardMove(locationForFlagrunnerGroup);
-//            tryToHeal();
-////            smartMovement(locationForFlagrunnerGroup);
-//            useBannedMovement(locationForFlagrunnerGroup);
-//            tryToHeal();
-//        }
-//    }
-
 
     public void someDamStrategy(int turnsToWait) throws GameActionException {
         if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS - 3 || rc.getRoundNum() == GameConstants.SETUP_ROUNDS - 2) {
@@ -777,23 +402,9 @@ public class Flagrunner {
             boolean anyEnemyCloseEnoughToWarrantPlacingATrap = someEnemies.length > 0;
             if (byDam && anyEnemyCloseEnoughToWarrantPlacingATrap) {
                 MapLocation closestEnemy = closestEnemyToMe(someEnemies);
-//                if (rc.canBuild(TrapType.STUN, rc.getLocation()))
-//                    utility.placeTrapNearEnemySingleLoc(rc.getLocation());
-//                System.out.println("tryna place trap");
                 utility.placeTrapNearEnemy(closestEnemy);
             }
-
-//            RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-//            if (enemies.length > 0) {
-//                iAmStrategicallyWaiting = true; // if we can sense an enemy over the dam
-//                rc.setIndicatorString("I will be waiting.");
-//                MapLocation closestEnemy = closestEnemyToMe(enemies);
-////                if (rc.canMove(rc.getLocation().directionTo(closestEnemy).opposite())) {
-////                    movement.smallMove(rc.getLocation().directionTo(closestEnemy).opposite());
-////                }
-//            }
             iAmStrategicallyWaiting = true;
-//            rc.setIndicatorString("I will be waiting.");
         }
         if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS - 1) { // see all the traps that have been laid down
             stunTrapsLastRound = stunTrapsNearMe();
@@ -825,61 +436,16 @@ public class Flagrunner {
                             }
                         }
                     }
-                    // make sure you have a stun trap in between you and the closest enemy
-                    MapLocation closestEnemy = closestEnemyToMe(enemies);
                     // get the maplocation of the spot behind the closest stuntrap to us, where behind means that being in thgat spot places the stun trap in between us and the enemy
                     MapLocation closestStunTrap = getClosestStunTrapToMe();
-
-                    // go sit behind the closest stun trap so you are safe from the closest enemy
-//                    MapLocation spotBehindClosestStunTrap = closestStunTrap.add(closestEnemy.directionTo(closestStunTrap)); // hopefully this works man
-//                    rc.setIndicatorString("This is my safe place: " + spotBehindClosestStunTrap.toString());
-//                    if (!rc.getLocation().isAdjacentTo(spotBehindClosestStunTrap)) movement.smallMove(rc.getLocation().directionTo(spotBehindClosestStunTrap));
-
-//                    MapLocation spotToWait = getClosestDamLoc().add(dirAwayFromDam);
-//                    rc.setIndicatorString("This is my safe place: " + spotToWait.toString());
-//                    if (!rc.getLocation().equals(spotToWait)) movement.smallMove(rc.getLocation().directionTo(spotToWait));
-
                     MapLocation spotToWait = closestStunTrap.add(dirAwayFromDam).add(dirAwayFromDam);
-//                rc.setIndicatorString("This is my safe place: " + spotToWait.toString());
                     if (!rc.getLocation().equals(spotToWait))
                         movement.smallMove(rc.getLocation().directionTo(spotToWait));
-
-//                }
                 }
-            } else {
-//                attackMicroWithMoveAvailable();
             }
             if (rc.getRoundNum() == GameConstants.SETUP_ROUNDS + turnsToWait + 1) { // if we waited for the enemy for enough turns, and they didn't come, go back to normal
                 iAmStrategicallyWaiting = false;
             }
-        }
-    }
-
-    public void berserkMode() throws GameActionException {
-        RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        MapLocation closestAttackableEnemy = getAttackableEnemyWithLowestHealth(enemies);
-        if (closestAttackableEnemy != null) {
-            if (rc.canAttack(closestAttackableEnemy)) rc.attack(closestAttackableEnemy);
-            movement.smallMove(rc.getLocation().directionTo(closestAttackableEnemy).opposite());
-        }
-        if (rc.isActionReady()) {
-            MapLocation closestEnemy = closestEnemyToMe(enemies);
-            if (closestEnemy != null) {
-                if (rc.canMove(rc.getLocation().directionTo(closestEnemy))) {
-                    movement.smallMove(rc.getLocation().directionTo(closestEnemy));
-                    closestAttackableEnemy = getAttackableEnemyWithLowestHealth(enemies);
-                    if (closestAttackableEnemy != null && rc.canAttack(closestAttackableEnemy)) rc.attack(closestEnemy);
-                }
-            } else {
-                tryToHeal();
-            }
-        }
-
-        if (turnsToGoBeserkFor == 0) {
-            goBeserk = false;
-            turnsToGoBeserkFor = 10;
-        } else {
-            turnsToGoBeserkFor--;
         }
     }
 
@@ -990,23 +556,14 @@ public class Flagrunner {
         canAttack = rc.isActionReady();
         currentLoc = getClosestEnemy(robots);
 
-//        shouldPlaySafe = true;
-
 
         if (rc.getHealth() < healthForMicro && rc.getLocation().distanceSquaredTo(currentLoc) <= 15) {
-//            rc.setIndicatorString("we are low health and someone is in vision radius, play safe!!! (doMicro)");
             shouldPlaySafe = true;
         }
 
         if (currentLoc != null && rc.getLocation().distanceSquaredTo(currentLoc) <= GameConstants.ATTACK_RADIUS_SQUARED) {
-//            rc.setIndicatorString("someone is in attack range, play safe!!! (doMicro)");
             shouldPlaySafe = true;
         }
-//
-//        if (rc.getLocation().distanceSquaredTo(currentLoc) <= 15) {
-//            rc.setIndicatorString("we are low health and someone is in vision radius, play safe!!! (doMicro)");
-//            shouldPlaySafe = true;
-//        }
 
         if (!shouldPlaySafe) return false;
         alwaysInRange = !canAttack;
@@ -1044,7 +601,6 @@ public class Flagrunner {
         MicroInfo bestMicro = microInfo[8];
         for (int i = 0; i < 8; ++i) {
             if (microInfo[i].isBetter(bestMicro)) bestMicro = microInfo[i];
-//            if (rc.getRoundNum() == 243 && rc.getID() == 10087)System.out.println();
         }
 
         return apply(bestMicro);
@@ -1052,8 +608,6 @@ public class Flagrunner {
 
     boolean apply(MicroInfo bestMicro) throws GameActionException {
         if (bestMicro.dir == Direction.CENTER) return true;
-
-//        rc.setIndicatorDot(rc.getLocation().add(bestMicro.dir), 0, 255, 0);
 
         if (rc.canMove(bestMicro.dir)) {
             rc.move(bestMicro.dir);
@@ -1071,21 +625,6 @@ public class Flagrunner {
         }
     }
 
-    void attackLowestHealth() throws GameActionException {
-        if (!rc.isActionReady()) return;
-        RobotInfo[] robots = rc.senseNearbyRobots(GameConstants.ATTACK_RADIUS_SQUARED, rc.getTeam().opponent());
-        MapLocation target = null;
-        for (RobotInfo enemy : robots) {
-            if (target == null || enemy.health < rc.senseRobotAtLocation(target).health) {
-                target = enemy.location;
-            }
-        }
-        if (target != null) {
-            if (rc.canAttack(target)) rc.attack(target);
-        }
-    }
-
-
     void moveToTarget() throws GameActionException {
         if (!rc.isMovementReady()) return;
 
@@ -1095,6 +634,14 @@ public class Flagrunner {
             useBannedMovement(target);
             return;
         }
+//
+//        for (Utility.CoolRobotInfo coolRobotInfo : coolRobotInfoArray) {
+//            if (coolRobotInfo.getHasFlag()) {
+//                useBannedMovement(coolRobotInfo.getCurLocation());
+//                return;
+//            }
+//        }
+
         if (tryMoveToOppFlag()) return;
 
         // Rarely will call this

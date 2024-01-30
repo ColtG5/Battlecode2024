@@ -289,6 +289,9 @@ public class Utility {
         if (localID <= FLAGRUNNERS_IN_GROUP_1) return 1;
         else if (localID <= FLAGRUNNERS_IN_GROUP_1 + FLAGRUNNERS_IN_GROUP_2) return 2;
         else if (localID <= FLAGRUNNERS_IN_GROUP_1 + FLAGRUNNERS_IN_GROUP_2 + FLAGRUNNERS_IN_GROUP_3) return 3;
+        else if (localID == 48) return 1;
+        else if (localID == 49) return 2;
+        else if (localID == 50) return 3;
         else {
             System.out.println("\n\n\n NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO GETFLAGRUNNERGROUP FAILED \n\n\n");
             return -9000;
@@ -453,13 +456,11 @@ public class Utility {
                         closestSpawn = spawn;
                 }
                 if (rc.canSpawn(closestSpawn)) {
-                    System.out.println("SPAWNING TO DEFEND DUCK " + duckID + " AT " + closestSpawn);
                     rc.spawn(closestSpawn);
                     return true;
                 }
                 for (Direction dir : directions) {
                     if (rc.canSpawn(closestSpawn.add(dir))) {
-                        System.out.println("SPAWNING TO DEFEND DUCK " + duckID + " AT " + closestSpawn);
                         rc.spawn(closestSpawn.add(dir));
                         return true;
                     }

@@ -69,7 +69,7 @@ public strictfp class RobotPlayer {
         // Specialists
         Scout scout = new Scout(rc, movement, bugNav, utility);
         Flagrunner flagrunner = new Flagrunner(rc, movement, utility, bugNav, symmetry);
-        Defender defender = new Defender(rc, movement, bugNav, utility);
+        Defender defender = new Defender(rc, movement, bugNav, utility, flagrunner);
 
         // either strategies
 
@@ -79,7 +79,6 @@ public strictfp class RobotPlayer {
                 if (rc.getRoundNum() == 1) {
                     localID = utility.makeLocalID(assigningLocalIDIndex);
                     if (localID == 1) {
-                        System.out.println("LocalID duck 1 is :" + rc.getID());
                         rc.writeSharedArray(62, utility.locationToInt(NONELOCATION));
                     }
                     movement.setLefty((localID % 2) == 1);
