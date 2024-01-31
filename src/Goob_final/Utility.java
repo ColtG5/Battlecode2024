@@ -555,9 +555,9 @@ public class Utility {
         if (rc.getRoundNum() <= GameConstants.SETUP_ROUNDS) return;
         if (enemies.length < 3) return;
 
-        MapInfo[] allStunsAroundMe = rc.senseNearbyMapInfos(8);
+        MapInfo[] stunsAroundMe = rc.senseNearbyMapInfos(10);
 
-        for (MapInfo info : allStunsAroundMe) {
+        for (MapInfo info : stunsAroundMe) {
             if (info.getTrapType() == TrapType.STUN) return;
         }
 

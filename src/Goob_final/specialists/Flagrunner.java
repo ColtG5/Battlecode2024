@@ -61,6 +61,15 @@ public class Flagrunner {
             movement.setLefty(utility.getMyFlagrunnerGroup() % 2 == 0);
         }
 
+        if (rc.getRoundNum() <= GameConstants.SETUP_ROUNDS && rc.getRoundNum() > GameConstants.SETUP_ROUNDS - 60) { // sit by dam, and trap around there if u can
+            MapInfo[] damStuff = rc.senseNearbyMapInfos();
+            for (MapInfo location : damStuff) {
+                if (location.isDam() && rc.getLocation().isAdjacentTo(location.getMapLocation())) {
+                    return;
+                }
+            }
+        }
+
         if (oppFlags == null || oppFlags.isEmpty() || oppFlags.size() > 3) senseFlagsAroundMe();
 
         boolean isLeader = utility.amIAGroupLeader();
@@ -95,10 +104,8 @@ public class Flagrunner {
         if (!crumbsAroundImmaGoForThose(numOfEnemies)) { // if we did not go for visible crumbs, do a normal turn
             if (!doMicro(healthForMicro)) {
                 moveToTarget();
-                utility.placeBestTrap(rc.senseNearbyRobots(10, rc.getTeam().opponent())); // subject to change
-            } else {
-                utility.placeBestTrap(rc.senseNearbyRobots(10, rc.getTeam().opponent())); // subject to change
             }
+            utility.placeBestTrap(rc.senseNearbyRobots(10, rc.getTeam().opponent())); // subject to change
             attack();
 
             if (rc.getHealth() > healthForMicro) {
@@ -356,7 +363,6 @@ public class Flagrunner {
 
         if (oppFlags == null || oppFlags.isEmpty() ||  oppFlags.size() > 3) {
             oppFlags = new ArrayList<>(Arrays.asList(symmetryLocs));
-            oppFlags.sort(Comparator.comparingInt(flag -> rc.getLocation().distanceSquaredTo(flag)));
             oppFlagsIndex = 0;
 
             rc.writeSharedArray(51, utility.locationToInt(oppFlags.get(0)));
@@ -621,7 +627,7 @@ public class Flagrunner {
         RobotInfo[] robots = rc.senseNearbyRobots(GameConstants.ATTACK_RADIUS_SQUARED, rc.getTeam().opponent());
         MapLocation target = getPriorityEnemy(robots);
         if (target != null) {
-            if (rc.canAttack(target)) rc.attack(target);
+            while (rc.canAttack(target)) rc.attack(target);
         }
     }
 
@@ -634,13 +640,6 @@ public class Flagrunner {
             useBannedMovement(target);
             return;
         }
-//
-//        for (Utility.CoolRobotInfo coolRobotInfo : coolRobotInfoArray) {
-//            if (coolRobotInfo.getHasFlag()) {
-//                useBannedMovement(coolRobotInfo.getCurLocation());
-//                return;
-//            }
-//        }
 
         if (tryMoveToOppFlag()) return;
 
@@ -663,25 +662,11 @@ public class Flagrunner {
 
             if (oppFlags.isEmpty()) return false;
         }
-
-        if (rc.getLocation().isAdjacentTo(oppFlags.get(oppFlagsIndex)) && !rc.canPickupFlag(oppFlags.get(oppFlagsIndex))) {
-            if (symmetry.isSymmetryValid()) {
-                if (utility.intToLocation(rc.readSharedArray(51)).equals(oppFlags.get(oppFlagsIndex)))
-                    rc.writeSharedArray(51, 0);
-                if (utility.intToLocation(rc.readSharedArray(52)).equals(oppFlags.get(oppFlagsIndex)))
-                    rc.writeSharedArray(52, 0);
-                if (utility.intToLocation(rc.readSharedArray(53)).equals(oppFlags.get(oppFlagsIndex)))
-                    rc.writeSharedArray(53, 0);
-            }
-            oppFlags.remove(oppFlagsIndex);
-
-            if (oppFlags.isEmpty()) return false;
-            oppFlagsIndex %= oppFlags.size();
-        }
+        oppFlags.sort(Comparator.comparingInt(flag -> rc.getLocation().distanceSquaredTo(flag)));
 
         FlagInfo[] flagInfo = rc.senseNearbyFlags(-1, rc.getTeam().opponent());
-
-        if (rc.canSenseLocation(oppFlags.get(oppFlagsIndex)) && flagInfo.length == 0) {
+        if ((rc.getLocation().isAdjacentTo(oppFlags.get(oppFlagsIndex)) && !rc.canPickupFlag(oppFlags.get(oppFlagsIndex)))
+            || (rc.canSenseLocation(oppFlags.get(oppFlagsIndex)) && flagInfo.length == 0)) {
             if (symmetry.isSymmetryValid()) {
                 if (utility.intToLocation(rc.readSharedArray(51)).equals(oppFlags.get(oppFlagsIndex)))
                     rc.writeSharedArray(51, 0);
@@ -690,7 +675,6 @@ public class Flagrunner {
                 if (utility.intToLocation(rc.readSharedArray(53)).equals(oppFlags.get(oppFlagsIndex)))
                     rc.writeSharedArray(53, 0);
             }
-
             oppFlags.remove(oppFlagsIndex);
 
             if (oppFlags.isEmpty()) return false;
@@ -715,10 +699,7 @@ public class Flagrunner {
         int minDistanceToEnemy = INF;
         int canLandHit = 0;
         int enemiesInAttackRange = 0;
-        int enemiesInVisionRange = 0;
         int minDistToAlly = INF;
-
-        MapLocation target = null;
 
         boolean canMove = true;
 
@@ -733,12 +714,7 @@ public class Flagrunner {
             int dist = location.distanceSquaredTo(currentLoc);
             if (dist < minDistanceToEnemy) minDistanceToEnemy = dist;
             if (dist <= GameConstants.ATTACK_RADIUS_SQUARED) enemiesInAttackRange++;
-            if (dist <= GameConstants.VISION_RADIUS_SQUARED) enemiesInVisionRange++;
-
-            if (dist <= GameConstants.ATTACK_RADIUS_SQUARED && canAttack) {
-                canLandHit = 1;
-                target = currentLoc;
-            }
+            if (dist <= GameConstants.ATTACK_RADIUS_SQUARED && canAttack) canLandHit = 1;
         }
 
         void updateAlly() {
@@ -755,43 +731,22 @@ public class Flagrunner {
         boolean isBetter(MicroInfo M) {
             // M is current best micro
 
-//            if (rc.getRoundNum() == 243 && rc.getID() == 10087) System.out.println("best micro: " + M.dir + " | micro we are checking: " + dir);
-
-
             // if best micro cannot move and this one can, then switch it
             if (canMove && !M.canMove) return true;
             // and if best micro can move and this one can't, don't switch it
             if (!canMove && M.canMove) return false;
 
-//            if (rc.getRoundNum() == 243 && rc.getID() == 10087) {
-//                System.out.println("enemies in attack range: " + enemiesInAttackRange + " best micro enemies in attack range: " + M.enemiesInAttackRange);
-//            }
-
             // FIRST CHECK: whichever micro puts u in spot with less enemies in attack range, do that one
             if (enemiesInAttackRange - canLandHit < M.enemiesInAttackRange - M.canLandHit) return true;
             if (enemiesInAttackRange - canLandHit > M.enemiesInAttackRange - M.canLandHit) return false;
-
-//            if (rc.getRoundNum() == 243 && rc.getID() == 10087) System.out.println("enemies in vision range: " + enemiesInVisionRange + " best micro enemies in vision range: " + M.enemiesInVisionRange);
-//
-//
-//            if (enemiesInVisionRange - canLandHit < M.enemiesInVisionRange - M.canLandHit) return true;
-//            if (enemiesInVisionRange - canLandHit > M.enemiesInVisionRange - M.canLandHit) return false;
-
-//            if (rc.getRoundNum() == 243 && rc.getID() == 10087) System.out.println("can land hit: " + canLandHit + " best micro can land hit: " + M.canLandHit);
 
             // SECOND CHECK: if above checks say that placement in between enemies is equal, do whatever micro hits someone
             if (canLandHit > M.canLandHit) return true;
             if (canLandHit < M.canLandHit) return false;
 
-//            if (rc.getRoundNum() == 243 && rc.getID() == 10087) System.out.println("min dist to ally: " + minDistToAlly + " best micro min dist to ally: " + M.minDistToAlly);
-
             // THIRD CHECK: if everything is god damn equal, do the one that puts you closer to more allies
             if (minDistToAlly < M.minDistToAlly) return true;
             if (minDistToAlly > M.minDistToAlly) return false;
-
-//            System.out.println("HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
-
-//            if (rc.getRoundNum() == 243 && rc.getID() == 10087) System.out.println("min dist to enemy: " + minDistanceToEnemy + " best micro min dist to enemy: " + M.minDistanceToEnemy);
 
             // FOURTH CHECK: if still undecided, HUH
             if (inRange()) return minDistanceToEnemy >= M.minDistanceToEnemy;

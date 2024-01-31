@@ -455,13 +455,13 @@ public class Utility {
                         closestSpawn = spawn;
                 }
                 if (rc.canSpawn(closestSpawn)) {
-                    System.out.println("SPAWNING TO DEFEND DUCK " + duckID + " AT " + closestSpawn);
+//                    System.out.println("SPAWNING TO DEFEND DUCK " + duckID + " AT " + closestSpawn);
                     rc.spawn(closestSpawn);
                     return true;
                 }
                 for (Direction dir : directions) {
                     if (rc.canSpawn(closestSpawn.add(dir))) {
-                        System.out.println("SPAWNING TO DEFEND DUCK " + duckID + " AT " + closestSpawn);
+//                        System.out.println("SPAWNING TO DEFEND DUCK " + duckID + " AT " + closestSpawn);
                         rc.spawn(closestSpawn.add(dir));
                         return true;
                     }
